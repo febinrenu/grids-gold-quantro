@@ -1048,6 +1048,28 @@ class PermissionsSeeder extends Seeder
                     'name' => 'support',
                 ],
 
+                // Jewelry (Grids Gold) module
+                [
+                    'id' => 242,
+                    'name' => 'jewelry_items_manage',
+                ],
+                [
+                    'id' => 243,
+                    'name' => 'gold_rates_view',
+                ],
+                [
+                    'id' => 244,
+                    'name' => 'gold_rates_manage',
+                ],
+                [
+                    'id' => 245,
+                    'name' => 'gold_rates_approve',
+                ],
+                [
+                    'id' => 246,
+                    'name' => 'jewelry_pricing_override',
+                ],
+
             ]
         );
     }
