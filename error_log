@@ -1,0 +1,2 @@
+[06-Jul-2026 20:40:39 UTC] PHP Fatal error:  Type of App\Mail\TenantApprovedMail::$locale must not be defined (as in class Illuminate\Mail\Mailable) in /home/quantrocousr/public_html/app/Mail/TenantApprovedMail.php on line 10
+[06-Jul-2026 20:54:25 UTC] PHP Fatal error:  Type of App\Mail\TenantApprovedMail::$locale must not be defined (as in class Illuminate\Mail\Mailable) in /home/quantrocousr/public_html/app/Mail/TenantApprovedMail.php on line 10

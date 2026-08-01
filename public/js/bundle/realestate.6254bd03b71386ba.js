@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunk=self.webpackChunk||[]).push([[9399],{25164(e,l,t){t.r(l),t.d(l,{default:()=>n});const u={name:"RealEstateModule"};const n=(0,t(14486).A)(u,function(){return(0,this._self._c)("router-view")},[],!1,null,null,null).exports}}]);
