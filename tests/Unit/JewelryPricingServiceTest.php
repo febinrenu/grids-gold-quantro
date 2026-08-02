@@ -20,7 +20,7 @@ class JewelryPricingServiceTest extends TestCase
     private JewelryPricingService $pricingService;
     private Category $category;
 
-    protected function migrateFreshParameters()
+    protected function migrateFreshUsing(): array
     {
         return [
             '--path' => 'database/migrations/tenant',
