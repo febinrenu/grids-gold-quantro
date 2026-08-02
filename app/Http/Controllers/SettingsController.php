@@ -224,7 +224,7 @@ class SettingsController extends Controller
             'offline_sync_enabled' => $request->has('offline_sync_enabled')
                 ? (($request['offline_sync_enabled'] == '1' || $request['offline_sync_enabled'] == 'true' || $request['offline_sync_enabled'] === 1 || $request['offline_sync_enabled'] === true) ? 1 : 0)
                 : (int) ($setting->offline_sync_enabled ?? 1),
-        ] + $this->pharmacySettingsPayload($request, $setting));
+        ] + $this->pharmacySettingsPayload($request, $setting) + $this->jewelrySettingsPayload($request, $setting));
 
         if (! empty($currency)) {
             $currencyModel = \App\Models\Currency::find($currency);
@@ -574,6 +574,18 @@ class SettingsController extends Controller
             $data['receipt_layout'] = in_array($candidate, [1, 2, 3, 4], true) ? $candidate : 1;
         }
 
+        if ($request->has('show_gold_rate_on_pos')) {
+            $data['show_gold_rate_on_pos'] = ($request['show_gold_rate_on_pos'] == '1' || $request['show_gold_rate_on_pos'] == 'true' || $request['show_gold_rate_on_pos'] === true) ? 1 : 0;
+        }
+
+        if ($request->has('allow_jewelry_price_override')) {
+            $data['allow_jewelry_price_override'] = ($request['allow_jewelry_price_override'] == '1' || $request['allow_jewelry_price_override'] == 'true' || $request['allow_jewelry_price_override'] === true) ? 1 : 0;
+        }
+
+        if ($request->has('jewelry_override_approval_threshold')) {
+            $data['jewelry_override_approval_threshold'] = $request->input('jewelry_override_approval_threshold');
+        }
+
         if (! empty($data)) {
             $posSettings->update($data);
         }
@@ -740,6 +752,15 @@ class SettingsController extends Controller
             $item['expiry_warning_days'] = (int) ($settings->expiry_warning_days ?? 90);
             $item['block_expired_sale'] = (bool) ($settings->block_expired_sale ?? false);
             $item['print_expiry_on_receipt'] = (bool) ($settings->print_expiry_on_receipt ?? false);
+
+            // Jewelry mode — opt-in, only present once migration has run
+            $item['jewelry_mode_supported'] = \Schema::hasColumn('settings', 'jewelry_mode');
+            $item['jewelry_mode'] = (bool) ($settings->jewelry_mode ?? false);
+            $item['default_making_charge_type'] = $settings->default_making_charge_type ?? null;
+            $item['default_making_charge_value'] = $settings->default_making_charge_value ?? null;
+            $item['default_wastage_type'] = $settings->default_wastage_type ?? null;
+            $item['default_wastage_value'] = $settings->default_wastage_value ?? null;
+            $item['gold_rate_requires_approval'] = (bool) ($settings->gold_rate_requires_approval ?? false);
 
             $zones_array = [];
             $timestamp = time();
@@ -958,6 +979,15 @@ class SettingsController extends Controller
             $item['expiry_warning_days'] = (int) ($settings->expiry_warning_days ?? 90);
             $item['block_expired_sale'] = (bool) ($settings->block_expired_sale ?? false);
             $item['print_expiry_on_receipt'] = (bool) ($settings->print_expiry_on_receipt ?? false);
+
+            // Jewelry mode — opt-in, only present once migration has run
+            $item['jewelry_mode_supported'] = \Schema::hasColumn('settings', 'jewelry_mode');
+            $item['jewelry_mode'] = (bool) ($settings->jewelry_mode ?? false);
+            $item['default_making_charge_type'] = $settings->default_making_charge_type ?? null;
+            $item['default_making_charge_value'] = $settings->default_making_charge_value ?? null;
+            $item['default_wastage_type'] = $settings->default_wastage_type ?? null;
+            $item['default_wastage_value'] = $settings->default_wastage_value ?? null;
+            $item['gold_rate_requires_approval'] = (bool) ($settings->gold_rate_requires_approval ?? false);
 
             $zones_array = [];
             $timestamp = time();
@@ -1299,6 +1329,55 @@ class SettingsController extends Controller
             'expiry_warning_days' => $warningDays,
             'block_expired_sale' => $request->has('block_expired_sale') ? $bool($request->input('block_expired_sale')) : (int) ($setting->block_expired_sale ?? 0),
             'print_expiry_on_receipt' => $request->has('print_expiry_on_receipt') ? $bool($request->input('print_expiry_on_receipt')) : (int) ($setting->print_expiry_on_receipt ?? 0),
+        ];
+    }
+
+    /**
+     * Build the jewelry-mode column updates to merge into the main settings update.
+     * Returns an empty array if the jewelry migration hasn't been run, so the main
+     * UPDATE silently skips columns that don't exist (preserves backward compatibility).
+     */
+    protected function jewelrySettingsPayload(Request $request, $setting): array
+    {
+        if (! \Schema::hasColumn('settings', 'jewelry_mode')) {
+            return [];
+        }
+        $bool = function ($v) {
+            return ($v === '1' || $v === 'true' || $v === 1 || $v === true) ? 1 : 0;
+        };
+        $nullableNumber = function ($value) {
+            if ($value === null || $value === '' || $value === 'null') {
+                return null;
+            }
+
+            return is_numeric($value) ? max(0, (float) $value) : null;
+        };
+        $sanitizeEnum = function ($value, array $allowed) {
+            if ($value === null) {
+                return null;
+            }
+
+            $normalized = trim((string) $value);
+            if ($normalized === '' || strtolower($normalized) === 'null') {
+                return null;
+            }
+
+            return in_array($normalized, $allowed, true) ? $normalized : null;
+        };
+
+        return [
+            'jewelry_mode' => $request->has('jewelry_mode') ? $bool($request->input('jewelry_mode')) : (int) ($setting->jewelry_mode ?? 0),
+            'default_making_charge_type' => $sanitizeEnum(
+                $request->input('default_making_charge_type', $setting->default_making_charge_type ?? null),
+                ['fixed', 'per_gram', 'percentage', 'manual']
+            ),
+            'default_making_charge_value' => $nullableNumber($request->input('default_making_charge_value', $setting->default_making_charge_value ?? null)),
+            'default_wastage_type' => $sanitizeEnum(
+                $request->input('default_wastage_type', $setting->default_wastage_type ?? null),
+                ['percentage_of_weight', 'percentage_of_value', 'fixed_value']
+            ),
+            'default_wastage_value' => $nullableNumber($request->input('default_wastage_value', $setting->default_wastage_value ?? null)),
+            'gold_rate_requires_approval' => $request->has('gold_rate_requires_approval') ? $bool($request->input('gold_rate_requires_approval')) : (int) ($setting->gold_rate_requires_approval ?? 0),
         ];
     }
 }

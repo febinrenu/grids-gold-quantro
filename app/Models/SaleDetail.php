@@ -12,6 +12,9 @@ class SaleDetail extends Model
         'price', 'TaxNet', 'discount', 'discount_method', 'tax_method', 'price_type',
         'warranty_date', 'guarantee_date',
         'product_pack_id', 'pack_multiplier', 'pack_name',
+        'gold_rate_id', 'gold_rate_value', 'karat_id', 'metal_weight_used',
+        'making_charge_amount', 'wastage_amount', 'stone_value_amount',
+        'price_breakdown', 'override_approved_by',
     ];
 
     protected $casts = [
@@ -30,6 +33,7 @@ class SaleDetail extends Model
         'guarantee_date' => 'date',
         'product_pack_id' => 'integer',
         'pack_multiplier' => 'double',
+        'price_breakdown' => 'array',
     ];
 
     public function sale()

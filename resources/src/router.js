@@ -2236,6 +2236,16 @@ const baseRoutes = [
                             )
                     },
 
+                    // gold_rates
+                    {
+                        name: "gold_rates",
+                        path: "gold_rates",
+                        component: () =>
+                            import(
+                                /* webpackChunkName: "gold_rates" */ "./views/app/pages/settings/gold_rates"
+                            )
+                    },
+
                     // Backup
                     {
                         name: "Backup",
