@@ -3,28 +3,55 @@
 namespace App\Services\Jewelry;
 
 use App\Models\GoldRate;
+use App\Models\Setting;
 use Illuminate\Database\Eloquent\Collection;
 use Carbon\Carbon;
 
 class GoldRateService
 {
     /**
+     * Resolve the currency to filter rates by: an explicit override, else the
+     * tenant's configured default currency, else null (no currency filter —
+     * preserves old behavior for tenants that never set a default currency).
+     */
+    protected function resolveCurrencyId(?int $currencyId): ?int
+    {
+        if ($currencyId !== null) {
+            return $currencyId;
+        }
+
+        $setting = Setting::whereNull('deleted_at')->first();
+
+        return $setting->currency_id ?? null;
+    }
+
+    /**
      * Get the current active gold rate for a specific metal, karat, and warehouse.
      * Warehouse-specific rates override company-wide rates (warehouse_id = null).
+     * Rates are scoped to a currency (defaulting to the tenant's configured
+     * currency) so a rate entered in the wrong currency can never be silently
+     * applied to a sale.
      */
     public function getCurrentRate(
         int $metalTypeId,
         int $karatId,
-        ?int $warehouseId = null
+        ?int $warehouseId = null,
+        ?int $currencyId = null
     ): ?GoldRate {
         $now = Carbon::now();
+        $currencyId = $this->resolveCurrencyId($currencyId);
 
-        // 1. If warehouse ID is provided, try to find a warehouse-specific active rate first.
-        if ($warehouseId !== null) {
+        $setting = Setting::whereNull('deleted_at')->first();
+        $branchOverrideEnabled = (bool) ($setting->gold_rate_branch_override_enabled ?? true);
+
+        // 1. If warehouse ID is provided AND branch overrides are enabled, try
+        // to find a warehouse-specific active rate first.
+        if ($warehouseId !== null && $branchOverrideEnabled) {
             $rate = GoldRate::where('status', 'active')
                 ->where('metal_type_id', $metalTypeId)
                 ->where('karat_id', $karatId)
                 ->where('warehouse_id', $warehouseId)
+                ->when($currencyId !== null, fn ($query) => $query->where('currency_id', $currencyId))
                 ->where('effective_at', '<=', $now)
                 ->where(function ($query) use ($now) {
                     $query->whereNull('expires_at')
@@ -44,6 +71,7 @@ class GoldRateService
             ->where('metal_type_id', $metalTypeId)
             ->where('karat_id', $karatId)
             ->whereNull('warehouse_id')
+            ->when($currencyId !== null, fn ($query) => $query->where('currency_id', $currencyId))
             ->where('effective_at', '<=', $now)
             ->where(function ($query) use ($now) {
                 $query->whereNull('expires_at')
@@ -66,7 +94,7 @@ class GoldRateService
         int $userId,
         string $weightUom = 'g'
     ): GoldRate {
-        return GoldRate::create([
+        $rate = GoldRate::create([
             'metal_type_id'        => $metalTypeId,
             'karat_id'             => $karatId,
             'rate_per_weight_unit' => $ratePerUnit,
@@ -78,6 +106,17 @@ class GoldRateService
             'rate_source'          => 'manual',
             'weight_uom'           => $weightUom ?: 'g',
         ]);
+
+        app(\App\Services\AuditLogService::class)->log(
+            'GoldRate',
+            $rate->id,
+            'rate_created',
+            null,
+            $rate->only(['metal_type_id', 'karat_id', 'rate_per_weight_unit', 'currency_id', 'warehouse_id']),
+            $userId
+        );
+
+        return $rate;
     }
 
     /**

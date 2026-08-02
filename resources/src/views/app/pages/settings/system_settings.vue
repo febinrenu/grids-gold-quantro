@@ -3477,6 +3477,21 @@
                         </div>
                       </b-col>
 
+                      <b-col lg="12" md="12" sm="12" class="mb-3">
+                        <div class="system-actions-card">
+                          <label class="switch switch-primary mr-3">
+                            Branch Gold Rate Override
+                            <input
+                              type="checkbox"
+                              v-model="setting.gold_rate_branch_override_enabled"
+                              :disabled="!setting.jewelry_mode"
+                            >
+                            <span class="slider"></span>
+                          </label>
+                          <p class="text-muted small mt-2 mb-0">When enabled, a branch-specific gold rate takes precedence over the company-wide rate. When disabled, the company-wide rate is always used.</p>
+                        </div>
+                      </b-col>
+
                       <b-col lg="12" md="12" sm="12" class="mt-2">
                         <b-button variant="primary" @click="Update_Settings()">
                           <lucide-icon class="me-2" name="check" /> {{ $t('submit') }}
@@ -4047,6 +4062,7 @@ export default {
         default_wastage_type: "",
         default_wastage_value: "",
         gold_rate_requires_approval: false,
+        gold_rate_branch_override_enabled: true,
       },
       // Custom Fields data
       customFieldsActiveTab: 0,
@@ -4923,6 +4939,7 @@ export default {
       self.data.append("default_wastage_type", self.setting.default_wastage_type || "");
       self.data.append("default_wastage_value", self.setting.default_wastage_value != null && self.setting.default_wastage_value !== "" ? self.setting.default_wastage_value : "");
       self.data.append("gold_rate_requires_approval", self.setting.gold_rate_requires_approval ? 1 : 0);
+      self.data.append("gold_rate_branch_override_enabled", self.setting.gold_rate_branch_override_enabled ? 1 : 0);
 
       self.data.append("_method", "put");
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Permission;
 use App\Models\UserWarehouse;
 use App\Models\Warehouse;
 use App\Models\WarehouseLocation;
@@ -11,6 +12,22 @@ use Illuminate\Validation\Rule;
 
 class WarehouseLocationController extends BaseController
 {
+    /**
+     * Whether the given user can view restricted (safe/vault) locations —
+     * "unauthorized users cannot view safe, vault, or restricted-location
+     * inventory" per the customization brief.
+     */
+    protected function canViewRestrictedLocations($user): bool
+    {
+        if (! $user) {
+            return false;
+        }
+
+        $permission = Permission::where('name', 'view_restricted_locations')->first();
+
+        return (bool) ($permission && $user->hasRole($permission->roles));
+    }
+
     public function index(Request $request)
     {
         $this->authorizeForUser($request->user('api'), 'view', WarehouseLocation::class);
@@ -40,6 +57,10 @@ class WarehouseLocationController extends BaseController
         $query = WarehouseLocation::query()
             ->whereNull('deleted_at')
             ->whereIn('warehouse_id', $allowedWarehouseIds);
+
+        if (! $this->canViewRestrictedLocations($user_auth)) {
+            $query->where('is_restricted', false);
+        }
 
         if ($warehouseId) {
             $query->where('warehouse_id', $warehouseId);
@@ -72,6 +93,7 @@ class WarehouseLocationController extends BaseController
                     'code' => $loc->code,
                     'name' => $loc->name,
                     'is_active' => (bool) $loc->is_active,
+                    'is_restricted' => (bool) $loc->is_restricted,
                 ];
             });
 
@@ -101,6 +123,7 @@ class WarehouseLocationController extends BaseController
             ],
             'name' => ['nullable', 'string', 'max:192'],
             'is_active' => ['nullable', 'boolean'],
+            'is_restricted' => ['nullable', 'boolean'],
         ]);
 
         $loc = WarehouseLocation::create([
@@ -108,6 +131,7 @@ class WarehouseLocationController extends BaseController
             'code' => trim($request->code),
             'name' => $request->name ? trim($request->name) : null,
             'is_active' => $request->has('is_active') ? (bool) $request->is_active : true,
+            'is_restricted' => $request->has('is_restricted') ? (bool) $request->is_restricted : false,
         ]);
 
         return response()->json([
@@ -137,12 +161,14 @@ class WarehouseLocationController extends BaseController
             ],
             'name' => ['nullable', 'string', 'max:192'],
             'is_active' => ['nullable', 'boolean'],
+            'is_restricted' => ['nullable', 'boolean'],
         ]);
 
         $loc->warehouse_id = $request->warehouse_id;
         $loc->code = trim($request->code);
         $loc->name = $request->name ? trim($request->name) : null;
         $loc->is_active = $request->has('is_active') ? (bool) $request->is_active : (bool) $loc->is_active;
+        $loc->is_restricted = $request->has('is_restricted') ? (bool) $request->is_restricted : (bool) $loc->is_restricted;
         $loc->save();
 
         return response()->json([
@@ -171,11 +197,15 @@ class WarehouseLocationController extends BaseController
             return response()->json([]);
         }
 
-        $rows = WarehouseLocation::whereNull('deleted_at')
+        $query = WarehouseLocation::whereNull('deleted_at')
             ->where('warehouse_id', $warehouseId)
-            ->where('is_active', 1)
-            ->orderBy('code')
-            ->get(['id', 'warehouse_id', 'code', 'name']);
+            ->where('is_active', 1);
+
+        if (! $this->canViewRestrictedLocations($request->user('api'))) {
+            $query->where('is_restricted', false);
+        }
+
+        $rows = $query->orderBy('code')->get(['id', 'warehouse_id', 'code', 'name', 'is_restricted']);
 
         return response()->json($rows);
     }

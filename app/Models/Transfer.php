@@ -12,6 +12,7 @@ class Transfer extends Model
 
     protected $fillable = [
         'id', 'date', 'user_id', 'from_warehouse_id', 'to_warehouse_id', 'time',
+        'from_warehouse_location_id', 'to_warehouse_location_id',
         'items', 'statut', 'approval_status', 'notes', 'GrandTotal', 'discount', 'shipping', 'TaxNet', 'tax_rate',
         'created_at', 'updated_at', 'deleted_at',
     ];
@@ -20,6 +21,8 @@ class Transfer extends Model
         'user_id' => 'integer',
         'from_warehouse_id' => 'integer',
         'to_warehouse_id' => 'integer',
+        'from_warehouse_location_id' => 'integer',
+        'to_warehouse_location_id' => 'integer',
         'items' => 'double',
         'GrandTotal' => 'double',
         'discount' => 'double',
@@ -47,6 +50,16 @@ class Transfer extends Model
     public function to_warehouse()
     {
         return $this->belongsTo('App\Models\Warehouse', 'to_warehouse_id');
+    }
+
+    public function fromWarehouseLocation()
+    {
+        return $this->belongsTo('App\Models\WarehouseLocation', 'from_warehouse_location_id');
+    }
+
+    public function toWarehouseLocation()
+    {
+        return $this->belongsTo('App\Models\WarehouseLocation', 'to_warehouse_location_id');
     }
 
     /**

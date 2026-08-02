@@ -274,6 +274,7 @@ class SalesController extends BaseController
                 $jewelryFields = [
                     'gold_rate_id' => null,
                     'gold_rate_value' => null,
+                    'gold_rate_effective_at' => null,
                     'karat_id' => null,
                     'metal_weight_used' => null,
                     'making_charge_amount' => null,
@@ -321,12 +322,15 @@ class SalesController extends BaseController
 
                     $jewelryFields['gold_rate_id'] = $priceResult['gold_rate_id'] ?? null;
                     $jewelryFields['gold_rate_value'] = $priceResult['gold_rate'] ?? null;
+                    $jewelryFields['gold_rate_effective_at'] = $priceResult['gold_rate_effective_at'] ?? null;
                     $jewelryFields['karat_id'] = $product->karat_id;
                     $jewelryFields['metal_weight_used'] = $priceResult['metal_weight'] ?? null;
                     $jewelryFields['making_charge_amount'] = $priceResult['making_charge'] ?? null;
                     $jewelryFields['wastage_amount'] = $priceResult['wastage'] ?? null;
                     $jewelryFields['stone_value_amount'] = $priceResult['stone_value'] ?? null;
-                    $jewelryFields['price_breakdown'] = $priceResult;
+                    // SaleDetail::insert() below is a raw bulk insert, bypassing
+                    // Eloquent's array<->JSON $casts — encode explicitly here.
+                    $jewelryFields['price_breakdown'] = json_encode($priceResult);
                 }
 
                 $orderDetails[] = array_merge([
@@ -815,6 +819,7 @@ class SalesController extends BaseController
                         $jewelryFields = [
                             'gold_rate_id' => null,
                             'gold_rate_value' => null,
+                            'gold_rate_effective_at' => null,
                             'karat_id' => null,
                             'metal_weight_used' => null,
                             'making_charge_amount' => null,
@@ -833,12 +838,15 @@ class SalesController extends BaseController
                             if ($current_Sale->statut === 'completed' && $existingDetail) {
                                 $jewelryFields['gold_rate_id'] = $existingDetail->gold_rate_id;
                                 $jewelryFields['gold_rate_value'] = $existingDetail->gold_rate_value;
+                                $jewelryFields['gold_rate_effective_at'] = $existingDetail->gold_rate_effective_at;
                                 $jewelryFields['karat_id'] = $existingDetail->karat_id;
                                 $jewelryFields['metal_weight_used'] = $existingDetail->metal_weight_used;
                                 $jewelryFields['making_charge_amount'] = $existingDetail->making_charge_amount;
                                 $jewelryFields['wastage_amount'] = $existingDetail->wastage_amount;
                                 $jewelryFields['stone_value_amount'] = $existingDetail->stone_value_amount;
-                                $jewelryFields['price_breakdown'] = $existingDetail->price_breakdown;
+                                // SaleDetail::insert() below is a raw bulk insert, bypassing
+                                // Eloquent's array<->JSON $casts — re-encode explicitly.
+                                $jewelryFields['price_breakdown'] = json_encode($existingDetail->price_breakdown);
                                 $jewelryFields['override_approved_by'] = $existingDetail->override_approved_by;
                             } else {
                                 $pricingService = app(\App\Services\Jewelry\JewelryPricingService::class);
@@ -878,12 +886,15 @@ class SalesController extends BaseController
 
                                 $jewelryFields['gold_rate_id'] = $priceResult['gold_rate_id'] ?? null;
                                 $jewelryFields['gold_rate_value'] = $priceResult['gold_rate'] ?? null;
+                                $jewelryFields['gold_rate_effective_at'] = $priceResult['gold_rate_effective_at'] ?? null;
                                 $jewelryFields['karat_id'] = $product->karat_id;
                                 $jewelryFields['metal_weight_used'] = $priceResult['metal_weight'] ?? null;
                                 $jewelryFields['making_charge_amount'] = $priceResult['making_charge'] ?? null;
                                 $jewelryFields['wastage_amount'] = $priceResult['wastage'] ?? null;
                                 $jewelryFields['stone_value_amount'] = $priceResult['stone_value'] ?? null;
-                                $jewelryFields['price_breakdown'] = $priceResult;
+                                // SaleDetail::insert() below is a raw bulk insert, bypassing
+                                // Eloquent's array<->JSON $casts — encode explicitly here.
+                                $jewelryFields['price_breakdown'] = json_encode($priceResult);
                             }
                         }
 
@@ -1497,7 +1508,7 @@ class SalesController extends BaseController
         // New way: Check user's record_view field (user-level boolean)
         // Backward compatibility: If record_view is null, fall back to role permission check
         $view_records = $user->hasRecordView();
-        $sale_data = Sale::with('details.product.unitSale')
+        $sale_data = Sale::with('details.product.unitSale', 'details.karat')
             ->where('deleted_at', '=', null)
             ->findOrFail($id);
 
@@ -1604,6 +1615,20 @@ class SalesController extends BaseController
             // Multi-Pack Selling: pack name + total pieces (quantity × multiplier).
             $data['pack_name'] = $detail->pack_name;
             $data['pack_multiplier'] = $detail->pack_multiplier !== null ? (float) $detail->pack_multiplier : 1;
+
+            // Jewelry: print the pricing snapshot exactly as stored at sale time —
+            // never recalculated here, so a later gold-rate change never alters
+            // an already-posted invoice.
+            $data['is_jewelry_item'] = (bool) ($detail['product']['is_jewelry_item'] ?? false);
+            if ($data['is_jewelry_item']) {
+                $data['jewelry_karat'] = optional($detail->karat)->name ?? '';
+                $data['jewelry_gold_rate'] = $detail->gold_rate_value !== null ? number_format((float) $detail->gold_rate_value, helpers::price_decimals(), '.', '') : null;
+                $data['jewelry_gold_rate_effective_at'] = $detail->gold_rate_effective_at ? $detail->gold_rate_effective_at->format('Y-m-d H:i') : null;
+                $data['jewelry_metal_weight'] = $detail->metal_weight_used !== null ? number_format((float) $detail->metal_weight_used, 3, '.', '') : null;
+                $data['jewelry_making_charge'] = $detail->making_charge_amount !== null ? number_format((float) $detail->making_charge_amount, helpers::price_decimals(), '.', '') : null;
+                $data['jewelry_wastage'] = $detail->wastage_amount !== null ? number_format((float) $detail->wastage_amount, helpers::price_decimals(), '.', '') : null;
+                $data['jewelry_stone_value'] = $detail->stone_value_amount !== null ? number_format((float) $detail->stone_value_amount, helpers::price_decimals(), '.', '') : null;
+            }
 
             $details[] = $data;
         }
@@ -2482,7 +2507,7 @@ class SalesController extends BaseController
 
         $details = [];
         $helpers = new helpers;
-        $sale_data = Sale::with('details.product.unitSale')
+        $sale_data = Sale::with('details.product.unitSale', 'details.karat')
             ->where('deleted_at', '=', null)
             ->findOrFail($id);
 
@@ -2575,6 +2600,20 @@ class SalesController extends BaseController
             // Multi-Pack Selling: pack name + total pieces (quantity × multiplier).
             $data['pack_name'] = $detail->pack_name;
             $data['pack_multiplier'] = $detail->pack_multiplier !== null ? (float) $detail->pack_multiplier : 1;
+
+            // Jewelry: print the pricing snapshot exactly as stored at sale time —
+            // never recalculated here, so a later gold-rate change never alters
+            // an already-posted invoice.
+            $data['is_jewelry_item'] = (bool) ($detail['product']['is_jewelry_item'] ?? false);
+            if ($data['is_jewelry_item']) {
+                $data['jewelry_karat'] = optional($detail->karat)->name ?? '';
+                $data['jewelry_gold_rate'] = $detail->gold_rate_value !== null ? number_format((float) $detail->gold_rate_value, helpers::price_decimals(), '.', '') : null;
+                $data['jewelry_gold_rate_effective_at'] = $detail->gold_rate_effective_at ? $detail->gold_rate_effective_at->format('Y-m-d H:i') : null;
+                $data['jewelry_metal_weight'] = $detail->metal_weight_used !== null ? number_format((float) $detail->metal_weight_used, 3, '.', '') : null;
+                $data['jewelry_making_charge'] = $detail->making_charge_amount !== null ? number_format((float) $detail->making_charge_amount, helpers::price_decimals(), '.', '') : null;
+                $data['jewelry_wastage'] = $detail->wastage_amount !== null ? number_format((float) $detail->wastage_amount, helpers::price_decimals(), '.', '') : null;
+                $data['jewelry_stone_value'] = $detail->stone_value_amount !== null ? number_format((float) $detail->stone_value_amount, helpers::price_decimals(), '.', '') : null;
+            }
 
             $details[] = $data;
         }
@@ -2613,7 +2652,7 @@ class SalesController extends BaseController
     {
         $details = [];
         $helpers = new helpers;
-        $sale_data = Sale::with('details.product.unitSale')
+        $sale_data = Sale::with('details.product.unitSale', 'details.karat')
             ->where('deleted_at', '=', null)
             ->findOrFail($id);
 
@@ -2704,6 +2743,20 @@ class SalesController extends BaseController
             // Multi-Pack Selling: pack name + total pieces (quantity × multiplier).
             $data['pack_name'] = $detail->pack_name;
             $data['pack_multiplier'] = $detail->pack_multiplier !== null ? (float) $detail->pack_multiplier : 1;
+
+            // Jewelry: print the pricing snapshot exactly as stored at sale time —
+            // never recalculated here, so a later gold-rate change never alters
+            // an already-posted invoice.
+            $data['is_jewelry_item'] = (bool) ($detail['product']['is_jewelry_item'] ?? false);
+            if ($data['is_jewelry_item']) {
+                $data['jewelry_karat'] = optional($detail->karat)->name ?? '';
+                $data['jewelry_gold_rate'] = $detail->gold_rate_value !== null ? number_format((float) $detail->gold_rate_value, helpers::price_decimals(), '.', '') : null;
+                $data['jewelry_gold_rate_effective_at'] = $detail->gold_rate_effective_at ? $detail->gold_rate_effective_at->format('Y-m-d H:i') : null;
+                $data['jewelry_metal_weight'] = $detail->metal_weight_used !== null ? number_format((float) $detail->metal_weight_used, 3, '.', '') : null;
+                $data['jewelry_making_charge'] = $detail->making_charge_amount !== null ? number_format((float) $detail->making_charge_amount, helpers::price_decimals(), '.', '') : null;
+                $data['jewelry_wastage'] = $detail->wastage_amount !== null ? number_format((float) $detail->wastage_amount, helpers::price_decimals(), '.', '') : null;
+                $data['jewelry_stone_value'] = $detail->stone_value_amount !== null ? number_format((float) $detail->stone_value_amount, helpers::price_decimals(), '.', '') : null;
+            }
 
             $details[] = $data;
         }

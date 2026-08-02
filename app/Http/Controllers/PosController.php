@@ -29,6 +29,7 @@ use App\Models\User;
 use App\Models\UserWarehouse;
 use App\Models\Warehouse;
 use App\Services\BatchService;
+use App\Services\InventoryMovementService;
 use App\Services\SerialNumberService;
 use App\utils\helpers;
 use Carbon\Carbon;
@@ -87,6 +88,7 @@ class PosController extends BaseController
         // Multi-Pack Selling: a pack line consumes pack_multiplier base units per
         // pack — reject if that would oversell (unless overselling is allowed).
         $this->assertPackStockSufficient($request);
+        $this->assertLineStockSufficient($request);
 
         // Block overpayment if multiple methods used
         $totalPaid = collect($request->payments)->sum('amount');
@@ -194,6 +196,7 @@ class PosController extends BaseController
                     $jewelryFields = [
                         'gold_rate_id' => null,
                         'gold_rate_value' => null,
+                        'gold_rate_effective_at' => null,
                         'karat_id' => null,
                         'metal_weight_used' => null,
                         'making_charge_amount' => null,
@@ -241,12 +244,15 @@ class PosController extends BaseController
 
                         $jewelryFields['gold_rate_id'] = $priceResult['gold_rate_id'] ?? null;
                         $jewelryFields['gold_rate_value'] = $priceResult['gold_rate'] ?? null;
+                        $jewelryFields['gold_rate_effective_at'] = $priceResult['gold_rate_effective_at'] ?? null;
                         $jewelryFields['karat_id'] = $product->karat_id;
                         $jewelryFields['metal_weight_used'] = $priceResult['metal_weight'] ?? null;
                         $jewelryFields['making_charge_amount'] = $priceResult['making_charge'] ?? null;
                         $jewelryFields['wastage_amount'] = $priceResult['wastage'] ?? null;
                         $jewelryFields['stone_value_amount'] = $priceResult['stone_value'] ?? null;
-                        $jewelryFields['price_breakdown'] = $priceResult;
+                        // SaleDetail::insert() below is a raw bulk insert, which bypasses
+                        // Eloquent's automatic array->JSON $casts — encode explicitly here.
+                        $jewelryFields['price_breakdown'] = json_encode($priceResult);
                     }
 
                     $orderDetails[] = array_merge([
@@ -285,12 +291,20 @@ class PosController extends BaseController
                         }
 
                         if ($product_warehouse) {
-                            if ($unit->operator == '/') {
-                                $product_warehouse->qte -= $packQty / $unit->operator_value;
-                            } else {
-                                $product_warehouse->qte -= $packQty * $unit->operator_value;
-                            }
+                            $qtyDelta = ($unit->operator == '/') ? ($packQty / $unit->operator_value) : ($packQty * $unit->operator_value);
+                            $product_warehouse->qte -= $qtyDelta;
                             $product_warehouse->save();
+
+                            app(InventoryMovementService::class)->record([
+                                'warehouse_id' => $order->warehouse_id,
+                                'product_id' => $value['product_id'],
+                                'product_variant_id' => $value['product_variant_id'],
+                                'movement_type' => 'sale',
+                                'quantity_delta' => -$qtyDelta,
+                                'source_type' => 'Sale',
+                                'source_id' => $order->id,
+                                'user_id' => Auth::id(),
+                            ]);
                         }
                     }
                 }
@@ -1112,6 +1126,7 @@ class PosController extends BaseController
 
         // Multi-Pack Selling: reject pack lines that would oversell base stock.
         $this->assertPackStockSufficient($request);
+        $this->assertLineStockSufficient($request);
 
         $draft = DraftSale::findOrFail($request['draft_sale_id']);
         if ($draft) {
@@ -1166,6 +1181,7 @@ class PosController extends BaseController
                     $jewelryFields = [
                         'gold_rate_id' => null,
                         'gold_rate_value' => null,
+                        'gold_rate_effective_at' => null,
                         'karat_id' => null,
                         'metal_weight_used' => null,
                         'making_charge_amount' => null,
@@ -1213,12 +1229,15 @@ class PosController extends BaseController
 
                         $jewelryFields['gold_rate_id'] = $priceResult['gold_rate_id'] ?? null;
                         $jewelryFields['gold_rate_value'] = $priceResult['gold_rate'] ?? null;
+                        $jewelryFields['gold_rate_effective_at'] = $priceResult['gold_rate_effective_at'] ?? null;
                         $jewelryFields['karat_id'] = $product->karat_id;
                         $jewelryFields['metal_weight_used'] = $priceResult['metal_weight'] ?? null;
                         $jewelryFields['making_charge_amount'] = $priceResult['making_charge'] ?? null;
                         $jewelryFields['wastage_amount'] = $priceResult['wastage'] ?? null;
                         $jewelryFields['stone_value_amount'] = $priceResult['stone_value'] ?? null;
-                        $jewelryFields['price_breakdown'] = $priceResult;
+                        // SaleDetail::insert() below is a raw bulk insert, which bypasses
+                        // Eloquent's automatic array->JSON $casts — encode explicitly here.
+                        $jewelryFields['price_breakdown'] = json_encode($priceResult);
                     }
 
                     $orderDetails[] = array_merge([
@@ -1247,12 +1266,20 @@ class PosController extends BaseController
                             ->first();
 
                         if ($unit && $product_warehouse) {
-                            if ($unit->operator == '/') {
-                                $product_warehouse->qte -= $packQty / $unit->operator_value;
-                            } else {
-                                $product_warehouse->qte -= $packQty * $unit->operator_value;
-                            }
+                            $qtyDelta = ($unit->operator == '/') ? ($packQty / $unit->operator_value) : ($packQty * $unit->operator_value);
+                            $product_warehouse->qte -= $qtyDelta;
                             $product_warehouse->save();
+
+                            app(InventoryMovementService::class)->record([
+                                'warehouse_id' => $order->warehouse_id,
+                                'product_id' => $value['product_id'],
+                                'product_variant_id' => $value['product_variant_id'],
+                                'movement_type' => 'sale',
+                                'quantity_delta' => -$qtyDelta,
+                                'source_type' => 'Sale',
+                                'source_id' => $order->id,
+                                'user_id' => Auth::id(),
+                            ]);
                         }
 
                     } else {
@@ -1260,12 +1287,20 @@ class PosController extends BaseController
                             ->where('product_id', $value['product_id'])
                             ->first();
                         if ($unit && $product_warehouse) {
-                            if ($unit->operator == '/') {
-                                $product_warehouse->qte -= $packQty / $unit->operator_value;
-                            } else {
-                                $product_warehouse->qte -= $packQty * $unit->operator_value;
-                            }
+                            $qtyDelta = ($unit->operator == '/') ? ($packQty / $unit->operator_value) : ($packQty * $unit->operator_value);
+                            $product_warehouse->qte -= $qtyDelta;
                             $product_warehouse->save();
+
+                            app(InventoryMovementService::class)->record([
+                                'warehouse_id' => $order->warehouse_id,
+                                'product_id' => $value['product_id'],
+                                'product_variant_id' => null,
+                                'movement_type' => 'sale',
+                                'quantity_delta' => -$qtyDelta,
+                                'source_type' => 'Sale',
+                                'source_id' => $order->id,
+                                'user_id' => Auth::id(),
+                            ]);
                         }
                     }
                 }
@@ -1993,6 +2028,15 @@ class PosController extends BaseController
             $item['fix_price'] = $product_price;
             $item['is_jewelry_item'] = (bool)($product_warehouse['product']->is_jewelry_item ?? false);
             $item['jewelry_pricing_breakdown'] = $pricingBreakdown;
+            if ($item['is_jewelry_item']) {
+                $item['metal_type'] = optional($product_warehouse['product']->metalType)->name ?? '';
+                $item['karat'] = optional($product_warehouse['product']->karat)->name ?? '';
+                $item['jewelry_gross_weight'] = $product_warehouse['product']->jewelry_gross_weight !== null ? (float) $product_warehouse['product']->jewelry_gross_weight : null;
+                $item['jewelry_weight_uom'] = $product_warehouse['product']->jewelry_weight_uom ?: 'g';
+                $item['stone_summary'] = $item['jewelry_pricing_breakdown']['stone_value'] > 0
+                    ? \App\Models\ItemStone::where('product_id', $product_warehouse->product_id)->count().' '.__('stones')
+                    : '';
+            }
 
             // --- Compute wholesale price per sale unit (min_price is returned raw from DB) ---
             // For variant products, prefer variant-level wholesale/min prices when available.
@@ -2406,6 +2450,75 @@ class PosController extends BaseController
 
         if (! empty($errors)) {
             throw \Illuminate\Validation\ValidationException::withMessages(['pack_stock' => $errors]);
+        }
+    }
+
+    /**
+     * General (non-pack) stock guard, enforced server-side regardless of what
+     * the frontend already checks — an API caller could otherwise bypass the
+     * client-side guard entirely and oversell a managed-stock product.
+     * Pack lines (pack_multiplier > 1) are covered separately by
+     * assertPackStockSufficient() above, so they're skipped here.
+     *
+     * @throws \Illuminate\Validation\ValidationException
+     */
+    protected function assertLineStockSufficient(Request $request): void
+    {
+        $posSetting = PosSetting::whereNull('deleted_at')->first();
+        if ($posSetting && (bool) ($posSetting->allow_overselling ?? false)) {
+            return; // overselling permitted by POS settings
+        }
+
+        $warehouseId = $request->warehouse_id;
+        $errors = [];
+
+        foreach ((array) $request['details'] as $value) {
+            $mult = isset($value['pack_multiplier']) && (float) $value['pack_multiplier'] > 0
+                ? (float) $value['pack_multiplier'] : 1;
+            if ($mult > 1) {
+                continue; // already validated by assertPackStockSufficient()
+            }
+            if (isset($value['product_type']) && $value['product_type'] === 'is_service') {
+                continue;
+            }
+
+            $product = Product::find($value['product_id']);
+            if (! $product) {
+                continue;
+            }
+
+            $pwQuery = product_warehouse::whereNull('deleted_at')
+                ->where('warehouse_id', $warehouseId)
+                ->where('product_id', $value['product_id']);
+            if (! empty($value['product_variant_id'])) {
+                $pwQuery->where('product_variant_id', $value['product_variant_id']);
+            } else {
+                $pwQuery->whereNull('product_variant_id');
+            }
+            $pw = $pwQuery->first();
+
+            if (! $pw || ! $pw->manage_stock) {
+                continue;
+            }
+
+            $unit = ! empty($value['sale_unit_id']) ? Unit::find($value['sale_unit_id']) : null;
+            if (! $unit) {
+                $unit = optional(Product::with('unitSale')->find($value['product_id']))->unitSale;
+            }
+            $opv = (float) ($unit->operator_value ?? 1) ?: 1;
+            $qty = (float) $value['quantity'];
+            $required = ($unit && $unit->operator === '/') ? ($qty / $opv) : ($qty * $opv);
+            $available = (float) $pw->qte;
+
+            if ($required > $available + 1e-9) {
+                $name = $product->name ?? ('#'.$value['product_id']);
+                $errors[] = $name.': needs '.$this->trimNumber($required)
+                    .' but only '.$this->trimNumber($available).' in stock.';
+            }
+        }
+
+        if (! empty($errors)) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['stock' => $errors]);
         }
     }
 

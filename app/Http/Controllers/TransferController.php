@@ -149,6 +149,8 @@ class TransferController extends BaseController
             $order->Ref = $this->getNumberOrder();
             $order->from_warehouse_id = $request->transfer['from_warehouse'];
             $order->to_warehouse_id = $request->transfer['to_warehouse'];
+            $order->from_warehouse_location_id = $request->transfer['from_warehouse_location'] ?? null;
+            $order->to_warehouse_location_id = $request->transfer['to_warehouse_location'] ?? null;
             $order->items = count($request['details']);
             $order->tax_rate = $request->transfer['tax_rate'] ? $request->transfer['tax_rate'] : 0;
             $order->TaxNet = $request->transfer['TaxNet'] ? $request->transfer['TaxNet'] : 0;
@@ -171,11 +173,16 @@ class TransferController extends BaseController
             $shouldAffectStock = $order->isApproved();
             $persistedDetails = [];
 
+            // Same-warehouse transfers are location-only moves (e.g. safe -> showroom):
+            // total warehouse quantity doesn't change, only the product's current
+            // location pointer does (updated below via ProductWarehouseLocation).
+            $isSameWarehouse = (string) $request->transfer['from_warehouse'] === (string) $request->transfer['to_warehouse'];
+
             foreach ($data as $key => $value) {
 
                 $unit = Unit::where('id', $value['purchase_unit_id'])->first();
 
-                if ($shouldAffectStock && $request->transfer['statut'] == 'completed') {
+                if (! $isSameWarehouse && $shouldAffectStock && $request->transfer['statut'] == 'completed') {
                     if ($value['product_variant_id'] !== null) {
 
                         // --------- eliminate the quantity ''from_warehouse''--------------\\
@@ -241,7 +248,7 @@ class TransferController extends BaseController
                         }
                     }
 
-                } elseif ($shouldAffectStock && $request->transfer['statut'] == 'sent') {
+                } elseif (! $isSameWarehouse && $shouldAffectStock && $request->transfer['statut'] == 'sent') {
 
                     if ($value['product_variant_id'] !== null) {
 
@@ -276,6 +283,11 @@ class TransferController extends BaseController
                         }
                     }
                 }
+
+                // Note: location updates for a completed transfer happen in
+                // approve() -> applyInitialStockMovement(), since new transfers
+                // always start as approval_status = 'pending' here and stock/
+                // location never move until an explicit approval.
 
                 $persistedDetails[$key] = TransferDetail::create([
                     'transfer_id' => $order->id,
@@ -611,9 +623,20 @@ class TransferController extends BaseController
                 }
             }
 
+            if ($isApproved && $Trans['statut'] == 'completed' && ! empty($Trans['to_warehouse_location'])) {
+                foreach ($data as $product_detail) {
+                    \App\Models\ProductWarehouseLocation::updateOrCreate(
+                        ['product_id' => $product_detail['product_id'], 'warehouse_id' => $Trans['to_warehouse']],
+                        ['warehouse_location_id' => $Trans['to_warehouse_location']]
+                    );
+                }
+            }
+
             $current_Transfer->update([
                 'to_warehouse_id' => $Trans['to_warehouse'],
                 'from_warehouse_id' => $Trans['from_warehouse'],
+                'from_warehouse_location_id' => $Trans['from_warehouse_location'] ?? null,
+                'to_warehouse_location_id' => $Trans['to_warehouse_location'] ?? null,
                 'date' => $Trans['date'],
                 'notes' => $Trans['notes'],
                 'statut' => $Trans['statut'],
@@ -1093,6 +1116,8 @@ class TransferController extends BaseController
         $transfer['TaxNet'] = $Transfer_data->TaxNet;
         $transfer['discount'] = $Transfer_data->discount;
         $transfer['shipping'] = $Transfer_data->shipping;
+        $transfer['from_warehouse_location'] = $Transfer_data->from_warehouse_location_id;
+        $transfer['to_warehouse_location'] = $Transfer_data->to_warehouse_location_id;
 
         $batchesByDetail = app(BatchService::class)->batchesForTransferDetails($Transfer_data['details']);
 
@@ -1275,6 +1300,8 @@ class TransferController extends BaseController
         $transfer['statut'] = $Transfer_data->statut;
         $transfer['approval_status'] = $Transfer_data->approval_status;
         $transfer['GrandTotal'] = $Transfer_data->GrandTotal;
+        $transfer['from_warehouse_location'] = optional($Transfer_data->fromWarehouseLocation)->name;
+        $transfer['to_warehouse_location'] = optional($Transfer_data->toWarehouseLocation)->name;
 
         $batchesByDetail = app(BatchService::class)->batchesForTransferDetails($Transfer_data['details']);
 
@@ -1495,6 +1522,11 @@ class TransferController extends BaseController
     {
         $details = TransferDetail::where('transfer_id', $transfer->id)->get();
 
+        // Same-warehouse transfers are location-only moves (e.g. safe -> showroom):
+        // total warehouse quantity doesn't change, only the product's current
+        // location pointer does (updated below via ProductWarehouseLocation).
+        $isSameWarehouse = (string) $transfer->from_warehouse_id === (string) $transfer->to_warehouse_id;
+
         foreach ($details as $detail) {
             // Resolve unit exactly like other transfer routines do.
             if ($detail->purchase_unit_id !== null) {
@@ -1514,7 +1546,7 @@ class TransferController extends BaseController
             }
 
             // Mirror "completed" behaviour from store(): move stock from -> to.
-            if ($transfer->statut == 'completed') {
+            if (! $isSameWarehouse && $transfer->statut == 'completed') {
                 if ($detail->product_variant_id !== null) {
                     // FROM warehouse (variant)
                     $product_warehouse_from = product_warehouse::where('deleted_at', '=', null)
@@ -1578,7 +1610,7 @@ class TransferController extends BaseController
                         $product_warehouse_to->save();
                     }
                 }
-            } elseif ($transfer->statut == 'sent') {
+            } elseif (! $isSameWarehouse && $transfer->statut == 'sent') {
                 // Mirror "sent" behaviour from store(): move stock out of FROM only.
                 if ($detail->product_variant_id !== null) {
                     $product_warehouse_from = product_warehouse::where('deleted_at', '=', null)
@@ -1608,6 +1640,66 @@ class TransferController extends BaseController
                             $product_warehouse_from->qte -= $detail->quantity * $unit->operator_value;
                         }
                         $product_warehouse_from->save();
+                    }
+                }
+            }
+
+            // Location-aware move: when a destination location is given, point the
+            // product's current location (per warehouse) at it. Applies whether the
+            // transfer crosses warehouses or is a same-warehouse relocation.
+            if ($transfer->statut == 'completed' && ! empty($transfer->to_warehouse_location_id)) {
+                \App\Models\ProductWarehouseLocation::updateOrCreate(
+                    ['product_id' => $detail->product_id, 'warehouse_id' => $transfer->to_warehouse_id],
+                    ['warehouse_location_id' => $transfer->to_warehouse_location_id]
+                );
+            }
+
+            // Inventory ledger: one row per warehouse actually touched. A
+            // same-warehouse relocation logs a single zero-quantity row (the
+            // location pointer moved, stock total didn't); a cross-warehouse
+            // transfer logs a negative row at the source and (once completed)
+            // a positive row at the destination.
+            if (in_array($transfer->statut, ['completed', 'sent'], true)) {
+                $qtyDelta = ($unit->operator === '/') ? ($detail->quantity / $unit->operator_value) : ($detail->quantity * $unit->operator_value);
+                $movementService = app(\App\Services\InventoryMovementService::class);
+
+                if ($isSameWarehouse) {
+                    $movementService->record([
+                        'warehouse_id' => $transfer->to_warehouse_id,
+                        'warehouse_location_id' => $transfer->to_warehouse_location_id,
+                        'product_id' => $detail->product_id,
+                        'product_variant_id' => $detail->product_variant_id,
+                        'movement_type' => 'transfer',
+                        'quantity_delta' => 0,
+                        'source_type' => 'Transfer',
+                        'source_id' => $transfer->id,
+                        'user_id' => $transfer->user_id,
+                    ]);
+                } else {
+                    $movementService->record([
+                        'warehouse_id' => $transfer->from_warehouse_id,
+                        'warehouse_location_id' => $transfer->from_warehouse_location_id,
+                        'product_id' => $detail->product_id,
+                        'product_variant_id' => $detail->product_variant_id,
+                        'movement_type' => 'transfer',
+                        'quantity_delta' => -$qtyDelta,
+                        'source_type' => 'Transfer',
+                        'source_id' => $transfer->id,
+                        'user_id' => $transfer->user_id,
+                    ]);
+
+                    if ($transfer->statut === 'completed') {
+                        $movementService->record([
+                            'warehouse_id' => $transfer->to_warehouse_id,
+                            'warehouse_location_id' => $transfer->to_warehouse_location_id,
+                            'product_id' => $detail->product_id,
+                            'product_variant_id' => $detail->product_variant_id,
+                            'movement_type' => 'transfer',
+                            'quantity_delta' => $qtyDelta,
+                            'source_type' => 'Transfer',
+                            'source_id' => $transfer->id,
+                            'user_id' => $transfer->user_id,
+                        ]);
                     }
                 }
             }

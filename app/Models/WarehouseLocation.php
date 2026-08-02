@@ -16,11 +16,13 @@ class WarehouseLocation extends Model
         'code',
         'name',
         'is_active',
+        'is_restricted',
     ];
 
     protected $casts = [
         'warehouse_id' => 'integer',
         'is_active' => 'boolean',
+        'is_restricted' => 'boolean',
     ];
 
     public function warehouse()

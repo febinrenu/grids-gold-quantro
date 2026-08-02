@@ -65,6 +65,7 @@
                       <v-select
                         :class="{'is-invalid': !!errors.length}"
                         :state="errors[0] ? false : (valid ? true : null)"
+                        @input="Selected_To_Warehouse"
                         v-model="transfer.to_warehouse"
                         :reduce="label => label.value"
                         :placeholder="$t('Choose_Warehouse')"
@@ -73,6 +74,30 @@
                       <b-form-invalid-feedback>{{ errors[0] }}</b-form-invalid-feedback>
                     </b-form-group>
                   </validation-provider>
+                </b-col>
+
+                <!-- From location (optional) -->
+                <b-col lg="4" md="4" sm="12" class="mb-3" v-if="from_warehouse_locations.length">
+                  <b-form-group :label="$t('FromLocation') || 'From Location'">
+                    <v-select
+                      v-model="transfer.from_warehouse_location"
+                      :reduce="label => label.value"
+                      :placeholder="$t('Choose_Location') || 'Choose Location'"
+                      :options="from_warehouse_locations.map(l => ({label: l.name, value: l.id}))"
+                    />
+                  </b-form-group>
+                </b-col>
+
+                <!-- To location (optional) -->
+                <b-col lg="4" md="4" sm="12" class="mb-3" v-if="to_warehouse_locations.length">
+                  <b-form-group :label="$t('ToLocation') || 'To Location'">
+                    <v-select
+                      v-model="transfer.to_warehouse_location"
+                      :reduce="label => label.value"
+                      :placeholder="$t('Choose_Location') || 'Choose Location'"
+                      :options="to_warehouse_locations.map(l => ({label: l.name, value: l.id}))"
+                    />
+                  </b-form-group>
                 </b-col>
 
                  <!-- Product -->
@@ -614,6 +639,8 @@ export default {
       },
       warehouses: [],
       to_warehouses: [],
+      from_warehouse_locations: [],
+      to_warehouse_locations: [],
       products: [],
       units: [],
       symbol: "",
@@ -621,6 +648,8 @@ export default {
         id: "",
         from_warehouse: "",
         to_warehouse: "",
+        from_warehouse_location: "",
+        to_warehouse_location: "",
         statut: "completed",
         notes: "",
         date: new Date().toISOString().slice(0, 10),
@@ -1078,7 +1107,14 @@ export default {
           this.$t("Warning")
         );
         return false;
-      } else if (this.transfer.from_warehouse === this.transfer.to_warehouse) {
+      } else if (
+        this.transfer.from_warehouse === this.transfer.to_warehouse &&
+        (!this.transfer.from_warehouse_location ||
+          !this.transfer.to_warehouse_location ||
+          this.transfer.from_warehouse_location === this.transfer.to_warehouse_location)
+      ) {
+        // Same warehouse is only allowed as a location-to-location move
+        // (e.g. safe -> showroom) with two distinct locations selected.
         this.makeToast(
           "warning",
           this.$t("WarehouseIdentical"),
@@ -1449,6 +1485,35 @@ export default {
             this.fetch_batches_for_detail(d);
           }
         }
+      }
+
+      this.transfer.from_warehouse_location = "";
+      this.from_warehouse_locations = [];
+      if (value) {
+        axios
+          .get("warehouse_locations/by_warehouse/" + value)
+          .then(({ data }) => {
+            this.from_warehouse_locations = data.warehouse_locations || data || [];
+          })
+          .catch(() => {
+            this.from_warehouse_locations = [];
+          });
+      }
+    },
+
+    //-------------------------------------- Destination warehouse changed ----------------------\\
+    Selected_To_Warehouse(value) {
+      this.transfer.to_warehouse_location = "";
+      this.to_warehouse_locations = [];
+      if (value) {
+        axios
+          .get("warehouse_locations/by_warehouse/" + value)
+          .then(({ data }) => {
+            this.to_warehouse_locations = data.warehouse_locations || data || [];
+          })
+          .catch(() => {
+            this.to_warehouse_locations = [];
+          });
       }
     },
 

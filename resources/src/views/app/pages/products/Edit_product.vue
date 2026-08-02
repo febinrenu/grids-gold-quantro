@@ -572,6 +572,17 @@
                       </b-form-invalid-feedback>
                     </b-form-group>
                   </b-col>
+
+                  <b-col md="6" class="mb-3">
+                    <b-form-group label="Ownership">
+                      <v-select
+                        v-model="product.ownership_type"
+                        :options="[{ label: 'Own', value: 'own' }, { label: 'Memo', value: 'memo' }, { label: 'Consignment', value: 'consignment' }]"
+                        :reduce="option => option.value"
+                        placeholder="Choose ownership"
+                      />
+                    </b-form-group>
+                  </b-col>
                 </b-row>
 
                 <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
@@ -702,7 +713,7 @@
                     </b-form-group>
                   </b-col>
 
-                  <b-col md="6" class="mb-3">
+                  <b-col md="6" class="mb-3" v-if="product.making_charge_type !== 'formula'">
                     <b-form-group label="Making Charge Value *">
                       <b-form-input
                         type="number"
@@ -714,6 +725,19 @@
                       />
                       <b-form-invalid-feedback class="d-block" v-if="jewelryFieldMessage('making_charge_value')">
                         {{ jewelryFieldMessage('making_charge_value') }}
+                      </b-form-invalid-feedback>
+                    </b-form-group>
+                  </b-col>
+
+                  <b-col md="12" class="mb-3" v-if="product.making_charge_type === 'formula'">
+                    <b-form-group label="Making Charge Formula *" :description="'Available variables: gross_weight, net_weight, metal_weight, metal_value, gold_rate. Example: metal_weight * 5 + 20'">
+                      <b-form-input
+                        v-model="product.making_charge_formula"
+                        :state="jewelryFieldState('making_charge_formula')"
+                        placeholder="metal_weight * 5 + 20"
+                      />
+                      <b-form-invalid-feedback class="d-block" v-if="jewelryFieldMessage('making_charge_formula')">
+                        {{ jewelryFieldMessage('making_charge_formula') }}
                       </b-form-invalid-feedback>
                     </b-form-group>
                   </b-col>
@@ -764,6 +788,42 @@
                   :currency-symbol="(currentUser && currentUser.currency) || ''"
                   :price-decimals="priceDecimals"
                 />
+              </b-card>
+            </div>
+
+            <div class="form-section" id="section-jewelry-audit" v-if="showJewelrySections">
+              <div class="section-header">
+                <lucide-icon class="section-icon" name="history" />
+                <h4 class="section-title">Audit and History</h4>
+              </div>
+              <b-card class="section-card">
+                <b-row class="mb-3">
+                  <b-col md="6"><strong>Created:</strong> {{ product.created_at || '—' }}</b-col>
+                  <b-col md="6"><strong>Last Updated:</strong> {{ product.updated_at || '—' }}</b-col>
+                </b-row>
+                <div v-if="!(product.audit_history && product.audit_history.length)" class="text-muted small">No price or rate changes have been logged for this item yet.</div>
+                <div v-else class="table-responsive">
+                  <table class="table table-sm">
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>Action</th>
+                        <th>Old Values</th>
+                        <th>New Values</th>
+                        <th>User</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="log in product.audit_history" :key="log.id">
+                        <td>{{ log.date }}</td>
+                        <td>{{ log.action }}</td>
+                        <td><small>{{ JSON.stringify(log.old_values) }}</small></td>
+                        <td><small>{{ JSON.stringify(log.new_values) }}</small></td>
+                        <td>{{ log.user || '—' }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
               </b-card>
             </div>
 
@@ -1698,6 +1758,7 @@
                   <li v-if="showJewelrySections"><a href="#section-jewelry-stones"><lucide-icon name="file" /><span>Stones &amp; Certificates</span></a></li>
                   <li v-if="showJewelrySections"><a href="#section-jewelry-charges"><lucide-icon name="database-zap" /><span>Cost &amp; Making Charges</span></a></li>
                   <li v-if="showJewelrySections"><a href="#section-jewelry-preview"><lucide-icon name="eye" /><span>Pricing Preview</span></a></li>
+                  <li v-if="showJewelrySections"><a href="#section-jewelry-audit"><lucide-icon name="history" /><span>Audit and History</span></a></li>
                   <li><a href="#section-gallery"><lucide-icon name="upload" /><span>{{ $t('ProductImagesGallery') }}</span></a></li>
                   <li><a href="#section-inventory"><lucide-icon name="package" /><span>{{ $t('Inventory') }}</span></a></li>
                   <li v-if="product.type == 'is_variant'"><a href="#section-variants"><lucide-icon name="settings" /><span>{{ $t('Variants') }}</span></a></li>
@@ -2023,7 +2084,8 @@ export default {
         { label: "Fixed", value: "fixed" },
         { label: "Per Gram", value: "per_gram" },
         { label: "Percentage", value: "percentage" },
-        { label: "Manual", value: "manual" }
+        { label: "Manual", value: "manual" },
+        { label: "Formula", value: "formula" }
       ],
       wastageTypeOptions: [
         { label: "Percentage of Weight", value: "percentage_of_weight" },
@@ -2089,6 +2151,7 @@ export default {
         prescription_required: false,
         drug_schedule: "",
         is_jewelry_item: false,
+        ownership_type: "own",
         jewelry_item_type: "",
         metal_type_id: "",
         karat_id: "",
@@ -2100,6 +2163,7 @@ export default {
         certificate_number: "",
         making_charge_type: "",
         making_charge_value: "",
+        making_charge_formula: "",
         wastage_type: "",
         wastage_value: "",
         item_stones: [],
@@ -2245,7 +2309,11 @@ export default {
       if (!this.product.making_charge_type) {
         errors.making_charge_type = "Making charge type is required.";
       }
-      if (makingChargeValue === null || makingChargeValue < 0) {
+      if (this.product.making_charge_type === "formula") {
+        if (!this.product.making_charge_formula) {
+          errors.making_charge_formula = "A making charge formula is required for the formula method.";
+        }
+      } else if (makingChargeValue === null || makingChargeValue < 0) {
         errors.making_charge_value = "Making charge value is required and must be zero or greater.";
       }
       if (!this.product.wastage_type) {
@@ -2494,6 +2562,10 @@ export default {
       this.product.jewelry_weight_uom = payload.jewelry_weight_uom || this.jewelryDefaults.weight_uom || "g";
       this.product.hallmark_reference = payload.hallmark_reference || "";
       this.product.certificate_number = payload.certificate_number || "";
+      this.product.ownership_type = payload.ownership_type || "own";
+      this.product.created_at = payload.created_at || "";
+      this.product.updated_at = payload.updated_at || "";
+      this.product.audit_history = Array.isArray(payload.audit_history) ? payload.audit_history : [];
       this.product.making_charge_type = payload.making_charge_type || "";
       this.product.making_charge_value = payload.making_charge_value !== null && payload.making_charge_value !== "" && typeof payload.making_charge_value !== "undefined"
         ? Number(payload.making_charge_value)

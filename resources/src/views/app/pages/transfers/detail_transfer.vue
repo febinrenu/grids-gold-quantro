@@ -64,6 +64,7 @@
                 </h5>
                 <div class="transfer-info">
                   <p class="mb-2"><strong>{{transfer.from_warehouse}}</strong></p>
+                  <p class="mb-0 text-muted" v-if="transfer.from_warehouse_location">{{transfer.from_warehouse_location}}</p>
                 </div>
               </b-card>
             </b-col>
@@ -74,6 +75,7 @@
                 </h5>
                 <div class="transfer-info">
                   <p class="mb-2"><strong>{{transfer.to_warehouse}}</strong></p>
+                  <p class="mb-0 text-muted" v-if="transfer.to_warehouse_location">{{transfer.to_warehouse_location}}</p>
                 </div>
               </b-card>
             </b-col>

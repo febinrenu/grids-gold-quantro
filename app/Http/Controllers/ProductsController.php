@@ -21,6 +21,10 @@ use App\Models\ProductImage;
 use App\Models\ProductPack;
 use App\Models\product_warehouse;
 use App\Models\ProductVariant;
+use App\Models\Purchase;
+use App\Models\PurchaseDetail;
+use App\Models\Sale;
+use App\Models\SaleDetail;
 use App\Models\Setting;
 use App\Models\StoneType;
 use App\Models\Unit;
@@ -192,6 +196,25 @@ class ProductsController extends BaseController
             $filtered->where('jewelry_metal_weight', '<=', (float) $request->input('max_metal_weight'));
         }
 
+        if ($request->filled('ownership_type')) {
+            $filtered->where('ownership_type', $request->input('ownership_type'));
+        }
+
+        if ($request->filled('warehouse_location_id') && Schema::hasTable('product_warehouse_locations')) {
+            $locationId = (int) $request->input('warehouse_location_id');
+            $canViewRestricted = $this->canViewRestrictedLocations(auth()->user());
+
+            $filtered->whereHas('warehouseLocationHints', function ($query) use ($locationId, $canViewRestricted) {
+                $query->where('warehouse_location_id', $locationId);
+
+                if (! $canViewRestricted) {
+                    $query->whereHas('location', function ($lq) {
+                        $lq->where('is_restricted', false);
+                    });
+                }
+            });
+        }
+
         // Optional status filter: status=1 (active), status=0 (inactive)
         if ($request->filled('status') && $request->status !== '') {
             $status = $request->status;
@@ -240,6 +263,7 @@ class ProductsController extends BaseController
             $item['status'] = $isActive ? __('Active') : __('Inactif');
             $item['is_active'] = $isActive;
             $item['is_jewelry_item'] = (bool) ($product->is_jewelry_item ?? false);
+            $item['ownership_type'] = $product->ownership_type ?? 'own';
             $item['metal_type'] = optional($product->metalType)->name ?? '';
             $item['karat'] = optional($product->karat)->name ?? '';
             $item['certificate_number'] = $product->certificate_number ?? '';
@@ -387,6 +411,16 @@ class ProductsController extends BaseController
                 ->get(['id', 'name'])
             : collect();
 
+        $warehouseLocations = Schema::hasTable('warehouse_locations')
+            ? WarehouseLocation::whereNull('deleted_at')
+                ->where('is_active', true)
+                ->when(! $this->canViewRestrictedLocations(auth()->user()), function ($query) {
+                    $query->where('is_restricted', false);
+                })
+                ->orderBy('code')
+                ->get(['id', 'warehouse_id', 'code', 'name'])
+            : collect();
+
         return response()->json([
             'warehouses' => $warehouses,
             'categories' => $categories,
@@ -395,6 +429,7 @@ class ProductsController extends BaseController
             'metal_types' => $metalTypes,
             'karats' => $karats,
             'stone_types' => $stoneTypes,
+            'warehouse_locations' => $warehouseLocations,
             'products' => $data,
             'totalRows' => $totalRows,
         ]);
@@ -1009,6 +1044,11 @@ class ProductsController extends BaseController
     {
 
         $this->authorizeForUser($request->user('api'), 'update', Product::class);
+
+        // "Price changes... are auditable" — snapshot before this update overwrites it.
+        $priceBeforeUpdate = Product::where('id', $id)->value('price');
+        $costBeforeUpdate = Product::where('id', $id)->value('cost');
+
         try {
 
             // define validation rules for product
@@ -1188,7 +1228,7 @@ class ProductsController extends BaseController
                 'code.required' => 'This field is required',
             ]);
 
-            $itemStones = $this->validateJewelryProductRequest($request, $isJewelryModeEnabled, $canManageJewelryItems);
+            $itemStones = $this->validateJewelryProductRequest($request, $isJewelryModeEnabled, $canManageJewelryItems, (int) $id);
 
             \DB::transaction(function () use ($request, $id, $isJewelryModeEnabled, $canManageJewelryItems, $shouldSyncJewelry, $itemStones) {
 
@@ -1662,6 +1702,20 @@ class ProductsController extends BaseController
 
             }, 10);
 
+            $newPrice = $request->filled('price') ? (float) $request->input('price') : null;
+            $newCost = $request->filled('cost') ? (float) $request->input('cost') : null;
+            if (($newPrice !== null && (float) $priceBeforeUpdate !== $newPrice)
+                || ($newCost !== null && (float) $costBeforeUpdate !== $newCost)) {
+                app(\App\Services\AuditLogService::class)->log(
+                    'Product',
+                    (int) $id,
+                    'price_change',
+                    ['price' => $priceBeforeUpdate, 'cost' => $costBeforeUpdate],
+                    ['price' => $newPrice, 'cost' => $newCost],
+                    auth()->id()
+                );
+            }
+
             return response()->json(['success' => true]);
 
         } catch (ValidationException $e) {
@@ -1848,7 +1902,9 @@ class ProductsController extends BaseController
         $item['jewelry_metal_weight_display'] = $Product->jewelry_metal_weight !== null ? number_format((float) $Product->jewelry_metal_weight, 3, '.', '').' '.$weightUom : '';
         $item['hallmark_reference'] = $Product->hallmark_reference ?? '';
         $item['certificate_number'] = $Product->certificate_number ?? '';
+        $item['ownership_type'] = $Product->ownership_type ?? 'own';
         $item['making_charge_type'] = $Product->making_charge_type ?? '';
+        $item['making_charge_formula'] = $Product->making_charge_formula ?? '';
         $item['making_charge_value'] = $Product->making_charge_value !== null ? (float) $Product->making_charge_value : null;
         $item['wastage_type'] = $Product->wastage_type ?? '';
         $item['wastage_value'] = $Product->wastage_value !== null ? (float) $Product->wastage_value : null;
@@ -1877,6 +1933,72 @@ class ProductsController extends BaseController
                 ];
             })->values()->all()
             : [];
+
+        // Item movement history — real data from the inventory ledger,
+        // replacing the "coming soon" placeholder.
+        $item['movement_history'] = Schema::hasTable('inventory_movements')
+            ? \App\Models\InventoryMovement::where('product_id', $id)
+                ->with(['warehouse:id,name', 'warehouseLocation:id,name', 'user:id,firstname,lastname'])
+                ->orderByDesc('created_at')
+                ->limit(50)
+                ->get()
+                ->map(function ($m) {
+                    return [
+                        'id' => $m->id,
+                        'date' => optional($m->created_at)->format('Y-m-d H:i'),
+                        'movement_type' => $m->movement_type,
+                        'warehouse' => optional($m->warehouse)->name,
+                        'location' => optional($m->warehouseLocation)->name,
+                        'quantity_delta' => (float) $m->quantity_delta,
+                        'weight_delta' => $m->weight_delta !== null ? (float) $m->weight_delta : null,
+                        'source_type' => $m->source_type,
+                        'source_id' => $m->source_id,
+                        'user' => $m->user ? trim($m->user->firstname.' '.$m->user->lastname) : null,
+                    ];
+                })->values()->all()
+            : [];
+
+        // Purchase history for this item.
+        $item['purchase_history'] = PurchaseDetail::where('product_id', $id)
+            ->whereHas('purchase', function ($q) {
+                $q->whereNull('deleted_at');
+            })
+            ->with(['purchase:id,Ref,date,statut,provider_id', 'purchase.provider:id,name'])
+            ->orderByDesc('id')
+            ->limit(50)
+            ->get()
+            ->map(function ($d) {
+                return [
+                    'id' => $d->id,
+                    'ref' => optional($d->purchase)->Ref,
+                    'date' => optional($d->purchase)->date,
+                    'provider' => optional(optional($d->purchase)->provider)->name,
+                    'quantity' => (float) $d->quantity,
+                    'cost' => (float) $d->cost,
+                    'total' => (float) $d->total,
+                ];
+            })->values()->all();
+
+        // Sales history for this item.
+        $item['sales_history'] = SaleDetail::where('product_id', $id)
+            ->whereHas('sale', function ($q) {
+                $q->whereNull('deleted_at');
+            })
+            ->with(['sale:id,Ref,date,statut,client_id', 'sale.client:id,name'])
+            ->orderByDesc('id')
+            ->limit(50)
+            ->get()
+            ->map(function ($d) {
+                return [
+                    'id' => $d->id,
+                    'ref' => optional($d->sale)->Ref,
+                    'date' => optional($d->sale)->date,
+                    'client' => optional(optional($d->sale)->client)->name,
+                    'quantity' => (float) $d->quantity,
+                    'price' => (float) $d->price,
+                    'total' => (float) $d->total,
+                ];
+            })->values()->all();
 
         if ($Product->type == 'is_single') {
             $item['type_name'] = 'Single';
@@ -2441,11 +2563,15 @@ class ProductsController extends BaseController
                 ->first();
 
             if ($pwl && $pwl->location) {
+                $isRestricted = (bool) $pwl->location->is_restricted;
+                $canView = ! $isRestricted || $this->canViewRestrictedLocations(auth()->user());
+
                 $item['warehouse_location'] = [
-                    'id' => $pwl->location->id,
-                    'code' => $pwl->location->code,
-                    'name' => $pwl->location->name,
+                    'id' => $canView ? $pwl->location->id : null,
+                    'code' => $canView ? $pwl->location->code : null,
+                    'name' => $canView ? $pwl->location->name : 'Restricted',
                     'is_active' => (bool) $pwl->location->is_active,
+                    'is_restricted' => $isRestricted,
                 ];
             }
         }
@@ -2560,6 +2686,21 @@ class ProductsController extends BaseController
         $permission = Permission::where('name', 'jewelry_items_manage')->first();
 
         return $permission && $user->hasRole($permission->roles);
+    }
+
+    /**
+     * "Unauthorized users cannot view safe, vault, or restricted-location
+     * inventory" per the customization brief.
+     */
+    protected function canViewRestrictedLocations(?User $user): bool
+    {
+        if (! $user) {
+            return false;
+        }
+
+        $permission = Permission::where('name', 'view_restricted_locations')->first();
+
+        return (bool) ($permission && $user->hasRole($permission->roles));
     }
 
     protected function getJewelryFormContext(): array
@@ -2703,7 +2844,7 @@ class ProductsController extends BaseController
         return $quantity !== null && $quantity !== 1;
     }
 
-    protected function validateJewelryProductRequest(Request $request, bool $isJewelryModeEnabled, bool $canManageJewelryItems): array
+    protected function validateJewelryProductRequest(Request $request, bool $isJewelryModeEnabled, bool $canManageJewelryItems, ?int $excludeProductId = null): array
     {
         if (! $isJewelryModeEnabled || ! $canManageJewelryItems) {
             return [];
@@ -2718,7 +2859,7 @@ class ProductsController extends BaseController
 
         $errors = [];
         $allowedItemTypes = ['serialized', 'weighted', 'style', 'set', 'service', 'non_stock'];
-        $allowedMakingChargeTypes = ['fixed', 'per_gram', 'percentage', 'manual'];
+        $allowedMakingChargeTypes = ['fixed', 'per_gram', 'percentage', 'manual', 'formula'];
         $allowedWastageTypes = ['percentage_of_weight', 'percentage_of_value', 'fixed_value'];
         $allowedWeightUnits = ['g', 'mg', 'kg', 'ct', 'oz'];
 
@@ -2780,8 +2921,14 @@ class ProductsController extends BaseController
         }
 
         $requiresKarat = false;
-        if ($metalTypeId && Schema::hasTable('karats')) {
-            $requiresKarat = Karat::where('metal_type_id', $metalTypeId)->exists();
+        if ($metalTypeId && Schema::hasTable('metal_types')) {
+            $metalType = MetalType::find($metalTypeId);
+            // Explicit flag drives the rule; fall back to "does this metal have
+            // any karats configured" only for metal types created before the
+            // requires_purity column existed (it defaults to true otherwise).
+            $requiresKarat = $metalType
+                ? (bool) ($metalType->requires_purity ?? true)
+                : (Schema::hasTable('karats') && Karat::where('metal_type_id', $metalTypeId)->exists());
         }
 
         if ($requiresKarat && ! $karatId) {
@@ -2792,13 +2939,19 @@ class ProductsController extends BaseController
             $errors['karat_id'][] = 'The selected karat does not belong to the selected metal.';
         }
 
-        if ($makingChargeType === 'formula') {
-            $errors['making_charge_type'][] = 'Formula-based making charges are not supported on the product form yet.';
-        } elseif (! $makingChargeType || ! in_array($makingChargeType, $allowedMakingChargeTypes, true)) {
+        if (! $makingChargeType || ! in_array($makingChargeType, $allowedMakingChargeTypes, true)) {
             $errors['making_charge_type'][] = 'A valid making charge type is required.';
         }
 
-        if ($makingChargeType !== 'formula' && $makingChargeValue === null) {
+        $makingChargeFormula = $this->normalizeNullableString($request->input('making_charge_formula'));
+
+        if ($makingChargeType === 'formula') {
+            if (! $makingChargeFormula) {
+                $errors['making_charge_formula'][] = 'A making charge formula is required for the formula method.';
+            } elseif (mb_strlen($makingChargeFormula) > 500) {
+                $errors['making_charge_formula'][] = 'Making charge formula may not be greater than 500 characters.';
+            }
+        } elseif ($makingChargeValue === null) {
             $errors['making_charge_value'][] = 'Making charge value is required.';
         }
 
@@ -2816,6 +2969,33 @@ class ProductsController extends BaseController
 
         if ($request->filled('certificate_number') && mb_strlen((string) $request->input('certificate_number')) > 191) {
             $errors['certificate_number'][] = 'Certificate number may not be greater than 191 characters.';
+        }
+
+        // "Duplicate serial numbers, barcodes, certificate numbers, and style
+        // codes must be detected" — product `code` already has this via
+        // Rule::unique above; certificate_number and hallmark_reference did not.
+        $certificateNumber = $this->normalizeNullableString($request->input('certificate_number'));
+        if ($certificateNumber) {
+            $duplicateCertificate = Product::whereNull('deleted_at')
+                ->where('certificate_number', $certificateNumber)
+                ->when($excludeProductId, fn ($q) => $q->where('id', '!=', $excludeProductId))
+                ->exists();
+
+            if ($duplicateCertificate) {
+                $errors['certificate_number'][] = 'This certificate number is already used by another item.';
+            }
+        }
+
+        $hallmarkReference = $this->normalizeNullableString($request->input('hallmark_reference'));
+        if ($hallmarkReference) {
+            $duplicateHallmark = Product::whereNull('deleted_at')
+                ->where('hallmark_reference', $hallmarkReference)
+                ->when($excludeProductId, fn ($q) => $q->where('id', '!=', $excludeProductId))
+                ->exists();
+
+            if ($duplicateHallmark) {
+                $errors['hallmark_reference'][] = 'This hallmark reference is already used by another item.';
+            }
         }
 
         foreach ($itemStones as $index => $stone) {
@@ -2867,6 +3047,8 @@ class ProductsController extends BaseController
 
         $product->is_jewelry_item = $isJewelryItem;
         $product->jewelry_weight_uom = 'g';
+        $ownershipType = $this->normalizeNullableString($request->input('ownership_type'));
+        $product->ownership_type = in_array($ownershipType, ['own', 'memo', 'consignment'], true) ? $ownershipType : 'own';
 
         if (! $isJewelryItem) {
             $product->jewelry_item_type = null;
@@ -2879,6 +3061,7 @@ class ProductsController extends BaseController
             $product->certificate_number = null;
             $product->making_charge_type = null;
             $product->making_charge_value = null;
+            $product->making_charge_formula = null;
             $product->wastage_type = null;
             $product->wastage_value = null;
 
@@ -2896,6 +3079,7 @@ class ProductsController extends BaseController
         $product->certificate_number = $this->normalizeNullableString($request->input('certificate_number'));
         $product->making_charge_type = $this->normalizeNullableString($request->input('making_charge_type'));
         $product->making_charge_value = $this->normalizeNullableDecimal($request->input('making_charge_value'));
+        $product->making_charge_formula = $this->normalizeNullableString($request->input('making_charge_formula'));
         $product->wastage_type = $this->normalizeNullableString($request->input('wastage_type'));
         $product->wastage_value = $this->normalizeNullableDecimal($request->input('wastage_value'));
 
@@ -3224,10 +3408,35 @@ class ProductsController extends BaseController
         $item['jewelry_weight_uom'] = $Product->jewelry_weight_uom ?? 'g';
         $item['hallmark_reference'] = $Product->hallmark_reference ?? '';
         $item['certificate_number'] = $Product->certificate_number ?? '';
+        $item['ownership_type'] = $Product->ownership_type ?? 'own';
         $item['making_charge_type'] = $Product->making_charge_type ?? '';
+        $item['making_charge_formula'] = $Product->making_charge_formula ?? '';
         $item['making_charge_value'] = $Product->making_charge_value !== null ? (float) $Product->making_charge_value : '';
         $item['wastage_type'] = $Product->wastage_type ?? '';
         $item['wastage_value'] = $Product->wastage_value !== null ? (float) $Product->wastage_value : '';
+
+        // Audit and History section: creation/update timestamps + logged price/rate changes.
+        $item['created_at'] = optional($Product->created_at)->format('Y-m-d H:i');
+        $item['updated_at'] = optional($Product->updated_at)->format('Y-m-d H:i');
+        $item['audit_history'] = Schema::hasTable('audit_logs')
+            ? \App\Models\AuditLog::where('auditable_type', 'Product')
+                ->where('auditable_id', $Product->id)
+                ->with('user:id,firstname,lastname')
+                ->orderByDesc('created_at')
+                ->limit(20)
+                ->get()
+                ->map(function ($log) {
+                    return [
+                        'id' => $log->id,
+                        'date' => optional($log->created_at)->format('Y-m-d H:i'),
+                        'action' => $log->action,
+                        'old_values' => $log->old_values,
+                        'new_values' => $log->new_values,
+                        'user' => $log->user ? trim($log->user->firstname.' '.$log->user->lastname) : null,
+                    ];
+                })->values()->all()
+            : [];
+
         $item['item_stones'] = Schema::hasTable('item_stones')
             ? ItemStone::where('product_id', $Product->id)
                 ->orderBy('id')
@@ -3326,6 +3535,9 @@ class ProductsController extends BaseController
 
         $warehouse_locations = WarehouseLocation::whereNull('deleted_at')
             ->whereIn('warehouse_id', $allowedWarehouseIds)
+            ->when(! $this->canViewRestrictedLocations(auth()->user()), function ($q) {
+                $q->where('is_restricted', false);
+            })
             ->orderBy('code')
             ->get(['id', 'warehouse_id', 'code', 'name', 'is_active']);
 

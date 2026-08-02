@@ -12,7 +12,7 @@ class SaleDetail extends Model
         'price', 'TaxNet', 'discount', 'discount_method', 'tax_method', 'price_type',
         'warranty_date', 'guarantee_date',
         'product_pack_id', 'pack_multiplier', 'pack_name',
-        'gold_rate_id', 'gold_rate_value', 'karat_id', 'metal_weight_used',
+        'gold_rate_id', 'gold_rate_value', 'gold_rate_effective_at', 'karat_id', 'metal_weight_used',
         'making_charge_amount', 'wastage_amount', 'stone_value_amount',
         'price_breakdown', 'override_approved_by',
     ];
@@ -34,6 +34,7 @@ class SaleDetail extends Model
         'product_pack_id' => 'integer',
         'pack_multiplier' => 'double',
         'price_breakdown' => 'array',
+        'gold_rate_effective_at' => 'datetime',
     ];
 
     public function sale()
@@ -49,6 +50,11 @@ class SaleDetail extends Model
     public function pack()
     {
         return $this->belongsTo(ProductPack::class, 'product_pack_id');
+    }
+
+    public function karat()
+    {
+        return $this->belongsTo(Karat::class);
     }
 
     /**
