@@ -2615,6 +2615,46 @@
                         </small>
                       </b-col>
 
+                      <b-col md="12" class="mt-4 mb-2">
+                        <hr class="my-4">
+                        <h6 class="mb-3">Jewelry POS Settings</h6>
+                        <b-alert show variant="light" class="small mb-0">
+                          These settings are only used when jewelry mode is enabled and a jewelry item is being sold in POS.
+                        </b-alert>
+                      </b-col>
+
+                      <b-col md="4" class="mt-3 mb-3">
+                        <label class="switch switch-primary mr-3">
+                          Show Gold Rate on POS
+                          <input type="checkbox" v-model="pos_settings.show_gold_rate_on_pos">
+                          <span class="slider"></span>
+                        </label>
+                        <small class="text-muted d-block mt-2">Display the live gold-rate line inside jewelry pricing previews on the POS screen.</small>
+                      </b-col>
+
+                      <b-col md="4" class="mt-3 mb-3">
+                        <label class="switch switch-primary mr-3">
+                          Allow Jewelry Price Override
+                          <input type="checkbox" v-model="pos_settings.allow_jewelry_price_override">
+                          <span class="slider"></span>
+                        </label>
+                        <small class="text-muted d-block mt-2">Permit manual price overrides for jewelry items during sale creation.</small>
+                      </b-col>
+
+                      <b-col md="4" class="mt-3 mb-3">
+                        <b-form-group label="Override Approval Threshold">
+                          <b-form-input
+                            v-model="pos_settings.jewelry_override_approval_threshold"
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            placeholder="0.00"
+                            :disabled="!pos_settings.allow_jewelry_price_override"
+                          ></b-form-input>
+                          <small class="text-muted d-block mt-2">Overrides above this amount require an approver.</small>
+                        </b-form-group>
+                      </b-col>
+
                       <!-- Enable Keyboard Shortcuts in POS (per-device, stored in localStorage) -->
                       <b-col md="4" class="mt-3 mb-3">
                         <label class="switch switch-primary mr-3">
@@ -3357,6 +3397,94 @@
                     </b-row>
                   </div>
 
+                  <!-- Jewelry Settings Tab -->
+                  <div v-show="activeTab === 'jewelry'" class="tab-content">
+                    <b-alert show variant="warning" v-if="setting.jewelry_mode_supported === false">
+                      Jewelry mode columns were not found on the settings table. Run the jewelry settings migration to enable these options.
+                    </b-alert>
+
+                    <b-row v-else>
+                      <b-col lg="12" md="12" sm="12" class="mb-3">
+                        <div class="system-actions-card">
+                          <h5 class="mb-2">Jewelry Mode</h5>
+                          <p class="text-muted small">Enable jewelry-specific product fields, pricing defaults, and gold-rate workflows for this tenant.</p>
+                          <label class="switch switch-primary mr-3">
+                            Enable Jewelry Mode
+                            <input type="checkbox" v-model="setting.jewelry_mode">
+                            <span class="slider"></span>
+                          </label>
+                        </div>
+                      </b-col>
+
+                      <b-col lg="6" md="6" sm="12" class="mb-3">
+                        <b-form-group label="Default Making Charge Type">
+                          <b-form-select
+                            v-model="setting.default_making_charge_type"
+                            :options="[{ value: '', text: 'Choose default type' }, ...jewelryMakingChargeOptions]"
+                            :disabled="!setting.jewelry_mode"
+                          ></b-form-select>
+                        </b-form-group>
+                      </b-col>
+
+                      <b-col lg="6" md="6" sm="12" class="mb-3">
+                        <b-form-group label="Default Making Charge Value">
+                          <b-form-input
+                            v-model="setting.default_making_charge_value"
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            placeholder="0.00"
+                            :disabled="!setting.jewelry_mode"
+                          ></b-form-input>
+                        </b-form-group>
+                      </b-col>
+
+                      <b-col lg="6" md="6" sm="12" class="mb-3">
+                        <b-form-group label="Default Wastage Type">
+                          <b-form-select
+                            v-model="setting.default_wastage_type"
+                            :options="[{ value: '', text: 'Choose default type' }, ...jewelryWastageOptions]"
+                            :disabled="!setting.jewelry_mode"
+                          ></b-form-select>
+                        </b-form-group>
+                      </b-col>
+
+                      <b-col lg="6" md="6" sm="12" class="mb-3">
+                        <b-form-group label="Default Wastage Value">
+                          <b-form-input
+                            v-model="setting.default_wastage_value"
+                            type="number"
+                            min="0"
+                            step="0.001"
+                            placeholder="0.000"
+                            :disabled="!setting.jewelry_mode"
+                          ></b-form-input>
+                        </b-form-group>
+                      </b-col>
+
+                      <b-col lg="12" md="12" sm="12" class="mb-3">
+                        <div class="system-actions-card">
+                          <label class="switch switch-primary mr-3">
+                            Gold Rate Requires Approval
+                            <input
+                              type="checkbox"
+                              v-model="setting.gold_rate_requires_approval"
+                              :disabled="!setting.jewelry_mode"
+                            >
+                            <span class="slider"></span>
+                          </label>
+                          <p class="text-muted small mt-2 mb-0">When enabled, a second authorized user must approve gold-rate changes.</p>
+                        </div>
+                      </b-col>
+
+                      <b-col lg="12" md="12" sm="12" class="mt-2">
+                        <b-button variant="primary" @click="Update_Settings()">
+                          <lucide-icon class="me-2" name="check" /> {{ $t('submit') }}
+                        </b-button>
+                      </b-col>
+                    </b-row>
+                  </div>
+
                   <!-- Custom Fields Tab -->
                   <div v-show="activeTab === 'custom_fields'" class="tab-content">
                     <b-tabs v-model="customFieldsActiveTab" content-class="mt-3">
@@ -3910,6 +4038,15 @@ export default {
         expiry_warning_days: 90,
         block_expired_sale: false,
         print_expiry_on_receipt: false,
+
+        // Jewelry mode (gold / jewelry retail settings)
+        jewelry_mode_supported: true,
+        jewelry_mode: false,
+        default_making_charge_type: "",
+        default_making_charge_value: "",
+        default_wastage_type: "",
+        default_wastage_value: "",
+        gold_rate_requires_approval: false,
       },
       // Custom Fields data
       customFieldsActiveTab: 0,
@@ -3973,6 +4110,9 @@ export default {
         show_categories: false,
         show_brands: false,
         allow_overselling: false,
+        show_gold_rate_on_pos: false,
+        allow_jewelry_price_override: false,
+        jewelry_override_approval_threshold: "",
         receipt_layout: 1,
         show_paid: "",
         show_due: "",
@@ -4108,6 +4248,24 @@ export default {
     // - local => no cloud upload, keep local
     // - cloud => upload to cloud, delete local after successful upload
     // - both  => upload to cloud, keep local
+    jewelryMakingChargeOptions() {
+      return [
+        { value: 'fixed', text: 'Fixed' },
+        { value: 'per_gram', text: 'Per Gram' },
+        { value: 'percentage', text: 'Percentage' },
+        { value: 'manual', text: 'Manual' },
+        { value: 'formula', text: 'Formula' },
+      ];
+    },
+
+    jewelryWastageOptions() {
+      return [
+        { value: 'percentage_of_weight', text: 'Percentage of Weight' },
+        { value: 'percentage_of_value', text: 'Percentage of Value' },
+        { value: 'fixed_value', text: 'Fixed Value' },
+      ];
+    },
+
     backupDestination: {
       get() {
         const cloudRaw = this.setting ? this.setting.backup_cloud_enabled : false;
@@ -4230,6 +4388,7 @@ export default {
         { id: 'security', label: this.$t('Security_Settings'), icon: 'shield-check', description: 'Session timeout and active login sessions' },
         { id: 'system', label: this.$t('System'), icon: 'settings', description: 'System maintenance and cache management' },
         { id: 'pharmacy', label: this.$t('Pharmacy_Settings'), icon: 'heart-pulse', description: this.$t('Pharmacy_Settings_Help') || 'Enable batch & expiry tracking for pharmacy inventory.' },
+        { id: 'jewelry', label: this.$t('Jewelry') || 'Jewelry', icon: 'tag', description: 'Enable jewelry mode, pricing defaults, and gold-rate approval controls.' },
         { id: 'custom_fields', label: this.$t('CustomFields') || 'Custom Fields', icon: 'database-zap', description: 'Manage custom fields for customers and suppliers' },
       ];
 
@@ -4758,6 +4917,14 @@ export default {
       self.data.append("block_expired_sale", self.setting.block_expired_sale ? 1 : 0);
       self.data.append("print_expiry_on_receipt", self.setting.print_expiry_on_receipt ? 1 : 0);
 
+      // Jewelry mode (gold / jewelry retail settings)
+      self.data.append("jewelry_mode", self.setting.jewelry_mode ? 1 : 0);
+      self.data.append("default_making_charge_type", self.setting.default_making_charge_type || "");
+      self.data.append("default_making_charge_value", self.setting.default_making_charge_value != null && self.setting.default_making_charge_value !== "" ? self.setting.default_making_charge_value : "");
+      self.data.append("default_wastage_type", self.setting.default_wastage_type || "");
+      self.data.append("default_wastage_value", self.setting.default_wastage_value != null && self.setting.default_wastage_value !== "" ? self.setting.default_wastage_value : "");
+      self.data.append("gold_rate_requires_approval", self.setting.gold_rate_requires_approval ? 1 : 0);
+
       self.data.append("_method", "put");
 
       // Defaults tab field "How many items do you want to display in POS"
@@ -4905,6 +5072,11 @@ export default {
           show_categories: this.pos_settings.show_categories,
           show_brands: this.pos_settings.show_brands,
           allow_overselling: this.pos_settings.allow_overselling ? 1 : 0,
+          show_gold_rate_on_pos: this.pos_settings.show_gold_rate_on_pos ? 1 : 0,
+          allow_jewelry_price_override: this.pos_settings.allow_jewelry_price_override ? 1 : 0,
+          jewelry_override_approval_threshold: this.pos_settings.jewelry_override_approval_threshold !== '' && this.pos_settings.jewelry_override_approval_threshold != null
+            ? Number(this.pos_settings.jewelry_override_approval_threshold)
+            : null,
           show_paid: this.pos_settings.show_paid,
           show_due: this.pos_settings.show_due,
           show_payments: this.pos_settings.show_payments,
@@ -5918,7 +6090,7 @@ export default {
             // Valid tab IDs that can be restored
             const validTabs = ['general', 'appearance', 'pwa', 'localization', 'defaults', 'dashboard', 'prefixes',
                               'payment', 'mail', 'sms', 'pos', 'pos_settings', 'zatca',
-                              'invoice', 'backup', 'security', 'system'];
+                              'invoice', 'backup', 'security', 'system', 'jewelry'];
             if (validTabs.includes(submittedTab)) {
               // Restore the tab that was active when form was submitted
               this.activeTab = submittedTab;
