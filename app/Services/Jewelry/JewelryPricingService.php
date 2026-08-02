@@ -213,7 +213,8 @@ class JewelryPricingService
         });
 
         foreach ($variables as $varName => $value) {
-            $expr = str_replace(strtolower($varName), (string)$value, $expr);
+            $num = rtrim(rtrim(sprintf('%.15F', (float) $value), '0'), '.');
+            $expr = str_replace(strtolower($varName), $num === '' ? '0' : $num, $expr);
         }
 
         // Clean expression to strictly contain numbers, arithmetic operators, parentheses, and whitespace
