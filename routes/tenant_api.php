@@ -1052,6 +1052,51 @@ Route::middleware(['auth:api', 'Is_Active', 'request.safety', 'token.timeout', '
 
 });
 
+// /api/v1/* — literal endpoint paths from the customization brief §11, aliased
+// onto the existing controllers/data (the app's real API otherwise lives
+// directly under /api/ with no version prefix). Additive only; nothing under
+// /api/ was removed or changed.
+Route::middleware(['auth:api', 'Is_Active', 'request.safety', 'token.timeout', 'tenant.subscribed', 'tenant.activity'])->prefix('v1')->group(function () {
+    Route::get('items', 'ProductsController@index');
+    Route::get('items/{id}', 'ProductsController@Get_Products_Details');
+    Route::post('catalog/import', 'ProductsController@import_single_products');
+    Route::get('gold-rates', 'GoldRateController@index');
+    Route::post('gold-rates', 'GoldRateController@store');
+    Route::get('gold-rates/current', 'GoldRateController@current');
+    Route::post('pricing/preview', 'JewelryPricingController@preview');
+    Route::get('inventory/balances', function (Illuminate\Http\Request $request) {
+        $query = \App\Models\product_warehouse::whereNull('deleted_at');
+        if ($request->filled('product_id')) {
+            $query->where('product_id', (int) $request->input('product_id'));
+        }
+        if ($request->filled('warehouse_id')) {
+            $query->where('warehouse_id', (int) $request->input('warehouse_id'));
+        }
+
+        return response()->json(
+            $query->select('product_id', 'warehouse_id', 'product_variant_id', 'qte')
+                ->limit(500)
+                ->get()
+        );
+    });
+    Route::get('inventory/movements', function (Illuminate\Http\Request $request) {
+        $query = \App\Models\InventoryMovement::query();
+        if ($request->filled('product_id')) {
+            $query->where('product_id', (int) $request->input('product_id'));
+        }
+        if ($request->filled('warehouse_id')) {
+            $query->where('warehouse_id', (int) $request->input('warehouse_id'));
+        }
+
+        return response()->json(
+            $query->orderByDesc('created_at')->limit(500)->get()
+        );
+    });
+    Route::get('invoices', 'SalesController@index');
+    Route::get('invoices/{id}', 'SalesController@show');
+    Route::get('payments', 'PaymentSalesController@index');
+});
+
 // Accounting V2 (feature-gated)
 Route::middleware(['auth:api', 'Is_Active', 'request.safety', 'tenant.subscribed', 'tenant.feature:accounting'])->group(function () {
     Route::prefix('accounting/v2')->group(function () {

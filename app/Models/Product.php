@@ -18,10 +18,10 @@ class Product extends Model
         'is_preorder', 'preorder_available_date', 'preorder_limit', 'preorder_note',
         'is_batch_tracked', 'shelf_life_days', 'generic_name', 'strength', 'dosage_form',
         'pack_size', 'manufacturer', 'prescription_required', 'drug_schedule',
-        'is_jewelry_item', 'jewelry_item_type', 'metal_type_id', 'karat_id',
+        'is_jewelry_item', 'ownership_type', 'jewelry_item_type', 'metal_type_id', 'karat_id',
         'jewelry_gross_weight', 'jewelry_net_weight', 'jewelry_metal_weight', 'jewelry_weight_uom',
         'hallmark_reference', 'certificate_number',
-        'making_charge_type', 'making_charge_value', 'wastage_type', 'wastage_value',
+        'making_charge_type', 'making_charge_value', 'making_charge_formula', 'wastage_type', 'wastage_value',
     ];
 
     protected $casts = [

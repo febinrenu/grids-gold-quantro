@@ -250,12 +250,20 @@ class PurchasesController extends BaseController
                             ->first();
 
                         if ($unit && $product_warehouse) {
-                            if ($unit->operator == '/') {
-                                $product_warehouse->qte += $value['quantity'] / $unit->operator_value;
-                            } else {
-                                $product_warehouse->qte += $value['quantity'] * $unit->operator_value;
-                            }
+                            $qtyDelta = ($unit->operator == '/') ? ($value['quantity'] / $unit->operator_value) : ($value['quantity'] * $unit->operator_value);
+                            $product_warehouse->qte += $qtyDelta;
                             $product_warehouse->save();
+
+                            app(\App\Services\InventoryMovementService::class)->record([
+                                'warehouse_id' => $order->warehouse_id,
+                                'product_id' => $value['product_id'],
+                                'product_variant_id' => $value['product_variant_id'],
+                                'movement_type' => 'receiving',
+                                'quantity_delta' => $qtyDelta,
+                                'source_type' => 'Purchase',
+                                'source_id' => $order->id,
+                                'user_id' => Auth::id(),
+                            ]);
                         }
 
                     } else {
@@ -265,12 +273,20 @@ class PurchasesController extends BaseController
                             ->first();
 
                         if ($unit && $product_warehouse) {
-                            if ($unit->operator == '/') {
-                                $product_warehouse->qte += $value['quantity'] / $unit->operator_value;
-                            } else {
-                                $product_warehouse->qte += $value['quantity'] * $unit->operator_value;
-                            }
+                            $qtyDelta = ($unit->operator == '/') ? ($value['quantity'] / $unit->operator_value) : ($value['quantity'] * $unit->operator_value);
+                            $product_warehouse->qte += $qtyDelta;
                             $product_warehouse->save();
+
+                            app(\App\Services\InventoryMovementService::class)->record([
+                                'warehouse_id' => $order->warehouse_id,
+                                'product_id' => $value['product_id'],
+                                'product_variant_id' => null,
+                                'movement_type' => 'receiving',
+                                'quantity_delta' => $qtyDelta,
+                                'source_type' => 'Purchase',
+                                'source_id' => $order->id,
+                                'user_id' => Auth::id(),
+                            ]);
                         }
                     }
                 }

@@ -394,6 +394,26 @@
                 <!-- SKU subtitle -->
                 <div v-if="item.code" style="font-size: 10px; color: #8d8da0; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">SKU · {{ item.code }}</div>
 
+                <!-- Jewelry breakdown: metal, karat, weight, gold rate, metal value, making charge, wastage, stone value, discount, tax -->
+                <div v-if="item.is_jewelry_item" style="font-size: 10px; color: #8d6a1e; background: #fdf6e8; border-radius: 5px; padding: 3px 6px; margin-top: 2px; line-height: 1.5;">
+                  <div>
+                    <span v-if="item.metal_type">{{ item.metal_type }}</span>
+                    <span v-if="item.karat"> · {{ item.karat }}</span>
+                    <span v-if="item.jewelry_gross_weight"> · Gross {{ formatNumber(item.jewelry_gross_weight, 3) }}{{ item.jewelry_weight_uom }}</span>
+                    <span v-if="item.jewelry_pricing_breakdown && item.jewelry_pricing_breakdown.metal_weight"> · Metal {{ formatNumber(item.jewelry_pricing_breakdown.metal_weight, 3) }}{{ item.jewelry_weight_uom }}</span>
+                    <span v-if="item.stone_summary"> · {{ item.stone_summary }}</span>
+                  </div>
+                  <div v-if="item.jewelry_pricing_breakdown">
+                    <span v-if="item.jewelry_pricing_breakdown.gold_rate">Rate {{ formatPriceWithCurrentCurrency(item.jewelry_pricing_breakdown.gold_rate, 2) }}</span>
+                    <span v-if="item.jewelry_pricing_breakdown.metal_value"> · Metal Value {{ formatPriceWithCurrentCurrency(item.jewelry_pricing_breakdown.metal_value, 2) }}</span>
+                    <span v-if="item.jewelry_pricing_breakdown.making_charge"> · Making {{ formatPriceWithCurrentCurrency(item.jewelry_pricing_breakdown.making_charge, 2) }}</span>
+                    <span v-if="item.jewelry_pricing_breakdown.wastage"> · Wastage {{ formatPriceWithCurrentCurrency(item.jewelry_pricing_breakdown.wastage, 2) }}</span>
+                    <span v-if="item.jewelry_pricing_breakdown.stone_value"> · Stones {{ formatPriceWithCurrentCurrency(item.jewelry_pricing_breakdown.stone_value, 2) }}</span>
+                    <span v-if="item.jewelry_pricing_breakdown.discount"> · Discount {{ formatPriceWithCurrentCurrency(item.jewelry_pricing_breakdown.discount, 2) }}</span>
+                    <span v-if="item.jewelry_pricing_breakdown.tax"> · Tax {{ formatPriceWithCurrentCurrency(item.jewelry_pricing_breakdown.tax, 2) }}</span>
+                  </div>
+                </div>
+
                 <!-- Controls row: qty stepper + unit price + price-type -->
                 <div style="display: flex; align-items: center; gap: 8px; margin-top: 2px;">
                   <!-- qty stepper -->
@@ -708,6 +728,15 @@
                   class="pos-shell-card-stock">
                   <span v-if="product.code"> · </span>{{ formatNumber(product.qte_sale, 2) }} {{ product.unitSale }}
                 </span>
+              </div>
+
+              <!-- Jewelry summary: metal, karat, weight, stones, gold rate -->
+              <div v-if="product.is_jewelry_item" style="font-size: 10px; color: #a8792f; background: #fdf6e8; border-radius: 6px; padding: 3px 6px; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                <span v-if="product.metal_type">{{ product.metal_type }}</span>
+                <span v-if="product.karat"> · {{ product.karat }}</span>
+                <span v-if="product.jewelry_gross_weight"> · {{ formatNumber(product.jewelry_gross_weight, 3) }}{{ product.jewelry_weight_uom }}</span>
+                <span v-if="product.stone_summary"> · {{ product.stone_summary }}</span>
+                <span v-if="product.jewelry_pricing_breakdown && product.jewelry_pricing_breakdown.gold_rate"> · Rate {{ formatNumber(product.jewelry_pricing_breakdown.gold_rate, 2) }}</span>
               </div>
 
               <!-- Price + plus button row -->
@@ -4877,6 +4906,18 @@ export default {
         this.product.is_batch_tracked   = !!data.is_batch_tracked;
         this.product.image              = data.image;
 
+        // Jewelry: carry the precomputed breakdown (gold rate, weight, making
+        // charge, wastage, stone value...) from the product row onto the cart
+        // line so it can be shown before the sale is completed. Never
+        // recalculated here — this is exactly what CreatePOS will persist.
+        this.product.is_jewelry_item        = !!data.is_jewelry_item;
+        this.product.metal_type             = data.metal_type || '';
+        this.product.karat                  = data.karat || '';
+        this.product.jewelry_gross_weight   = data.jewelry_gross_weight;
+        this.product.jewelry_weight_uom     = data.jewelry_weight_uom || 'g';
+        this.product.stone_summary          = data.stone_summary || '';
+        this.product.jewelry_pricing_breakdown = data.jewelry_pricing_breakdown || null;
+
         // Multi-Pack Selling: carry packs + pre-select the default pack so the
         // cart line (cloned from this.product) can render the pack picker.
         this.product.packs              = Array.isArray(data.packs) ? data.packs : [];
@@ -4947,6 +4988,15 @@ export default {
           pack_multiplier: 1,
           pack_name: null,
           retail_unit_price: p.Unit_price != null ? p.Unit_price : (p.Net_price != null ? p.Net_price : (p.price != null ? p.price : 0)),
+          // Jewelry: carry the precomputed breakdown through untouched — never
+          // recalculated client-side, it's exactly what CreatePOS will persist.
+          is_jewelry_item: !!p.is_jewelry_item,
+          metal_type: p.metal_type || '',
+          karat: p.karat || '',
+          jewelry_gross_weight: p.jewelry_gross_weight,
+          jewelry_weight_uom: p.jewelry_weight_uom || 'g',
+          stone_summary: p.stone_summary || '',
+          jewelry_pricing_breakdown: p.jewelry_pricing_breakdown || null,
         };
 
         // Ensure price fields (Net_price, taxe, Total_price) are consistent,

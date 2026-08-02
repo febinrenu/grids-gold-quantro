@@ -320,6 +320,17 @@ class AdjustmentController extends BaseController
                         }
                     }
                 }
+
+                app(\App\Services\InventoryMovementService::class)->record([
+                    'warehouse_id' => $order->warehouse_id,
+                    'product_id' => $value['product_id'],
+                    'product_variant_id' => $value['product_variant_id'],
+                    'movement_type' => 'adjustment',
+                    'quantity_delta' => $value['type'] == 'add' ? $value['quantity'] : -$value['quantity'],
+                    'source_type' => 'Adjustment',
+                    'source_id' => $order->id,
+                    'user_id' => Auth::id(),
+                ]);
             }
 
             // Pharmacy: apply per-batch movements alongside the warehouse-stock changes
@@ -332,6 +343,15 @@ class AdjustmentController extends BaseController
                     $persistedDetails
                 );
             }
+
+            app(\App\Services\AuditLogService::class)->log(
+                'Adjustment',
+                $order->id,
+                'adjustment',
+                null,
+                ['warehouse_id' => $order->warehouse_id, 'lines' => count($data)],
+                Auth::id()
+            );
         }, 10);
 
         return response()->json(['success' => true]);

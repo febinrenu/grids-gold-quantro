@@ -299,6 +299,28 @@
             </b-col>
 
             <b-col md="12">
+              <b-form-group label="Location">
+                <v-select
+                  :reduce="label => label.value"
+                  placeholder="Choose location"
+                  v-model="Filter_warehouse_location_id"
+                  :options="warehouseLocations.map(loc => ({ label: loc.name || loc.code, value: loc.id }))"
+                />
+              </b-form-group>
+            </b-col>
+
+            <b-col md="12">
+              <b-form-group label="Ownership">
+                <v-select
+                  :reduce="label => label.value"
+                  placeholder="Choose ownership"
+                  v-model="Filter_ownership_type"
+                  :options="[{ label: 'Own', value: 'own' }, { label: 'Memo', value: 'memo' }, { label: 'Consignment', value: 'consignment' }]"
+                />
+              </b-form-group>
+            </b-col>
+
+            <b-col md="12">
               <b-button @click="Get_Products(serverParams.page)" variant="primary m-1" size="sm" block>
                 <lucide-icon name="filter" /> {{ $t("Filter") }}
               </b-button>
@@ -390,6 +412,9 @@ export default {
       Filter_max_gross_weight: "",
       Filter_min_metal_weight: "",
       Filter_max_metal_weight: "",
+      Filter_warehouse_location_id: "",
+      Filter_ownership_type: "",
+      warehouseLocations: [],
       categories: [],
       subcategories: [],
       brands: [],
@@ -679,6 +704,8 @@ export default {
       this.Filter_max_gross_weight = "";
       this.Filter_min_metal_weight = "";
       this.Filter_max_metal_weight = "";
+      this.Filter_warehouse_location_id = "";
+      this.Filter_ownership_type = "";
       this.Get_Products(this.serverParams.page);
     },
 
@@ -697,6 +724,8 @@ export default {
       if (this.Filter_max_gross_weight === null) this.Filter_max_gross_weight = "";
       if (this.Filter_min_metal_weight === null) this.Filter_min_metal_weight = "";
       if (this.Filter_max_metal_weight === null) this.Filter_max_metal_weight = "";
+      if (this.Filter_warehouse_location_id === null) this.Filter_warehouse_location_id = "";
+      if (this.Filter_ownership_type === null) this.Filter_ownership_type = "";
     },
 
     handleFilterMetalTypeChange() {
@@ -728,6 +757,8 @@ export default {
         "&max_gross_weight=" + encodeURIComponent(this.Filter_max_gross_weight || "") +
         "&min_metal_weight=" + encodeURIComponent(this.Filter_min_metal_weight || "") +
         "&max_metal_weight=" + encodeURIComponent(this.Filter_max_metal_weight || "") +
+        "&warehouse_location_id=" + encodeURIComponent(this.Filter_warehouse_location_id || "") +
+        "&ownership_type=" + encodeURIComponent(this.Filter_ownership_type || "") +
         "&SortField=" + encodeURIComponent(this.serverParams.sort.field) +
         "&SortType=" + encodeURIComponent(this.serverParams.sort.type) +
         "&search=" + encodeURIComponent(this.search || "") +
@@ -742,6 +773,7 @@ export default {
         this.metalTypes = response.data.metal_types || [];
         this.karats = response.data.karats || [];
         this.stoneTypes = response.data.stone_types || [];
+        this.warehouseLocations = response.data.warehouse_locations || [];
         this.totalRows  = response.data.totalRows;
         NProgress.done(); this.isLoading = false;
       })

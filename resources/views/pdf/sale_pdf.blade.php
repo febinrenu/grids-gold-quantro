@@ -225,6 +225,18 @@
                     @if($detail['is_imei'] && $detail['imei_number'] !==null)
                         <div style="font-size: 7pt; color: #3b82f6; margin-top: 1px;">{{ __('pdf.sn') }} {{$detail['imei_number']}}</div>
                     @endif
+                    @if(!empty($detail['is_jewelry_item']))
+                        <div style="font-size: 6.5pt; color: #8d6a1e; margin-top: 2px; line-height: 1.5;">
+                            @if($detail['jewelry_karat']){{ $detail['jewelry_karat'] }}@endif
+                            @if($detail['jewelry_metal_weight']) &middot; {{ $detail['jewelry_metal_weight'] }}g @endif
+                            @if($detail['jewelry_gold_rate']) &middot; Rate {{ $symbol }}{{ $detail['jewelry_gold_rate'] }} @endif
+                            @if($detail['jewelry_gold_rate_effective_at']) &middot; as of {{ $detail['jewelry_gold_rate_effective_at'] }} @endif
+                            <br>
+                            @if($detail['jewelry_making_charge']) Making {{ $symbol }}{{ $detail['jewelry_making_charge'] }} @endif
+                            @if($detail['jewelry_wastage']) &middot; Wastage {{ $symbol }}{{ $detail['jewelry_wastage'] }} @endif
+                            @if($detail['jewelry_stone_value']) &middot; Stones {{ $symbol }}{{ $detail['jewelry_stone_value'] }} @endif
+                        </div>
+                    @endif
                 </td>
                 <td style="padding: 5px; text-align: right; font-size: 8.5pt; color: #1f2937;">{{formatPrice((float)$detail['price'], 2, $priceFormat)}}</td>
                 <td style="padding: 5px; text-align: right; font-size: 8.5pt; color: #1f2937;">

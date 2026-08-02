@@ -49,7 +49,10 @@
             <span class="pricing-preview-row__value">{{ formatMoney(preview.metal_value) }}</span>
           </div>
           <div class="pricing-preview-row">
-            <span class="pricing-preview-row__label">Making Charge</span>
+            <span class="pricing-preview-row__label">
+              Making Charge
+              <small v-if="preview.making_charge_type" class="pricing-preview-row__method">({{ makingChargeTypeLabel(preview.making_charge_type) }})</small>
+            </span>
             <span class="pricing-preview-row__value">{{ formatMoney(preview.making_charge) }}</span>
           </div>
           <div class="pricing-preview-row">
@@ -337,6 +340,16 @@ export default {
     formatWeight(value) {
       const amount = this.toNullableNumber(value) || 0;
       return `${amount.toFixed(3)} ${this.normalizedProductPayload.jewelry_weight_uom || "g"}`;
+    },
+    makingChargeTypeLabel(type) {
+      const labels = {
+        fixed: "Fixed",
+        per_gram: "Per Gram",
+        percentage: "Percentage",
+        manual: "Manual",
+        formula: "Formula"
+      };
+      return labels[type] || type;
     },
     formatDate(value) {
       if (!value) {

@@ -828,6 +828,17 @@
                       </b-form-invalid-feedback>
                     </b-form-group>
                   </b-col>
+
+                  <b-col md="6" class="mb-3">
+                    <b-form-group label="Ownership">
+                      <v-select
+                        v-model="product.ownership_type"
+                        :options="[{ label: 'Own', value: 'own' }, { label: 'Memo', value: 'memo' }, { label: 'Consignment', value: 'consignment' }]"
+                        :reduce="option => option.value"
+                        placeholder="Choose ownership"
+                      />
+                    </b-form-group>
+                  </b-col>
                 </b-row>
 
                 <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
@@ -958,7 +969,7 @@
                     </b-form-group>
                   </b-col>
 
-                  <b-col md="6" class="mb-3">
+                  <b-col md="6" class="mb-3" v-if="product.making_charge_type !== 'formula'">
                     <b-form-group label="Making Charge Value *">
                       <b-form-input
                         type="number"
@@ -970,6 +981,19 @@
                       />
                       <b-form-invalid-feedback class="d-block" v-if="jewelryFieldMessage('making_charge_value')">
                         {{ jewelryFieldMessage('making_charge_value') }}
+                      </b-form-invalid-feedback>
+                    </b-form-group>
+                  </b-col>
+
+                  <b-col md="12" class="mb-3" v-if="product.making_charge_type === 'formula'">
+                    <b-form-group label="Making Charge Formula *" :description="'Available variables: gross_weight, net_weight, metal_weight, metal_value, gold_rate. Example: metal_weight * 5 + 20'">
+                      <b-form-input
+                        v-model="product.making_charge_formula"
+                        :state="jewelryFieldState('making_charge_formula')"
+                        placeholder="metal_weight * 5 + 20"
+                      />
+                      <b-form-invalid-feedback class="d-block" v-if="jewelryFieldMessage('making_charge_formula')">
+                        {{ jewelryFieldMessage('making_charge_formula') }}
                       </b-form-invalid-feedback>
                     </b-form-group>
                   </b-col>
@@ -2325,7 +2349,8 @@ export default {
         { label: "Fixed", value: "fixed" },
         { label: "Per Gram", value: "per_gram" },
         { label: "Percentage", value: "percentage" },
-        { label: "Manual", value: "manual" }
+        { label: "Manual", value: "manual" },
+        { label: "Formula", value: "formula" }
       ],
       wastageTypeOptions: [
         { label: "Percentage of Weight", value: "percentage_of_weight" },
@@ -2400,6 +2425,7 @@ export default {
         guarantee_period: null,
         guarantee_unit: 'months',
         is_jewelry_item: false,
+        ownership_type: "own",
         jewelry_item_type: "",
         metal_type_id: "",
         karat_id: "",
@@ -2411,6 +2437,7 @@ export default {
         certificate_number: "",
         making_charge_type: "",
         making_charge_value: "",
+        making_charge_formula: "",
         wastage_type: "",
         wastage_value: "",
         item_stones: [],
@@ -2552,7 +2579,11 @@ export default {
       if (!this.product.making_charge_type) {
         errors.making_charge_type = "Making charge type is required.";
       }
-      if (makingChargeValue === null || makingChargeValue < 0) {
+      if (this.product.making_charge_type === "formula") {
+        if (!this.product.making_charge_formula) {
+          errors.making_charge_formula = "A making charge formula is required for the formula method.";
+        }
+      } else if (makingChargeValue === null || makingChargeValue < 0) {
         errors.making_charge_value = "Making charge value is required and must be zero or greater.";
       }
       if (!this.product.wastage_type) {

@@ -1069,6 +1069,10 @@ class PermissionsSeeder extends Seeder
                     'id' => 246,
                     'name' => 'jewelry_pricing_override',
                 ],
+                [
+                    'id' => 247,
+                    'name' => 'view_restricted_locations',
+                ],
 
             ]
         );

@@ -368,9 +368,106 @@
                     </tbody>
                   </table>
                 </div>
-                <b-alert show variant="light" class="mt-3 mb-0 small">
-                  Jewelry movement history and attachment drill-down will appear here automatically once inventory movement logging is available on this tenant.
-                </b-alert>
+              </div>
+            </div>
+
+            <div :style="cardStyle" v-if="isJewelryItem">
+              <div :style="cardHeaderStyle">
+                <lucide-icon name="history" :style="{ marginRight: '8px', color: '#0ea5e9' }" />
+                Movement History
+              </div>
+              <div :style="{ padding: '20px' }">
+                <div v-if="!(product.movement_history && product.movement_history.length)" class="text-muted small">No inventory movements recorded yet for this item.</div>
+                <div v-else class="table-responsive">
+                  <table :style="tableStyle">
+                    <thead>
+                      <tr>
+                        <th :style="thStyle">Date</th>
+                        <th :style="thStyle">Type</th>
+                        <th :style="thStyle">Warehouse</th>
+                        <th :style="thStyle">Location</th>
+                        <th :style="{ ...thStyle, textAlign: 'right' }">Qty Δ</th>
+                        <th :style="{ ...thStyle, textAlign: 'right' }">Weight Δ</th>
+                        <th :style="thStyle">User</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="m in product.movement_history" :key="m.id" :style="trHover">
+                        <td :style="tdStyle">{{ m.date }}</td>
+                        <td :style="tdStyle">{{ m.movement_type }}</td>
+                        <td :style="tdStyle">{{ m.warehouse || '—' }}</td>
+                        <td :style="tdStyle">{{ m.location || '—' }}</td>
+                        <td :style="{ ...tdStyle, textAlign: 'right' }">{{ m.quantity_delta }}</td>
+                        <td :style="{ ...tdStyle, textAlign: 'right' }">{{ m.weight_delta !== null ? m.weight_delta : '—' }}</td>
+                        <td :style="tdStyle">{{ m.user || '—' }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <div :style="cardStyle" v-if="isJewelryItem">
+              <div :style="cardHeaderStyle">
+                <lucide-icon name="shopping-cart" :style="{ marginRight: '8px', color: '#f59e0b' }" />
+                Purchase History
+              </div>
+              <div :style="{ padding: '20px' }">
+                <div v-if="!(product.purchase_history && product.purchase_history.length)" class="text-muted small">No purchase records found for this item.</div>
+                <div v-else class="table-responsive">
+                  <table :style="tableStyle">
+                    <thead>
+                      <tr>
+                        <th :style="thStyle">Ref</th>
+                        <th :style="thStyle">Date</th>
+                        <th :style="thStyle">Supplier</th>
+                        <th :style="{ ...thStyle, textAlign: 'right' }">Qty</th>
+                        <th :style="{ ...thStyle, textAlign: 'right' }">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="p in product.purchase_history" :key="'pur-'+p.id" :style="trHover">
+                        <td :style="tdStyle">{{ p.ref || '—' }}</td>
+                        <td :style="tdStyle">{{ p.date }}</td>
+                        <td :style="tdStyle">{{ p.provider || '—' }}</td>
+                        <td :style="{ ...tdStyle, textAlign: 'right' }">{{ p.quantity }}</td>
+                        <td :style="{ ...tdStyle, textAlign: 'right' }">{{ formatPriceWithSymbol(currentUser && currentUser.currency, p.total || 0, 2) }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <div :style="cardStyle" v-if="isJewelryItem">
+              <div :style="cardHeaderStyle">
+                <lucide-icon name="receipt" :style="{ marginRight: '8px', color: '#ef4444' }" />
+                Sales History
+              </div>
+              <div :style="{ padding: '20px' }">
+                <div v-if="!(product.sales_history && product.sales_history.length)" class="text-muted small">No sales records found for this item.</div>
+                <div v-else class="table-responsive">
+                  <table :style="tableStyle">
+                    <thead>
+                      <tr>
+                        <th :style="thStyle">Ref</th>
+                        <th :style="thStyle">Date</th>
+                        <th :style="thStyle">Client</th>
+                        <th :style="{ ...thStyle, textAlign: 'right' }">Qty</th>
+                        <th :style="{ ...thStyle, textAlign: 'right' }">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="s in product.sales_history" :key="'sale-'+s.id" :style="trHover">
+                        <td :style="tdStyle">{{ s.ref || '—' }}</td>
+                        <td :style="tdStyle">{{ s.date }}</td>
+                        <td :style="tdStyle">{{ s.client || '—' }}</td>
+                        <td :style="{ ...tdStyle, textAlign: 'right' }">{{ s.quantity }}</td>
+                        <td :style="{ ...tdStyle, textAlign: 'right' }">{{ formatPriceWithSymbol(currentUser && currentUser.currency, s.total || 0, 2) }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
 

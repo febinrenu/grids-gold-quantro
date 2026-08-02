@@ -761,6 +761,7 @@ class SettingsController extends Controller
             $item['default_wastage_type'] = $settings->default_wastage_type ?? null;
             $item['default_wastage_value'] = $settings->default_wastage_value ?? null;
             $item['gold_rate_requires_approval'] = (bool) ($settings->gold_rate_requires_approval ?? false);
+            $item['gold_rate_branch_override_enabled'] = (bool) ($settings->gold_rate_branch_override_enabled ?? true);
 
             $zones_array = [];
             $timestamp = time();
@@ -988,6 +989,7 @@ class SettingsController extends Controller
             $item['default_wastage_type'] = $settings->default_wastage_type ?? null;
             $item['default_wastage_value'] = $settings->default_wastage_value ?? null;
             $item['gold_rate_requires_approval'] = (bool) ($settings->gold_rate_requires_approval ?? false);
+            $item['gold_rate_branch_override_enabled'] = (bool) ($settings->gold_rate_branch_override_enabled ?? true);
 
             $zones_array = [];
             $timestamp = time();
@@ -1378,6 +1380,7 @@ class SettingsController extends Controller
             ),
             'default_wastage_value' => $nullableNumber($request->input('default_wastage_value', $setting->default_wastage_value ?? null)),
             'gold_rate_requires_approval' => $request->has('gold_rate_requires_approval') ? $bool($request->input('gold_rate_requires_approval')) : (int) ($setting->gold_rate_requires_approval ?? 0),
+            'gold_rate_branch_override_enabled' => $request->has('gold_rate_branch_override_enabled') ? $bool($request->input('gold_rate_branch_override_enabled')) : (int) ($setting->gold_rate_branch_override_enabled ?? 1),
         ];
     }
 }

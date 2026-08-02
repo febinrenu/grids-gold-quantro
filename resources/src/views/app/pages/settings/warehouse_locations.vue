@@ -51,6 +51,15 @@
             </span>
           </span>
 
+          <span v-else-if="props.column.field === 'is_restricted'">
+            <span
+              class="badge"
+              :class="props.row.is_restricted ? 'badge-warning' : 'badge-light'"
+            >
+              {{ props.row.is_restricted ? $t('Restricted') : $t('Standard') }}
+            </span>
+          </span>
+
           <span v-else-if="props.column.field === 'actions'">
             <a @click="Edit_Location(props.row)" title="Edit" v-b-tooltip.hover>
               <lucide-icon class="text-25 text-success" name="pencil" />
@@ -106,6 +115,13 @@
               <b-form-checkbox v-model="location.is_active" switch />
             </b-col>
 
+            <b-col md="6" class="d-flex align-items-center">
+              <label class="switch switch-primary mr-3">
+                <span>{{ $t('Restricted') || 'Restricted (safe / vault)' }}</span>
+              </label>
+              <b-form-checkbox v-model="location.is_restricted" switch />
+            </b-col>
+
             <b-col md="12" class="mt-3">
               <b-button variant="primary" type="submit" :disabled="SubmitProcessing">
                 <lucide-icon class="me-2 font-weight-bold" name="check" /> {{$t('submit')}}
@@ -152,7 +168,8 @@ export default {
         warehouse_id: "",
         code: "",
         name: "",
-        is_active: true
+        is_active: true,
+        is_restricted: false
       }
     };
   },
@@ -164,6 +181,7 @@ export default {
         { label: this.$t("Rack_Location_Code"), field: "code", tdClass: "text-left", thClass: "text-left" },
         { label: this.$t("Location_Name"), field: "name", tdClass: "text-left", thClass: "text-left" },
         { label: this.$t("Status"), field: "is_active", tdClass: "text-left", thClass: "text-left" },
+        { label: this.$t("Restricted"), field: "is_restricted", tdClass: "text-left", thClass: "text-left" },
         { label: this.$t("Action"), field: "actions", html: true, sortable: false, tdClass: "text-left", thClass: "text-left" }
       ];
     },
@@ -220,7 +238,8 @@ export default {
         warehouse_id: this.filters.warehouse_id || (this.warehouses[0] ? this.warehouses[0].id : ""),
         code: "",
         name: "",
-        is_active: true
+        is_active: true,
+        is_restricted: false
       };
     },
 
@@ -237,7 +256,8 @@ export default {
         warehouse_id: row.warehouse_id,
         code: row.code,
         name: row.name,
-        is_active: !!row.is_active
+        is_active: !!row.is_active,
+        is_restricted: !!row.is_restricted
       };
       this.$bvModal.show("New_Warehouse_Location");
     },
@@ -257,7 +277,8 @@ export default {
           warehouse_id: this.location.warehouse_id,
           code: this.location.code,
           name: this.location.name,
-          is_active: this.location.is_active
+          is_active: this.location.is_active,
+          is_restricted: this.location.is_restricted
         };
 
         const req = this.editmode

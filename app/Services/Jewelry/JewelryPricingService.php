@@ -121,7 +121,8 @@ class JewelryPricingService
             $rateRecord = $this->goldRateService->getCurrentRate(
                 (int)$product->metal_type_id,
                 (int)$product->karat_id,
-                $warehouseId
+                $warehouseId,
+                isset($params['currency_id']) ? (int)$params['currency_id'] : null
             );
 
             if ($rateRecord) {
@@ -162,7 +163,7 @@ class JewelryPricingService
         } elseif ($makingChargeType === 'manual') {
             $makingChargeAmount = (float)($params['making_charge_amount'] ?? $makingChargeValue);
         } elseif ($makingChargeType === 'formula') {
-            $formula = $params['making_charge_formula'] ?? $params['formula'] ?? '';
+            $formula = $params['making_charge_formula'] ?? $params['formula'] ?? $product->making_charge_formula ?? '';
             $variables = [
                 'gross_weight' => (float)($params['gross_weight'] ?? $product->jewelry_gross_weight ?? 0.0),
                 'net_weight'   => (float)($params['net_weight'] ?? $product->jewelry_net_weight ?? 0.0),
@@ -254,6 +255,7 @@ class JewelryPricingService
             'jewelry_weight_uom'   => $productPayload['jewelry_weight_uom'] ?? 'g',
             'making_charge_type'   => $productPayload['making_charge_type'] ?? null,
             'making_charge_value'  => $productPayload['making_charge_value'] ?? null,
+            'making_charge_formula' => $productPayload['making_charge_formula'] ?? null,
             'wastage_type'         => $productPayload['wastage_type'] ?? null,
             'wastage_value'        => $productPayload['wastage_value'] ?? null,
         ]);
