@@ -18,10 +18,6 @@ class Product extends Model
         'is_preorder', 'preorder_available_date', 'preorder_limit', 'preorder_note',
         'is_batch_tracked', 'shelf_life_days', 'generic_name', 'strength', 'dosage_form',
         'pack_size', 'manufacturer', 'prescription_required', 'drug_schedule',
-        'is_jewelry_item', 'jewelry_item_type', 'metal_type_id', 'karat_id',
-        'jewelry_gross_weight', 'jewelry_net_weight', 'jewelry_metal_weight', 'jewelry_weight_uom',
-        'hallmark_reference', 'certificate_number',
-        'making_charge_type', 'making_charge_value', 'wastage_type', 'wastage_value',
     ];
 
     protected $casts = [
@@ -56,30 +52,7 @@ class Product extends Model
         'is_batch_tracked' => 'boolean',
         'prescription_required' => 'boolean',
         'shelf_life_days' => 'integer',
-        'is_jewelry_item' => 'boolean',
-        'metal_type_id' => 'integer',
-        'karat_id' => 'integer',
-        'jewelry_gross_weight' => 'decimal:3',
-        'jewelry_net_weight' => 'decimal:3',
-        'jewelry_metal_weight' => 'decimal:3',
-        'making_charge_value' => 'decimal:2',
-        'wastage_value' => 'decimal:3',
     ];
-
-    public function metalType()
-    {
-        return $this->belongsTo(MetalType::class);
-    }
-
-    public function karat()
-    {
-        return $this->belongsTo(Karat::class);
-    }
-
-    public function stones()
-    {
-        return $this->hasMany(ItemStone::class);
-    }
 
     public function variants()
     {
