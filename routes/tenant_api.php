@@ -499,6 +499,7 @@ Route::middleware(['auth:api', 'Is_Active', 'request.safety', 'token.timeout', '
     });
 
     // ---------------------- Jewelry Gold Rates & Pricing Preview ------------------\\
+    Route::get('gold-rates/options', 'GoldRateController@options');
     Route::get('gold-rates', 'GoldRateController@index');
     Route::post('gold-rates', 'GoldRateController@store');
     Route::get('gold-rates/current', 'GoldRateController@current');

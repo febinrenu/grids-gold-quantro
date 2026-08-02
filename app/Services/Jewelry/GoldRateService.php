@@ -63,7 +63,8 @@ class GoldRateService
         float $ratePerUnit,
         int $currencyId,
         ?int $warehouseId,
-        int $userId
+        int $userId,
+        string $weightUom = 'g'
     ): GoldRate {
         return GoldRate::create([
             'metal_type_id'        => $metalTypeId,
@@ -75,20 +76,49 @@ class GoldRateService
             'effective_at'         => Carbon::now(),
             'status'               => 'active',
             'rate_source'          => 'manual',
-            'weight_uom'           => 'g',
+            'weight_uom'           => $weightUom ?: 'g',
         ]);
     }
 
     /**
-     * Retrieve history of gold rates ordered newest first, with optional date range filter.
+     * Retrieve history of gold rates ordered newest first, with optional filters.
+     *
+     * Backward compatibility note:
+     * - Older callers passed the date-range array as the 3rd argument.
+     * - Newer callers may pass warehouse_id as the 3rd argument and date range as the 4th.
+     *
+     * @param int|null $metalTypeId
+     * @param int|null $karatId
+     * @param int|array|null $warehouseIdOrDateRange
+     * @param array|null $dateRange
      */
     public function history(
-        int $metalTypeId,
-        int $karatId,
+        ?int $metalTypeId = null,
+        ?int $karatId = null,
+        $warehouseIdOrDateRange = null,
         ?array $dateRange = null
     ): Collection {
-        $query = GoldRate::where('metal_type_id', $metalTypeId)
-            ->where('karat_id', $karatId);
+        $warehouseId = null;
+
+        if (is_array($warehouseIdOrDateRange) && $dateRange === null) {
+            $dateRange = $warehouseIdOrDateRange;
+        } elseif ($warehouseIdOrDateRange !== null) {
+            $warehouseId = (int) $warehouseIdOrDateRange;
+        }
+
+        $query = GoldRate::with(['metalType', 'karat', 'currency', 'warehouse']);
+
+        if ($metalTypeId !== null) {
+            $query->where('metal_type_id', $metalTypeId);
+        }
+
+        if ($karatId !== null) {
+            $query->where('karat_id', $karatId);
+        }
+
+        if ($warehouseId !== null) {
+            $query->where('warehouse_id', $warehouseId);
+        }
 
         if ($dateRange) {
             $start = $dateRange['start'] ?? $dateRange[0] ?? null;

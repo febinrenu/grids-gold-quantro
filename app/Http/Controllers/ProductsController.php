@@ -12,12 +12,17 @@ use App\Models\Category;
 use App\Models\SubCategory;
 use App\Models\CombinedProduct;
 use App\Models\CountStock;
+use App\Models\ItemStone;
+use App\Models\Karat;
+use App\Models\MetalType;
+use App\Models\Permission;
 use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\ProductPack;
 use App\Models\product_warehouse;
 use App\Models\ProductVariant;
 use App\Models\Setting;
+use App\Models\StoneType;
 use App\Models\Unit;
 use App\Models\User;
 use App\Models\UserWarehouse;
@@ -75,7 +80,18 @@ class ProductsController extends BaseController
         $columns = [0 => 'name', 1 => 'category_id', 2 => 'brand_id', 3 => 'code', 4 => 'sub_category_id'];
         $param = [0 => 'like', 1 => '=', 2 => '=', 3 => 'like', 4 => '='];
 
-        $productsQuery = Product::with('unit', 'category', 'subCategory', 'brand', 'categories')
+        $withRelations = ['unit', 'category', 'subCategory', 'brand', 'categories'];
+        if (Schema::hasTable('metal_types')) {
+            $withRelations[] = 'metalType';
+        }
+        if (Schema::hasTable('karats')) {
+            $withRelations[] = 'karat';
+        }
+        if (Schema::hasTable('item_stones') && Schema::hasTable('stone_types')) {
+            $withRelations[] = 'stones.stoneType';
+        }
+
+        $productsQuery = Product::with($withRelations)
             ->whereNull('deleted_at');
          
 
@@ -86,7 +102,7 @@ class ProductsController extends BaseController
                 return $query->when($request->filled('search'), function ($query) use ($request) {
                     $s = $request->search;
 
-                    return $query->where('products.name', 'LIKE', "%{$s}%")
+                    $query->where('products.name', 'LIKE', "%{$s}%")
                         ->orWhere('products.code', 'LIKE', "%{$s}%")
                         ->orWhere(function ($q) use ($s) {
                             $q->whereHas('category', function ($cq) use ($s) {
@@ -102,9 +118,79 @@ class ProductsController extends BaseController
                             $q->whereHas('brand', function ($bq) use ($s) {
                                 $bq->where('name', 'LIKE', "%{$s}%");
                             });
+                        })
+                        ->orWhere('products.certificate_number', 'LIKE', "%{$s}%");
+
+                    if (Schema::hasTable('metal_types')) {
+                        $query->orWhere(function ($q) use ($s) {
+                            $q->whereHas('metalType', function ($mq) use ($s) {
+                                $mq->where('name', 'LIKE', "%{$s}%");
+                            });
                         });
+                    }
+
+                    if (Schema::hasTable('karats')) {
+                        $query->orWhere(function ($q) use ($s) {
+                            $q->whereHas('karat', function ($kq) use ($s) {
+                                $kq->where('name', 'LIKE', "%{$s}%");
+                            });
+                        });
+                    }
+
+                    return $query;
                 });
             });
+
+        if ($request->filled('metal_type_id')) {
+            $filtered->where('metal_type_id', (int) $request->input('metal_type_id'));
+        }
+
+        if ($request->filled('karat_id')) {
+            $filtered->where('karat_id', (int) $request->input('karat_id'));
+        }
+
+        if ($request->filled('stone_type_id') && Schema::hasTable('item_stones')) {
+            $filtered->whereHas('stones', function ($query) use ($request) {
+                $query->where('stone_type_id', (int) $request->input('stone_type_id'));
+            });
+        }
+
+        if ($request->filled('certificate_number')) {
+            $certificateLike = '%'.$request->input('certificate_number').'%';
+            $filtered->where(function ($query) use ($certificateLike) {
+                $query->where('certificate_number', 'LIKE', $certificateLike);
+
+                if (Schema::hasTable('item_stones')) {
+                    $query->orWhereHas('stones', function ($stoneQuery) use ($certificateLike) {
+                        $stoneQuery->where('certificate_number', 'LIKE', $certificateLike);
+                    });
+                }
+            });
+        }
+
+        if ($request->filled('min_price')) {
+            $filtered->where('price', '>=', (float) $request->input('min_price'));
+        }
+
+        if ($request->filled('max_price')) {
+            $filtered->where('price', '<=', (float) $request->input('max_price'));
+        }
+
+        if ($request->filled('min_gross_weight')) {
+            $filtered->where('jewelry_gross_weight', '>=', (float) $request->input('min_gross_weight'));
+        }
+
+        if ($request->filled('max_gross_weight')) {
+            $filtered->where('jewelry_gross_weight', '<=', (float) $request->input('max_gross_weight'));
+        }
+
+        if ($request->filled('min_metal_weight')) {
+            $filtered->where('jewelry_metal_weight', '>=', (float) $request->input('min_metal_weight'));
+        }
+
+        if ($request->filled('max_metal_weight')) {
+            $filtered->where('jewelry_metal_weight', '<=', (float) $request->input('max_metal_weight'));
+        }
 
         // Optional status filter: status=1 (active), status=0 (inactive)
         if ($request->filled('status') && $request->status !== '') {
@@ -153,6 +239,18 @@ class ProductsController extends BaseController
             $isActive = (int) ($product->is_active ?? 1) === 1;
             $item['status'] = $isActive ? __('Active') : __('Inactif');
             $item['is_active'] = $isActive;
+            $item['is_jewelry_item'] = (bool) ($product->is_jewelry_item ?? false);
+            $item['metal_type'] = optional($product->metalType)->name ?? '';
+            $item['karat'] = optional($product->karat)->name ?? '';
+            $item['certificate_number'] = $product->certificate_number ?? '';
+
+            $weightUom = $product->jewelry_weight_uom ?: 'g';
+            $item['gross_weight_display'] = $product->jewelry_gross_weight !== null
+                ? number_format((float) $product->jewelry_gross_weight, 3, '.', '').' '.$weightUom
+                : '';
+            $item['metal_weight_display'] = $product->jewelry_metal_weight !== null
+                ? number_format((float) $product->jewelry_metal_weight, 3, '.', '').' '.$weightUom
+                : '';
 
             $firstimage = explode(',', (string) $product->image);
             $item['image'] = $firstimage[0] ?? '';
@@ -260,11 +358,43 @@ class ProductsController extends BaseController
         $subcategories = SubCategory::orderBy('name')->get(['id', 'name', 'category_id']);
         $brands = Brand::whereNull('deleted_at')->get(['id', 'name']);
 
+        $metalTypes = Schema::hasTable('metal_types')
+            ? MetalType::query()
+                ->when(Schema::hasColumn('metal_types', 'is_active'), function ($query) {
+                    $query->where('is_active', true);
+                })
+                ->orderBy('name')
+                ->get(['id', 'name'])
+            : collect();
+
+        $karats = Schema::hasTable('karats')
+            ? Karat::query()
+                ->when(Schema::hasColumn('karats', 'is_active'), function ($query) {
+                    $query->where('is_active', true);
+                })
+                ->orderBy('metal_type_id')
+                ->orderByDesc('purity_percentage')
+                ->orderBy('name')
+                ->get(['id', 'metal_type_id', 'name'])
+            : collect();
+
+        $stoneTypes = Schema::hasTable('stone_types')
+            ? StoneType::query()
+                ->when(Schema::hasColumn('stone_types', 'is_active'), function ($query) {
+                    $query->where('is_active', true);
+                })
+                ->orderBy('name')
+                ->get(['id', 'name'])
+            : collect();
+
         return response()->json([
             'warehouses' => $warehouses,
             'categories' => $categories,
             'subcategories' => $subcategories,
             'brands' => $brands,
+            'metal_types' => $metalTypes,
+            'karats' => $karats,
+            'stone_types' => $stoneTypes,
             'products' => $data,
             'totalRows' => $totalRows,
         ]);
@@ -515,13 +645,19 @@ class ProductsController extends BaseController
                 ];
             }
 
+            $isJewelryModeEnabled = $this->isJewelryModeEnabled();
+            $canManageJewelryItems = $this->canManageJewelryItems($request->user('api'));
+            $shouldSyncJewelry = $isJewelryModeEnabled && $canManageJewelryItems;
+
             // validate the request data
             $validatedData = $request->validate($productRules, [
                 'code.unique' => 'Product code already used.',
                 'code.required' => 'This field is required',
             ]);
 
-            \DB::transaction(function () use ($request) {
+            $itemStones = $this->validateJewelryProductRequest($request, $isJewelryModeEnabled, $canManageJewelryItems);
+
+            \DB::transaction(function () use ($request, $isJewelryModeEnabled, $canManageJewelryItems, $shouldSyncJewelry, $itemStones) {
 
                 // -- Create New Product
                 $Product = new Product;
@@ -639,6 +775,8 @@ class ProductsController extends BaseController
                 $Product->prescription_required = filter_var($request->input('prescription_required', false), FILTER_VALIDATE_BOOLEAN);
                 $Product->drug_schedule = $request->filled('drug_schedule') && $request['drug_schedule'] !== 'null' ? $request['drug_schedule'] : null;
 
+                $isJewelryItem = $this->applyJewelryPayloadToProduct($Product, $request, $isJewelryModeEnabled, $canManageJewelryItems);
+
                 if ($request->hasFile('image')) {
                     $image = $request->file('image');
                     $ext = strtolower($image->getClientOriginalExtension());
@@ -662,6 +800,9 @@ class ProductsController extends BaseController
                 $Product->image = $filename;
                 $Product->save();
 
+                if ($shouldSyncJewelry) {
+                    $this->syncProductItemStones($Product, $itemStones, $isJewelryItem);
+                }
                 $this->syncProductMultiCategories($request, $Product);
 
                 app(ProductGalleryService::class)->syncAfterCreate($request, $Product, $filename);
@@ -1037,13 +1178,19 @@ class ProductsController extends BaseController
                 ];
             }
 
+            $isJewelryModeEnabled = $this->isJewelryModeEnabled();
+            $canManageJewelryItems = $this->canManageJewelryItems($request->user('api'));
+            $shouldSyncJewelry = $isJewelryModeEnabled && $canManageJewelryItems;
+
             // validate the request data
             $validatedData = $request->validate($productRules, [
                 'code.unique' => 'Product code already used.',
                 'code.required' => 'This field is required',
             ]);
 
-            \DB::transaction(function () use ($request, $id) {
+            $itemStones = $this->validateJewelryProductRequest($request, $isJewelryModeEnabled, $canManageJewelryItems);
+
+            \DB::transaction(function () use ($request, $id, $isJewelryModeEnabled, $canManageJewelryItems, $shouldSyncJewelry, $itemStones) {
 
                 $Product = Product::where('id', $id)
                     ->where('deleted_at', '=', null)
@@ -1184,6 +1331,8 @@ class ProductsController extends BaseController
                 $Product->manufacturer = $request->filled('manufacturer') && $request['manufacturer'] !== 'null' ? $request['manufacturer'] : null;
                 $Product->prescription_required = filter_var($request->input('prescription_required', false), FILTER_VALIDATE_BOOLEAN);
                 $Product->drug_schedule = $request->filled('drug_schedule') && $request['drug_schedule'] !== 'null' ? $request['drug_schedule'] : null;
+
+                $isJewelryItem = $this->applyJewelryPayloadToProduct($Product, $request, $isJewelryModeEnabled, $canManageJewelryItems);
 
                 // Store Variants Product
                 $oldVariants = ProductVariant::where('product_id', $id)
@@ -1481,6 +1630,9 @@ class ProductsController extends BaseController
                 $Product->image = $filename;
                 $Product->save();
 
+                if ($shouldSyncJewelry) {
+                    $this->syncProductItemStones($Product, $itemStones, $isJewelryItem);
+                }
                 $this->syncProductMultiCategories($request, $Product);
 
                 // Multi-Pack Selling: reconcile per-product selling packs
@@ -1620,7 +1772,18 @@ class ProductsController extends BaseController
         $this->authorizeForUser($request->user('api'), 'view', Product::class);
         $helpers = new helpers;
 
-        $Product = Product::with(['category', 'categories', 'subCategory', 'subcategories', 'images'])
+        $detailRelations = ['category', 'categories', 'subCategory', 'subcategories', 'images'];
+        if (Schema::hasTable('metal_types')) {
+            $detailRelations[] = 'metalType';
+        }
+        if (Schema::hasTable('karats')) {
+            $detailRelations[] = 'karat';
+        }
+        if (Schema::hasTable('item_stones') && Schema::hasTable('stone_types')) {
+            $detailRelations[] = 'stones.stoneType';
+        }
+
+        $Product = Product::with($detailRelations)
             ->where('deleted_at', '=', null)
             ->findOrFail($id);
         // get warehouses assigned to user
@@ -1667,6 +1830,53 @@ class ProductsController extends BaseController
 
         // Pharmacy: surface batch tracking flag so the detail UI can render the Batches section.
         $item['is_batch_tracked'] = (bool) ($Product->is_batch_tracked ?? false);
+
+        // Jewelry payload for item detail view
+        $weightUom = $Product->jewelry_weight_uom ?: 'g';
+        $item['is_jewelry_item'] = (bool) ($Product->is_jewelry_item ?? false);
+        $item['jewelry_item_type'] = $Product->jewelry_item_type ?? '';
+        $item['metal_type_id'] = $Product->metal_type_id ?? null;
+        $item['karat_id'] = $Product->karat_id ?? null;
+        $item['metal_type'] = optional($Product->metalType)->name ?? '';
+        $item['karat'] = optional($Product->karat)->name ?? '';
+        $item['jewelry_gross_weight'] = $Product->jewelry_gross_weight !== null ? (float) $Product->jewelry_gross_weight : null;
+        $item['jewelry_net_weight'] = $Product->jewelry_net_weight !== null ? (float) $Product->jewelry_net_weight : null;
+        $item['jewelry_metal_weight'] = $Product->jewelry_metal_weight !== null ? (float) $Product->jewelry_metal_weight : null;
+        $item['jewelry_weight_uom'] = $weightUom;
+        $item['jewelry_gross_weight_display'] = $Product->jewelry_gross_weight !== null ? number_format((float) $Product->jewelry_gross_weight, 3, '.', '').' '.$weightUom : '';
+        $item['jewelry_net_weight_display'] = $Product->jewelry_net_weight !== null ? number_format((float) $Product->jewelry_net_weight, 3, '.', '').' '.$weightUom : '';
+        $item['jewelry_metal_weight_display'] = $Product->jewelry_metal_weight !== null ? number_format((float) $Product->jewelry_metal_weight, 3, '.', '').' '.$weightUom : '';
+        $item['hallmark_reference'] = $Product->hallmark_reference ?? '';
+        $item['certificate_number'] = $Product->certificate_number ?? '';
+        $item['making_charge_type'] = $Product->making_charge_type ?? '';
+        $item['making_charge_value'] = $Product->making_charge_value !== null ? (float) $Product->making_charge_value : null;
+        $item['wastage_type'] = $Product->wastage_type ?? '';
+        $item['wastage_value'] = $Product->wastage_value !== null ? (float) $Product->wastage_value : null;
+        $item['item_stones'] = Schema::hasTable('item_stones')
+            ? $Product->stones->map(function ($stone) {
+                $stoneTypeName = '';
+                if (Schema::hasTable('stone_types')) {
+                    $stoneTypeName = optional($stone->stoneType)->name ?? '';
+                }
+
+                return [
+                    'id' => $stone->id,
+                    'stone_type_id' => $stone->stone_type_id,
+                    'stone_type_name' => $stoneTypeName,
+                    'stone_name' => $stone->stone_name ?? '',
+                    'quantity' => (int) ($stone->quantity ?? 1),
+                    'carat_value' => $stone->carat_value !== null ? (float) $stone->carat_value : null,
+                    'color' => $stone->color ?? '',
+                    'clarity' => $stone->clarity ?? '',
+                    'cut' => $stone->cut ?? '',
+                    'shape' => $stone->shape ?? '',
+                    'certificate_number' => $stone->certificate_number ?? '',
+                    'unit_cost_amount' => $stone->unit_cost_amount !== null ? (float) $stone->unit_cost_amount : null,
+                    'total_cost_amount' => $stone->total_cost_amount !== null ? (float) $stone->total_cost_amount : null,
+                    'notes' => $stone->notes ?? '',
+                ];
+            })->values()->all()
+            : [];
 
         if ($Product->type == 'is_single') {
             $item['type_name'] = 'Single';
@@ -2330,6 +2540,411 @@ class ProductsController extends BaseController
         ]);
     }
 
+    protected function isJewelryModeEnabled(?Setting $setting = null): bool
+    {
+        if (! Schema::hasTable('settings') || ! Schema::hasColumn('settings', 'jewelry_mode')) {
+            return false;
+        }
+
+        $setting = $setting ?: Setting::whereNull('deleted_at')->first();
+
+        return (bool) ($setting->jewelry_mode ?? false);
+    }
+
+    protected function canManageJewelryItems(?User $user): bool
+    {
+        if (! $user) {
+            return false;
+        }
+
+        $permission = Permission::where('name', 'jewelry_items_manage')->first();
+
+        return $permission && $user->hasRole($permission->roles);
+    }
+
+    protected function getJewelryFormContext(): array
+    {
+        $hasSettingsTable = Schema::hasTable('settings');
+        $setting = $hasSettingsTable ? Setting::whereNull('deleted_at')->first() : null;
+
+        $metalTypes = collect();
+        $karats = collect();
+        $stoneTypes = collect();
+
+        if (Schema::hasTable('metal_types')) {
+            $metalTypes = MetalType::query()
+                ->when(Schema::hasColumn('metal_types', 'is_active'), function ($query) {
+                    $query->where('is_active', true);
+                })
+                ->orderBy('name')
+                ->get(['id', 'name', 'code']);
+        }
+
+        if (Schema::hasTable('karats')) {
+            $karats = Karat::query()
+                ->when(Schema::hasColumn('karats', 'is_active'), function ($query) {
+                    $query->where('is_active', true);
+                })
+                ->orderBy('metal_type_id')
+                ->orderByDesc('purity_percentage')
+                ->orderBy('name')
+                ->get(['id', 'metal_type_id', 'name', 'purity_percentage']);
+        }
+
+        if (Schema::hasTable('stone_types')) {
+            $stoneTypes = StoneType::query()
+                ->when(Schema::hasColumn('stone_types', 'is_active'), function ($query) {
+                    $query->where('is_active', true);
+                })
+                ->orderBy('name')
+                ->get(['id', 'name', 'code']);
+        }
+
+        $defaultMakingChargeType = $hasSettingsTable && Schema::hasColumn('settings', 'default_making_charge_type')
+            ? ($setting->default_making_charge_type ?? null)
+            : null;
+        if (! in_array($defaultMakingChargeType, ['fixed', 'per_gram', 'percentage', 'manual'], true)) {
+            $defaultMakingChargeType = null;
+        }
+
+        $defaultWastageType = $hasSettingsTable && Schema::hasColumn('settings', 'default_wastage_type')
+            ? ($setting->default_wastage_type ?? null)
+            : null;
+        if (! in_array($defaultWastageType, ['percentage_of_weight', 'percentage_of_value', 'fixed_value'], true)) {
+            $defaultWastageType = null;
+        }
+
+        return [
+            'jewelry_mode' => $this->isJewelryModeEnabled($setting),
+            'metal_types' => $metalTypes->values(),
+            'karats' => $karats->values(),
+            'stone_types' => $stoneTypes->values(),
+            'jewelry_defaults' => [
+                'making_charge_type' => $defaultMakingChargeType,
+                'making_charge_value' => $hasSettingsTable && Schema::hasColumn('settings', 'default_making_charge_value')
+                    ? ($setting->default_making_charge_value ?? null)
+                    : null,
+                'wastage_type' => $defaultWastageType,
+                'wastage_value' => $hasSettingsTable && Schema::hasColumn('settings', 'default_wastage_value')
+                    ? ($setting->default_wastage_value ?? null)
+                    : null,
+                'weight_uom' => 'g',
+            ],
+        ];
+    }
+
+    protected function normalizeNullableInteger($value): ?int
+    {
+        if ($value === null || $value === '' || $value === 'null') {
+            return null;
+        }
+
+        return is_numeric($value) ? (int) $value : null;
+    }
+
+    protected function normalizeNullableDecimal($value): ?float
+    {
+        if ($value === null || $value === '' || $value === 'null') {
+            return null;
+        }
+
+        return is_numeric($value) ? (float) $value : null;
+    }
+
+    protected function normalizeNullableString($value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $normalized = trim((string) $value);
+
+        return $normalized === '' || strtolower($normalized) === 'null' ? null : $normalized;
+    }
+
+    protected function parseItemStones(Request $request): array
+    {
+        $payload = $request->input('item_stones', []);
+
+        if (is_string($payload)) {
+            $decoded = json_decode($payload, true);
+            $payload = is_array($decoded) ? $decoded : [];
+        }
+
+        if (! is_array($payload)) {
+            return [];
+        }
+
+        return array_values(array_map(function ($stone) {
+            return is_array($stone) ? $stone : [];
+        }, $payload));
+    }
+
+    protected function stoneRowHasAnyValue(array $stone): bool
+    {
+        foreach (['stone_type_id', 'stone_name', 'carat_value', 'color', 'clarity', 'cut', 'shape', 'certificate_number', 'unit_cost_amount', 'total_cost_amount', 'notes'] as $key) {
+            if (! array_key_exists($key, $stone)) {
+                continue;
+            }
+
+            $value = $stone[$key];
+
+            if (is_string($value) && trim($value) !== '') {
+                return true;
+            }
+
+            if (! is_string($value) && $value !== null && $value !== '') {
+                return true;
+            }
+        }
+
+        $quantity = $this->normalizeNullableInteger($stone['quantity'] ?? null);
+
+        return $quantity !== null && $quantity !== 1;
+    }
+
+    protected function validateJewelryProductRequest(Request $request, bool $isJewelryModeEnabled, bool $canManageJewelryItems): array
+    {
+        if (! $isJewelryModeEnabled || ! $canManageJewelryItems) {
+            return [];
+        }
+
+        $isJewelryItem = filter_var($request->input('is_jewelry_item', false), FILTER_VALIDATE_BOOLEAN);
+        $itemStones = $this->parseItemStones($request);
+
+        if (! $isJewelryItem) {
+            return [];
+        }
+
+        $errors = [];
+        $allowedItemTypes = ['serialized', 'weighted', 'style', 'set', 'service', 'non_stock'];
+        $allowedMakingChargeTypes = ['fixed', 'per_gram', 'percentage', 'manual'];
+        $allowedWastageTypes = ['percentage_of_weight', 'percentage_of_value', 'fixed_value'];
+        $allowedWeightUnits = ['g', 'mg', 'kg', 'ct', 'oz'];
+
+        $jewelryItemType = $this->normalizeNullableString($request->input('jewelry_item_type'));
+        $metalTypeId = $this->normalizeNullableInteger($request->input('metal_type_id'));
+        $karatId = $this->normalizeNullableInteger($request->input('karat_id'));
+        $grossWeight = $this->normalizeNullableDecimal($request->input('jewelry_gross_weight'));
+        $netWeight = $this->normalizeNullableDecimal($request->input('jewelry_net_weight'));
+        $metalWeight = $this->normalizeNullableDecimal($request->input('jewelry_metal_weight'));
+        $weightUom = $this->normalizeNullableString($request->input('jewelry_weight_uom')) ?? 'g';
+        $makingChargeType = $this->normalizeNullableString($request->input('making_charge_type'));
+        $makingChargeValue = $this->normalizeNullableDecimal($request->input('making_charge_value'));
+        $wastageType = $this->normalizeNullableString($request->input('wastage_type'));
+        $wastageValue = $this->normalizeNullableDecimal($request->input('wastage_value'));
+
+        if (! $jewelryItemType || ! in_array($jewelryItemType, $allowedItemTypes, true)) {
+            $errors['jewelry_item_type'][] = 'A valid jewelry item type is required.';
+        }
+
+        if (! $metalTypeId || ! Schema::hasTable('metal_types') || ! MetalType::where('id', $metalTypeId)->exists()) {
+            $errors['metal_type_id'][] = 'A valid metal type is required.';
+        }
+
+        if ($weightUom === null || ! in_array($weightUom, $allowedWeightUnits, true)) {
+            $errors['jewelry_weight_uom'][] = 'A valid weight unit is required.';
+        }
+
+        foreach ([
+            'jewelry_gross_weight' => $grossWeight,
+            'jewelry_net_weight' => $netWeight,
+            'jewelry_metal_weight' => $metalWeight,
+            'making_charge_value' => $makingChargeValue,
+            'wastage_value' => $wastageValue,
+        ] as $field => $value) {
+            if ($value !== null && $value < 0) {
+                $errors[$field][] = 'This value cannot be negative.';
+            }
+        }
+
+        if ($grossWeight !== null && $metalWeight !== null && $metalWeight > $grossWeight) {
+            $errors['jewelry_metal_weight'][] = 'Metal weight cannot exceed gross weight.';
+        }
+
+        if ($grossWeight !== null && $netWeight !== null && $netWeight > $grossWeight) {
+            $errors['jewelry_net_weight'][] = 'Net weight cannot exceed gross weight.';
+        }
+
+        $weightRequired = $jewelryItemType && ! in_array($jewelryItemType, ['service', 'non_stock'], true);
+        if ($weightRequired && ($metalWeight === null || $metalWeight <= 0)) {
+            $errors['jewelry_metal_weight'][] = 'Metal weight is required for this jewelry item.';
+        }
+
+        if ($weightRequired && ($grossWeight === null || $grossWeight <= 0)) {
+            $errors['jewelry_gross_weight'][] = 'Gross weight is required for this jewelry item.';
+        }
+
+        if ($jewelryItemType === 'weighted' && ($grossWeight === null || $grossWeight <= 0) && ($metalWeight === null || $metalWeight <= 0)) {
+            $errors['jewelry_gross_weight'][] = 'Weighted items must have a weight.';
+        }
+
+        $requiresKarat = false;
+        if ($metalTypeId && Schema::hasTable('karats')) {
+            $requiresKarat = Karat::where('metal_type_id', $metalTypeId)->exists();
+        }
+
+        if ($requiresKarat && ! $karatId) {
+            $errors['karat_id'][] = 'Karat is required for the selected metal.';
+        }
+
+        if ($karatId && (! Schema::hasTable('karats') || ! Karat::where('id', $karatId)->where('metal_type_id', $metalTypeId)->exists())) {
+            $errors['karat_id'][] = 'The selected karat does not belong to the selected metal.';
+        }
+
+        if ($makingChargeType === 'formula') {
+            $errors['making_charge_type'][] = 'Formula-based making charges are not supported on the product form yet.';
+        } elseif (! $makingChargeType || ! in_array($makingChargeType, $allowedMakingChargeTypes, true)) {
+            $errors['making_charge_type'][] = 'A valid making charge type is required.';
+        }
+
+        if ($makingChargeType !== 'formula' && $makingChargeValue === null) {
+            $errors['making_charge_value'][] = 'Making charge value is required.';
+        }
+
+        if (! $wastageType || ! in_array($wastageType, $allowedWastageTypes, true)) {
+            $errors['wastage_type'][] = 'A valid wastage type is required.';
+        }
+
+        if ($wastageValue === null) {
+            $errors['wastage_value'][] = 'Wastage value is required.';
+        }
+
+        if ($request->filled('hallmark_reference') && mb_strlen((string) $request->input('hallmark_reference')) > 191) {
+            $errors['hallmark_reference'][] = 'Hallmark reference may not be greater than 191 characters.';
+        }
+
+        if ($request->filled('certificate_number') && mb_strlen((string) $request->input('certificate_number')) > 191) {
+            $errors['certificate_number'][] = 'Certificate number may not be greater than 191 characters.';
+        }
+
+        foreach ($itemStones as $index => $stone) {
+            if (! $this->stoneRowHasAnyValue($stone)) {
+                continue;
+            }
+
+            $row = $index + 1;
+            $stoneTypeId = $this->normalizeNullableInteger($stone['stone_type_id'] ?? null);
+            $quantity = $this->normalizeNullableInteger($stone['quantity'] ?? 1);
+            $caratValue = $this->normalizeNullableDecimal($stone['carat_value'] ?? null);
+            $unitCost = $this->normalizeNullableDecimal($stone['unit_cost_amount'] ?? null);
+
+            if (! $stoneTypeId || ! Schema::hasTable('stone_types') || ! StoneType::where('id', $stoneTypeId)->exists()) {
+                $errors["item_stones.$index.stone_type_id"][] = "Stone type is required for stone row {$row}.";
+            }
+
+            if ($quantity === null || $quantity < 1) {
+                $errors["item_stones.$index.quantity"][] = "Quantity must be at least 1 for stone row {$row}.";
+            }
+
+            if ($caratValue !== null && $caratValue < 0) {
+                $errors["item_stones.$index.carat_value"][] = "Carat value cannot be negative for stone row {$row}.";
+            }
+
+            if ($unitCost !== null && $unitCost < 0) {
+                $errors["item_stones.$index.unit_cost_amount"][] = "Unit cost cannot be negative for stone row {$row}.";
+            }
+
+            if (! empty($stone['certificate_number']) && mb_strlen((string) $stone['certificate_number']) > 191) {
+                $errors["item_stones.$index.certificate_number"][] = "Certificate number may not be greater than 191 characters for stone row {$row}.";
+            }
+        }
+
+        if (! empty($errors)) {
+            throw ValidationException::withMessages($errors);
+        }
+
+        return $itemStones;
+    }
+
+    protected function applyJewelryPayloadToProduct(Product $product, Request $request, bool $isJewelryModeEnabled, bool $canManageJewelryItems): bool
+    {
+        if (! $isJewelryModeEnabled || ! $canManageJewelryItems) {
+            return (bool) ($product->is_jewelry_item ?? false);
+        }
+
+        $isJewelryItem = filter_var($request->input('is_jewelry_item', false), FILTER_VALIDATE_BOOLEAN);
+
+        $product->is_jewelry_item = $isJewelryItem;
+        $product->jewelry_weight_uom = 'g';
+
+        if (! $isJewelryItem) {
+            $product->jewelry_item_type = null;
+            $product->metal_type_id = null;
+            $product->karat_id = null;
+            $product->jewelry_gross_weight = null;
+            $product->jewelry_net_weight = null;
+            $product->jewelry_metal_weight = null;
+            $product->hallmark_reference = null;
+            $product->certificate_number = null;
+            $product->making_charge_type = null;
+            $product->making_charge_value = null;
+            $product->wastage_type = null;
+            $product->wastage_value = null;
+
+            return false;
+        }
+
+        $product->jewelry_item_type = $this->normalizeNullableString($request->input('jewelry_item_type'));
+        $product->metal_type_id = $this->normalizeNullableInteger($request->input('metal_type_id'));
+        $product->karat_id = $this->normalizeNullableInteger($request->input('karat_id'));
+        $product->jewelry_gross_weight = $this->normalizeNullableDecimal($request->input('jewelry_gross_weight'));
+        $product->jewelry_net_weight = $this->normalizeNullableDecimal($request->input('jewelry_net_weight'));
+        $product->jewelry_metal_weight = $this->normalizeNullableDecimal($request->input('jewelry_metal_weight'));
+        $product->jewelry_weight_uom = $this->normalizeNullableString($request->input('jewelry_weight_uom')) ?? 'g';
+        $product->hallmark_reference = $this->normalizeNullableString($request->input('hallmark_reference'));
+        $product->certificate_number = $this->normalizeNullableString($request->input('certificate_number'));
+        $product->making_charge_type = $this->normalizeNullableString($request->input('making_charge_type'));
+        $product->making_charge_value = $this->normalizeNullableDecimal($request->input('making_charge_value'));
+        $product->wastage_type = $this->normalizeNullableString($request->input('wastage_type'));
+        $product->wastage_value = $this->normalizeNullableDecimal($request->input('wastage_value'));
+
+        return true;
+    }
+
+    protected function syncProductItemStones(Product $product, array $itemStones, bool $isJewelryItem): void
+    {
+        if (! Schema::hasTable('item_stones')) {
+            return;
+        }
+
+        ItemStone::where('product_id', $product->id)->delete();
+
+        if (! $isJewelryItem) {
+            return;
+        }
+
+        foreach ($itemStones as $stone) {
+            if (! $this->stoneRowHasAnyValue($stone)) {
+                continue;
+            }
+
+            $quantity = max(1, (int) ($this->normalizeNullableInteger($stone['quantity'] ?? 1) ?? 1));
+            $unitCost = $this->normalizeNullableDecimal($stone['unit_cost_amount'] ?? null);
+            $totalCost = $this->normalizeNullableDecimal($stone['total_cost_amount'] ?? null);
+
+            if ($totalCost === null && $unitCost !== null) {
+                $totalCost = round($quantity * $unitCost, 2);
+            }
+
+            ItemStone::create([
+                'product_id' => $product->id,
+                'stone_type_id' => $this->normalizeNullableInteger($stone['stone_type_id'] ?? null),
+                'stone_name' => $this->normalizeNullableString($stone['stone_name'] ?? null),
+                'quantity' => $quantity,
+                'carat_value' => $this->normalizeNullableDecimal($stone['carat_value'] ?? null),
+                'color' => $this->normalizeNullableString($stone['color'] ?? null),
+                'clarity' => $this->normalizeNullableString($stone['clarity'] ?? null),
+                'cut' => $this->normalizeNullableString($stone['cut'] ?? null),
+                'shape' => $this->normalizeNullableString($stone['shape'] ?? null),
+                'certificate_number' => $this->normalizeNullableString($stone['certificate_number'] ?? null),
+                'unit_cost_amount' => $unitCost,
+                'total_cost_amount' => $totalCost,
+                'notes' => $this->normalizeNullableString($stone['notes'] ?? null),
+            ]);
+        }
+    }
+
     // ---------------- Show Form Create Product ---------------\\
 
     public function create(Request $request)
@@ -2378,7 +2993,7 @@ class ProductsController extends BaseController
         $show_serial_tracking = (bool) ($setting->show_serial_tracking ?? false);
         $enable_multi_pack_selling = (bool) ($setting->enable_multi_pack_selling ?? false);
 
-        return response()->json([
+        return response()->json(array_merge([
             'categories' => $categories,
             'subcategories' => $subcategories,
             'brands' => $brands,
@@ -2388,7 +3003,7 @@ class ProductsController extends BaseController
             'show_product_gtin' => $show_product_gtin,
             'show_serial_tracking' => $show_serial_tracking,
             'enable_multi_pack_selling' => $enable_multi_pack_selling,
-        ]);
+        ], $this->getJewelryFormContext()));
 
     }
 
@@ -2598,6 +3213,46 @@ class ProductsController extends BaseController
         $item['prescription_required'] = (bool) $Product->prescription_required;
         $item['drug_schedule'] = $Product->drug_schedule ?? '';
 
+        // Jewelry payload (always present; UI decides whether to render it via jewelry_mode + permission)
+        $item['is_jewelry_item'] = (bool) ($Product->is_jewelry_item ?? false);
+        $item['jewelry_item_type'] = $Product->jewelry_item_type ?? '';
+        $item['metal_type_id'] = $Product->metal_type_id ?? '';
+        $item['karat_id'] = $Product->karat_id ?? '';
+        $item['jewelry_gross_weight'] = $Product->jewelry_gross_weight !== null ? (float) $Product->jewelry_gross_weight : '';
+        $item['jewelry_net_weight'] = $Product->jewelry_net_weight !== null ? (float) $Product->jewelry_net_weight : '';
+        $item['jewelry_metal_weight'] = $Product->jewelry_metal_weight !== null ? (float) $Product->jewelry_metal_weight : '';
+        $item['jewelry_weight_uom'] = $Product->jewelry_weight_uom ?? 'g';
+        $item['hallmark_reference'] = $Product->hallmark_reference ?? '';
+        $item['certificate_number'] = $Product->certificate_number ?? '';
+        $item['making_charge_type'] = $Product->making_charge_type ?? '';
+        $item['making_charge_value'] = $Product->making_charge_value !== null ? (float) $Product->making_charge_value : '';
+        $item['wastage_type'] = $Product->wastage_type ?? '';
+        $item['wastage_value'] = $Product->wastage_value !== null ? (float) $Product->wastage_value : '';
+        $item['item_stones'] = Schema::hasTable('item_stones')
+            ? ItemStone::where('product_id', $Product->id)
+                ->orderBy('id')
+                ->get()
+                ->map(function ($stone) {
+                    return [
+                        'id' => $stone->id,
+                        'stone_type_id' => $stone->stone_type_id,
+                        'stone_name' => $stone->stone_name ?? '',
+                        'quantity' => (int) ($stone->quantity ?? 1),
+                        'carat_value' => $stone->carat_value !== null ? (float) $stone->carat_value : '',
+                        'color' => $stone->color ?? '',
+                        'clarity' => $stone->clarity ?? '',
+                        'cut' => $stone->cut ?? '',
+                        'shape' => $stone->shape ?? '',
+                        'certificate_number' => $stone->certificate_number ?? '',
+                        'unit_cost_amount' => $stone->unit_cost_amount !== null ? (float) $stone->unit_cost_amount : '',
+                        'total_cost_amount' => $stone->total_cost_amount !== null ? (float) $stone->total_cost_amount : '',
+                        'notes' => $stone->notes ?? '',
+                    ];
+                })
+                ->values()
+                ->all()
+            : [];
+
         $item['product_images'] = [];
         if (Schema::hasTable('product_images')) {
             $item['product_images'] = ProductImage::where('product_id', $id)
@@ -2683,7 +3338,7 @@ class ProductsController extends BaseController
         $show_serial_tracking = (bool) ($setting->show_serial_tracking ?? false);
         $enable_multi_pack_selling = (bool) ($setting->enable_multi_pack_selling ?? false);
 
-        return response()->json([
+        return response()->json(array_merge([
             'product' => $data,
             'categories' => $categories,
             'all_subcategories' => $all_subcategories,
@@ -2697,7 +3352,7 @@ class ProductsController extends BaseController
             'show_product_gtin' => $show_product_gtin,
             'show_serial_tracking' => $show_serial_tracking,
             'enable_multi_pack_selling' => $enable_multi_pack_selling,
-        ]);
+        ], $this->getJewelryFormContext()));
 
     }
 

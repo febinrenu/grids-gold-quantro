@@ -125,7 +125,17 @@
           </span>
 
           <!-- multi-line text rendered safely -->
-          <span v-else-if="props.column.field === 'name'" class="pre">{{ props.row.name }}</span>
+          <span v-else-if="props.column.field === 'name'" class="pre d-inline-block">
+            <span>{{ props.row.name }}</span>
+            <small
+              v-if="props.row.is_jewelry_item"
+              class="d-block text-muted mt-1"
+            >
+              <span v-if="props.row.metal_type || props.row.karat">{{ [props.row.metal_type, props.row.karat].filter(Boolean).join(' / ') }}</span>
+              <span v-if="props.row.gross_weight_display"> • Gross: {{ props.row.gross_weight_display }}</span>
+              <span v-if="props.row.metal_weight_display"> • Metal: {{ props.row.metal_weight_display }}</span>
+            </small>
+          </span>
           <span v-else-if="props.column.field === 'category'" class="pre">{{ props.row.categories_display || props.row.category }}</span>
           <span
             v-else-if="props.column.field === 'cost'"
@@ -197,6 +207,94 @@
                   v-model="Filter_warehouse"
                   :options="warehouses.map(w => ({ label: w.name, value: w.id }))"
                 />
+              </b-form-group>
+            </b-col>
+
+            <b-col md="12">
+              <b-form-group label="Metal Type">
+                <v-select
+                  :reduce="label => label.value"
+                  placeholder="Choose metal type"
+                  v-model="Filter_metal_type"
+                  :options="metalTypes.map(type => ({ label: type.name, value: type.id }))"
+                  @input="handleFilterMetalTypeChange"
+                />
+              </b-form-group>
+            </b-col>
+
+            <b-col md="12">
+              <b-form-group label="Karat">
+                <v-select
+                  :reduce="label => label.value"
+                  placeholder="Choose karat"
+                  v-model="Filter_karat"
+                  :options="filteredKaratOptions"
+                  :disabled="!Filter_metal_type && !!metalTypes.length"
+                />
+              </b-form-group>
+            </b-col>
+
+            <b-col md="12">
+              <b-form-group label="Stone Type">
+                <v-select
+                  :reduce="label => label.value"
+                  placeholder="Choose stone type"
+                  v-model="Filter_stone_type"
+                  :options="stoneTypes.map(type => ({ label: type.name, value: type.id }))"
+                />
+              </b-form-group>
+            </b-col>
+
+            <b-col md="12">
+              <b-form-group label="Certificate Number">
+                <b-form-input placeholder="Search by certificate number" v-model="Filter_certificate_number" />
+              </b-form-group>
+            </b-col>
+
+            <b-col md="12">
+              <b-form-group label="Status">
+                <v-select
+                  :reduce="label => label.value"
+                  placeholder="Choose status"
+                  v-model="Filter_status"
+                  :options="statusOptions"
+                />
+              </b-form-group>
+            </b-col>
+
+            <b-col md="6">
+              <b-form-group label="Min Price">
+                <b-form-input type="number" min="0" step="0.01" placeholder="0.00" v-model="Filter_min_price" />
+              </b-form-group>
+            </b-col>
+
+            <b-col md="6">
+              <b-form-group label="Max Price">
+                <b-form-input type="number" min="0" step="0.01" placeholder="0.00" v-model="Filter_max_price" />
+              </b-form-group>
+            </b-col>
+
+            <b-col md="6">
+              <b-form-group label="Min Gross Weight">
+                <b-form-input type="number" min="0" step="0.001" placeholder="0.000" v-model="Filter_min_gross_weight" />
+              </b-form-group>
+            </b-col>
+
+            <b-col md="6">
+              <b-form-group label="Max Gross Weight">
+                <b-form-input type="number" min="0" step="0.001" placeholder="0.000" v-model="Filter_max_gross_weight" />
+              </b-form-group>
+            </b-col>
+
+            <b-col md="6">
+              <b-form-group label="Min Metal Weight">
+                <b-form-input type="number" min="0" step="0.001" placeholder="0.000" v-model="Filter_min_metal_weight" />
+              </b-form-group>
+            </b-col>
+
+            <b-col md="6">
+              <b-form-group label="Max Metal Weight">
+                <b-form-input type="number" min="0" step="0.001" placeholder="0.000" v-model="Filter_max_metal_weight" />
               </b-form-group>
             </b-col>
 
@@ -281,11 +379,25 @@ export default {
       Filter_name: "",
       Filter_category: "",
       Filter_warehouse: "",
+      Filter_metal_type: "",
+      Filter_karat: "",
+      Filter_stone_type: "",
+      Filter_certificate_number: "",
+      Filter_status: "",
+      Filter_min_price: "",
+      Filter_max_price: "",
+      Filter_min_gross_weight: "",
+      Filter_max_gross_weight: "",
+      Filter_min_metal_weight: "",
+      Filter_max_metal_weight: "",
       categories: [],
       subcategories: [],
       brands: [],
       products: [],
       warehouses: [],
+      metalTypes: [],
+      karats: [],
+      stoneTypes: [],
       // Optional price format key for frontend display (loaded from system settings/localStorage)
       price_format_key: null
     };
@@ -295,6 +407,18 @@ export default {
     // Monetary precision (2 or 3) driven by the "Enable 3 Decimal Pricing" setting.
     priceDecimals() {
       return getPriceDecimals({ store: this.$store });
+    },
+    filteredKaratOptions() {
+      const selectedMetalId = this.Filter_metal_type ? String(this.Filter_metal_type) : "";
+      return (this.karats || [])
+        .filter(karat => !selectedMetalId || String(karat.metal_type_id) === selectedMetalId)
+        .map(karat => ({ label: karat.name, value: karat.id }));
+    },
+    statusOptions() {
+      return [
+        { label: this.$t("Active") || "Active", value: "active" },
+        { label: this.$t("Inactive") || "Inactive", value: "inactive" },
+      ];
     },
     columns() {
       return [
@@ -544,6 +668,17 @@ export default {
       this.Filter_name = "";
       this.Filter_category = "";
       this.Filter_warehouse = "";
+      this.Filter_metal_type = "";
+      this.Filter_karat = "";
+      this.Filter_stone_type = "";
+      this.Filter_certificate_number = "";
+      this.Filter_status = "";
+      this.Filter_min_price = "";
+      this.Filter_max_price = "";
+      this.Filter_min_gross_weight = "";
+      this.Filter_max_gross_weight = "";
+      this.Filter_min_metal_weight = "";
+      this.Filter_max_metal_weight = "";
       this.Get_Products(this.serverParams.page);
     },
 
@@ -551,6 +686,24 @@ export default {
       if (this.Filter_category === null) this.Filter_category = "";
       if (this.Filter_brand === null) this.Filter_brand = "";
       if (this.Filter_warehouse === null) this.Filter_warehouse = "";
+      if (this.Filter_metal_type === null) this.Filter_metal_type = "";
+      if (this.Filter_karat === null) this.Filter_karat = "";
+      if (this.Filter_stone_type === null) this.Filter_stone_type = "";
+      if (this.Filter_certificate_number === null) this.Filter_certificate_number = "";
+      if (this.Filter_status === null) this.Filter_status = "";
+      if (this.Filter_min_price === null) this.Filter_min_price = "";
+      if (this.Filter_max_price === null) this.Filter_max_price = "";
+      if (this.Filter_min_gross_weight === null) this.Filter_min_gross_weight = "";
+      if (this.Filter_max_gross_weight === null) this.Filter_max_gross_weight = "";
+      if (this.Filter_min_metal_weight === null) this.Filter_min_metal_weight = "";
+      if (this.Filter_max_metal_weight === null) this.Filter_max_metal_weight = "";
+    },
+
+    handleFilterMetalTypeChange() {
+      const validKaratIds = this.filteredKaratOptions.map(option => String(option.value));
+      if (!validKaratIds.includes(String(this.Filter_karat || ""))) {
+        this.Filter_karat = "";
+      }
     },
 
     Get_Products(page) {
@@ -564,6 +717,17 @@ export default {
         "&category_id=" + encodeURIComponent(this.Filter_category || "") +
         "&brand_id=" + encodeURIComponent(this.Filter_brand || "") +
         "&warehouse_id=" + encodeURIComponent(this.Filter_warehouse || "") +
+        "&metal_type_id=" + encodeURIComponent(this.Filter_metal_type || "") +
+        "&karat_id=" + encodeURIComponent(this.Filter_karat || "") +
+        "&stone_type_id=" + encodeURIComponent(this.Filter_stone_type || "") +
+        "&certificate_number=" + encodeURIComponent(this.Filter_certificate_number || "") +
+        "&status=" + encodeURIComponent(this.Filter_status || "") +
+        "&min_price=" + encodeURIComponent(this.Filter_min_price || "") +
+        "&max_price=" + encodeURIComponent(this.Filter_max_price || "") +
+        "&min_gross_weight=" + encodeURIComponent(this.Filter_min_gross_weight || "") +
+        "&max_gross_weight=" + encodeURIComponent(this.Filter_max_gross_weight || "") +
+        "&min_metal_weight=" + encodeURIComponent(this.Filter_min_metal_weight || "") +
+        "&max_metal_weight=" + encodeURIComponent(this.Filter_max_metal_weight || "") +
         "&SortField=" + encodeURIComponent(this.serverParams.sort.field) +
         "&SortType=" + encodeURIComponent(this.serverParams.sort.type) +
         "&search=" + encodeURIComponent(this.search || "") +
@@ -575,6 +739,9 @@ export default {
         this.categories = response.data.categories;
         this.subcategories = response.data.subcategories || [];
         this.brands     = response.data.brands;
+        this.metalTypes = response.data.metal_types || [];
+        this.karats = response.data.karats || [];
+        this.stoneTypes = response.data.stone_types || [];
         this.totalRows  = response.data.totalRows;
         NProgress.done(); this.isLoading = false;
       })

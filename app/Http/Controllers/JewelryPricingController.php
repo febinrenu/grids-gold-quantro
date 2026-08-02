@@ -34,10 +34,21 @@ class JewelryPricingController extends BaseController
     public function preview(Request $request)
     {
         $request->validate([
-            'product_id'   => 'required|integer|exists:products,id',
+            'product_id'   => 'nullable|integer|exists:products,id',
+            'product'      => 'nullable|array',
             'warehouse_id' => 'nullable|integer|exists:warehouses,id',
             'overrides'    => 'nullable|array',
         ]);
+
+        $hasProductId = $request->filled('product_id');
+        $draftProduct = $request->input('product');
+        $hasDraftProduct = is_array($draftProduct) && ! empty($draftProduct);
+
+        if (! $hasProductId && ! $hasDraftProduct) {
+            throw ValidationException::withMessages([
+                'product_id' => ['A saved product_id or an in-progress product payload is required.'],
+            ]);
+        }
 
         $overrides = $request->input('overrides', []);
         if (! empty($overrides)) {
@@ -45,11 +56,18 @@ class JewelryPricingController extends BaseController
         }
 
         try {
-            $breakdown = $this->pricingService->preview(
-                (int) $request->input('product_id'),
-                $request->filled('warehouse_id') ? (int) $request->input('warehouse_id') : null,
-                $overrides
-            );
+            $breakdown = $hasDraftProduct
+                ? $this->pricingService->previewDraft(
+                    $draftProduct,
+                    $request->filled('warehouse_id') ? (int) $request->input('warehouse_id') : null,
+                    $overrides,
+                    $hasProductId ? (int) $request->input('product_id') : null
+                )
+                : $this->pricingService->preview(
+                    (int) $request->input('product_id'),
+                    $request->filled('warehouse_id') ? (int) $request->input('warehouse_id') : null,
+                    $overrides
+                );
         } catch (\InvalidArgumentException $exception) {
             throw ValidationException::withMessages([
                 'overrides.making_charge_formula' => ['Invalid formula.'],

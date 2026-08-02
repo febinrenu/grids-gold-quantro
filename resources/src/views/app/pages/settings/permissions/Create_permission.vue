@@ -524,6 +524,69 @@
                   </b-card>
                 </b-col>
 
+                <!-- Jewelry / Gold Rates -->
+                <b-col md="4">
+                  <b-card no-body class="ul-card__border-radius">
+                    <b-card-header header-tag="header" class="p-1" role="tab">
+                      <b-button
+                        class="card-title mb-0"
+                        block
+                        href="#"
+                        v-b-toggle.panel-Jewelry-Permissions
+                        variant="transparent"
+                      >{{$t('Jewelry') || 'Jewelry'}}</b-button>
+                    </b-card-header>
+                    <b-collapse
+                      id="panel-Jewelry-Permissions"
+                      :visible="true"
+                      accordion="my-accordion-jewelry"
+                      role="tabpanel"
+                    >
+                      <b-card-body>
+                        <b-card-text>
+                          <b-row>
+                            <b-col md="6">
+                              <label class="checkbox checkbox-outline-primary">
+                                <input type="checkbox" v-model="permissions" value="jewelry_items_manage">
+                                <span>Jewelry Items Manage</span>
+                                <span class="checkmark"></span>
+                              </label>
+                            </b-col>
+                            <b-col md="6">
+                              <label class="checkbox checkbox-outline-primary">
+                                <input type="checkbox" v-model="permissions" value="gold_rates_view">
+                                <span>Gold Rates View</span>
+                                <span class="checkmark"></span>
+                              </label>
+                            </b-col>
+                            <b-col md="6">
+                              <label class="checkbox checkbox-outline-primary">
+                                <input type="checkbox" v-model="permissions" value="gold_rates_manage">
+                                <span>Gold Rates Manage</span>
+                                <span class="checkmark"></span>
+                              </label>
+                            </b-col>
+                            <b-col md="6">
+                              <label class="checkbox checkbox-outline-primary">
+                                <input type="checkbox" v-model="permissions" value="gold_rates_approve">
+                                <span>Gold Rates Approve</span>
+                                <span class="checkmark"></span>
+                              </label>
+                            </b-col>
+                            <b-col md="6">
+                              <label class="checkbox checkbox-outline-primary">
+                                <input type="checkbox" v-model="permissions" value="jewelry_pricing_override">
+                                <span>Jewelry Pricing Override</span>
+                                <span class="checkmark"></span>
+                              </label>
+                            </b-col>
+                          </b-row>
+                        </b-card-text>
+                      </b-card-body>
+                    </b-collapse>
+                  </b-card>
+                </b-col>
+
                 <!--  Adjustment -->
                 <b-col md="4">
                   <b-card no-body class="ul-card__border-radius">
