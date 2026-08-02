@@ -640,7 +640,391 @@
                       ></textarea>
                     </b-form-group>
                   </b-col>
+
+                  <b-col md="12" class="mb-3" v-if="jewelryModeEnabled && !canManageJewelryItems">
+                    <b-alert show variant="info" class="mb-0">
+                      Jewelry mode is enabled for this tenant, but you do not have permission to edit jewelry-specific product fields.
+                    </b-alert>
+                  </b-col>
+
+                  <b-col md="6" class="mb-3" v-if="jewelryModeEnabled && canManageJewelryItems">
+                    <b-form-group label="Jewelry Item">
+                      <b-form-checkbox
+                        v-model="product.is_jewelry_item"
+                        :unchecked-value="false"
+                        :checked-value="true"
+                        switch
+                        @change="handleJewelryToggle"
+                      >
+                        This product is a jewelry item
+                      </b-form-checkbox>
+                      <small class="text-muted d-block">Enable jewelry-specific metal, weight, stone, and making-charge fields for this product.</small>
+                    </b-form-group>
+                  </b-col>
+
+                  <b-col md="6" class="mb-3" v-if="showJewelrySections">
+                    <b-form-group label="Jewelry Item Type *">
+                      <v-select
+                        v-model="product.jewelry_item_type"
+                        :options="jewelryItemTypeOptions"
+                        :reduce="option => option.value"
+                        :placeholder="$t('Choose')"
+                        :class="{ 'is-invalid': jewelryFieldState('jewelry_item_type') === false }"
+                      />
+                      <div v-if="jewelryFieldMessage('jewelry_item_type')" class="invalid-feedback d-block">
+                        {{ jewelryFieldMessage('jewelry_item_type') }}
+                      </div>
+                    </b-form-group>
+                  </b-col>
                 </b-row>
+              </b-card>
+            </div>
+
+            <div class="form-section" id="section-jewelry-metal" v-if="showJewelrySections">
+              <div class="section-header">
+                <lucide-icon class="section-icon" name="tag" />
+                <h4 class="section-title">Metal &amp; Karat</h4>
+              </div>
+              <b-card class="section-card">
+                <b-row>
+                  <b-col md="6" class="mb-3">
+                    <b-form-group label="Metal Type *">
+                      <v-select
+                        v-model="product.metal_type_id"
+                        :options="metalTypeOptions"
+                        :reduce="option => option.value"
+                        :placeholder="$t('Choose')"
+                        :class="{ 'is-invalid': jewelryFieldState('metal_type_id') === false }"
+                        @input="handleMetalTypeChange"
+                      />
+                      <div v-if="jewelryFieldMessage('metal_type_id')" class="invalid-feedback d-block">
+                        {{ jewelryFieldMessage('metal_type_id') }}
+                      </div>
+                    </b-form-group>
+                  </b-col>
+
+                  <b-col md="6" class="mb-3">
+                    <b-form-group label="Karat *">
+                      <v-select
+                        v-model="product.karat_id"
+                        :options="filteredKaratOptions"
+                        :reduce="option => option.value"
+                        :placeholder="$t('Choose')"
+                        :disabled="!product.metal_type_id"
+                        :class="{ 'is-invalid': jewelryFieldState('karat_id') === false }"
+                      />
+                      <small class="text-muted d-block">Karat options automatically filter to the selected metal.</small>
+                      <div v-if="jewelryFieldMessage('karat_id')" class="invalid-feedback d-block">
+                        {{ jewelryFieldMessage('karat_id') }}
+                      </div>
+                    </b-form-group>
+                  </b-col>
+                </b-row>
+              </b-card>
+            </div>
+
+            <div class="form-section" id="section-jewelry-weight" v-if="showJewelrySections">
+              <div class="section-header">
+                <lucide-icon class="section-icon" name="package" />
+                <h4 class="section-title">Weight Information</h4>
+              </div>
+              <b-card class="section-card">
+                <b-row>
+                  <b-col md="3" class="mb-3">
+                    <b-form-group label="Gross Weight *">
+                      <b-form-input
+                        type="number"
+                        min="0"
+                        step="0.001"
+                        v-model.number="product.jewelry_gross_weight"
+                        :state="jewelryFieldState('jewelry_gross_weight')"
+                        placeholder="0.000"
+                      />
+                      <b-form-invalid-feedback class="d-block" v-if="jewelryFieldMessage('jewelry_gross_weight')">
+                        {{ jewelryFieldMessage('jewelry_gross_weight') }}
+                      </b-form-invalid-feedback>
+                    </b-form-group>
+                  </b-col>
+
+                  <b-col md="3" class="mb-3">
+                    <b-form-group label="Net Weight">
+                      <b-form-input
+                        type="number"
+                        min="0"
+                        step="0.001"
+                        v-model.number="product.jewelry_net_weight"
+                        :state="jewelryFieldState('jewelry_net_weight')"
+                        placeholder="0.000"
+                      />
+                      <b-form-invalid-feedback class="d-block" v-if="jewelryFieldMessage('jewelry_net_weight')">
+                        {{ jewelryFieldMessage('jewelry_net_weight') }}
+                      </b-form-invalid-feedback>
+                    </b-form-group>
+                  </b-col>
+
+                  <b-col md="3" class="mb-3">
+                    <b-form-group label="Metal Weight *">
+                      <b-form-input
+                        type="number"
+                        min="0"
+                        step="0.001"
+                        v-model.number="product.jewelry_metal_weight"
+                        :state="jewelryFieldState('jewelry_metal_weight')"
+                        placeholder="0.000"
+                      />
+                      <b-form-invalid-feedback class="d-block" v-if="jewelryFieldMessage('jewelry_metal_weight')">
+                        {{ jewelryFieldMessage('jewelry_metal_weight') }}
+                      </b-form-invalid-feedback>
+                    </b-form-group>
+                  </b-col>
+
+                  <b-col md="3" class="mb-3">
+                    <b-form-group label="Weight Unit *">
+                      <v-select
+                        v-model="product.jewelry_weight_uom"
+                        :options="jewelryWeightUnitOptions"
+                        :reduce="option => option.value"
+                        :placeholder="$t('Choose')"
+                        :class="{ 'is-invalid': jewelryFieldState('jewelry_weight_uom') === false }"
+                      />
+                      <div v-if="jewelryFieldMessage('jewelry_weight_uom')" class="invalid-feedback d-block">
+                        {{ jewelryFieldMessage('jewelry_weight_uom') }}
+                      </div>
+                    </b-form-group>
+                  </b-col>
+                </b-row>
+              </b-card>
+            </div>
+
+            <div class="form-section" id="section-jewelry-stones" v-if="showJewelrySections">
+              <div class="section-header">
+                <lucide-icon class="section-icon" name="file" />
+                <h4 class="section-title">Stones &amp; Certificates</h4>
+              </div>
+              <b-card class="section-card">
+                <b-row>
+                  <b-col md="6" class="mb-3">
+                    <b-form-group label="Hallmark Reference">
+                      <b-form-input
+                        v-model="product.hallmark_reference"
+                        :state="jewelryFieldState('hallmark_reference')"
+                        placeholder="Enter hallmark reference"
+                      />
+                      <b-form-invalid-feedback class="d-block" v-if="jewelryFieldMessage('hallmark_reference')">
+                        {{ jewelryFieldMessage('hallmark_reference') }}
+                      </b-form-invalid-feedback>
+                    </b-form-group>
+                  </b-col>
+
+                  <b-col md="6" class="mb-3">
+                    <b-form-group label="Certificate Number">
+                      <b-form-input
+                        v-model="product.certificate_number"
+                        :state="jewelryFieldState('certificate_number')"
+                        placeholder="Enter certificate number"
+                      />
+                      <b-form-invalid-feedback class="d-block" v-if="jewelryFieldMessage('certificate_number')">
+                        {{ jewelryFieldMessage('certificate_number') }}
+                      </b-form-invalid-feedback>
+                    </b-form-group>
+                  </b-col>
+                </b-row>
+
+                <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+                  <div>
+                    <h5 class="mb-1">Stone Details</h5>
+                    <p class="text-muted small mb-0">Add one row per stone specification or certificate attached to this jewelry item.</p>
+                  </div>
+                  <b-button variant="outline-primary" size="sm" @click="addStoneRow()">
+                    <lucide-icon class="me-2" name="plus" />Add Stone
+                  </b-button>
+                </div>
+
+                <b-alert show variant="danger" v-if="jewelryFieldMessage('item_stones')">
+                  {{ jewelryFieldMessage('item_stones') }}
+                </b-alert>
+
+                <div v-if="!product.item_stones.length" class="alert alert-light border text-muted mb-0">
+                  No stones added yet.
+                </div>
+
+                <div
+                  v-for="(stone, index) in product.item_stones"
+                  :key="stone._rowKey || stone.id || index"
+                  class="border rounded p-3 mb-3"
+                >
+                  <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+                    <h6 class="mb-0">Stone #{{ index + 1 }}</h6>
+                    <b-button variant="outline-danger" size="sm" @click="removeStoneRow(index)">
+                      <lucide-icon name="x" />
+                    </b-button>
+                  </div>
+
+                  <b-row>
+                    <b-col lg="4" md="6" class="mb-3">
+                      <b-form-group label="Stone Type *">
+                        <v-select
+                          v-model="stone.stone_type_id"
+                          :options="stoneTypeOptions"
+                          :reduce="option => option.value"
+                          :placeholder="$t('Choose')"
+                        />
+                      </b-form-group>
+                    </b-col>
+
+                    <b-col lg="4" md="6" class="mb-3">
+                      <b-form-group label="Stone Name">
+                        <b-form-input v-model="stone.stone_name" placeholder="Enter stone name" />
+                      </b-form-group>
+                    </b-col>
+
+                    <b-col lg="4" md="6" class="mb-3">
+                      <b-form-group label="Quantity">
+                        <b-form-input type="number" min="1" step="1" v-model.number="stone.quantity" placeholder="1" />
+                      </b-form-group>
+                    </b-col>
+
+                    <b-col lg="4" md="6" class="mb-3">
+                      <b-form-group label="Carat Value">
+                        <b-form-input type="number" min="0" step="0.001" v-model.number="stone.carat_value" placeholder="0.000" />
+                      </b-form-group>
+                    </b-col>
+
+                    <b-col lg="4" md="6" class="mb-3">
+                      <b-form-group label="Color">
+                        <b-form-input v-model="stone.color" placeholder="Enter color" />
+                      </b-form-group>
+                    </b-col>
+
+                    <b-col lg="4" md="6" class="mb-3">
+                      <b-form-group label="Clarity">
+                        <b-form-input v-model="stone.clarity" placeholder="Enter clarity" />
+                      </b-form-group>
+                    </b-col>
+
+                    <b-col lg="4" md="6" class="mb-3">
+                      <b-form-group label="Cut">
+                        <b-form-input v-model="stone.cut" placeholder="Enter cut" />
+                      </b-form-group>
+                    </b-col>
+
+                    <b-col lg="4" md="6" class="mb-3">
+                      <b-form-group label="Shape">
+                        <b-form-input v-model="stone.shape" placeholder="Enter shape" />
+                      </b-form-group>
+                    </b-col>
+
+                    <b-col lg="4" md="6" class="mb-3">
+                      <b-form-group label="Stone Certificate Number">
+                        <b-form-input v-model="stone.certificate_number" placeholder="Enter certificate number" />
+                      </b-form-group>
+                    </b-col>
+
+                    <b-col lg="4" md="6" class="mb-3">
+                      <b-form-group label="Unit Cost">
+                        <b-form-input type="number" min="0" step="0.01" v-model.number="stone.unit_cost_amount" placeholder="0.00" />
+                      </b-form-group>
+                    </b-col>
+
+                    <b-col lg="4" md="6" class="mb-3">
+                      <b-form-group label="Total Cost">
+                        <b-form-input :value="formatNumber(calculateStoneTotal(stone), priceDecimals)" disabled />
+                      </b-form-group>
+                    </b-col>
+                  </b-row>
+                </div>
+              </b-card>
+            </div>
+
+            <div class="form-section" id="section-jewelry-charges" v-if="showJewelrySections">
+              <div class="section-header">
+                <lucide-icon class="section-icon" name="database-zap" />
+                <h4 class="section-title">Cost &amp; Making Charges</h4>
+              </div>
+              <b-card class="section-card">
+                <b-row>
+                  <b-col md="6" class="mb-3">
+                    <b-form-group label="Making Charge Type *">
+                      <v-select
+                        v-model="product.making_charge_type"
+                        :options="makingChargeTypeOptions"
+                        :reduce="option => option.value"
+                        :placeholder="$t('Choose')"
+                        :class="{ 'is-invalid': jewelryFieldState('making_charge_type') === false }"
+                      />
+                      <div v-if="jewelryFieldMessage('making_charge_type')" class="invalid-feedback d-block">
+                        {{ jewelryFieldMessage('making_charge_type') }}
+                      </div>
+                    </b-form-group>
+                  </b-col>
+
+                  <b-col md="6" class="mb-3">
+                    <b-form-group label="Making Charge Value *">
+                      <b-form-input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        v-model.number="product.making_charge_value"
+                        :state="jewelryFieldState('making_charge_value')"
+                        placeholder="0.00"
+                      />
+                      <b-form-invalid-feedback class="d-block" v-if="jewelryFieldMessage('making_charge_value')">
+                        {{ jewelryFieldMessage('making_charge_value') }}
+                      </b-form-invalid-feedback>
+                    </b-form-group>
+                  </b-col>
+
+                  <b-col md="6" class="mb-3">
+                    <b-form-group label="Wastage Type *">
+                      <v-select
+                        v-model="product.wastage_type"
+                        :options="wastageTypeOptions"
+                        :reduce="option => option.value"
+                        :placeholder="$t('Choose')"
+                        :class="{ 'is-invalid': jewelryFieldState('wastage_type') === false }"
+                      />
+                      <div v-if="jewelryFieldMessage('wastage_type')" class="invalid-feedback d-block">
+                        {{ jewelryFieldMessage('wastage_type') }}
+                      </div>
+                    </b-form-group>
+                  </b-col>
+
+                  <b-col md="6" class="mb-3">
+                    <b-form-group label="Wastage Value *">
+                      <b-form-input
+                        type="number"
+                        min="0"
+                        step="0.001"
+                        v-model.number="product.wastage_value"
+                        :state="jewelryFieldState('wastage_value')"
+                        placeholder="0.000"
+                      />
+                      <b-form-invalid-feedback class="d-block" v-if="jewelryFieldMessage('wastage_value')">
+                        {{ jewelryFieldMessage('wastage_value') }}
+                      </b-form-invalid-feedback>
+                    </b-form-group>
+                  </b-col>
+                </b-row>
+              </b-card>
+            </div>
+
+            <div class="form-section" id="section-jewelry-preview" v-if="showJewelrySections">
+              <div class="section-header">
+                <lucide-icon class="section-icon" name="eye" />
+                <h4 class="section-title">Pricing Preview</h4>
+              </div>
+              <b-card class="section-card">
+                <div class="alert alert-secondary mb-0">
+                  <h6 class="mb-2">Task 3.2 placeholder</h6>
+                  <p class="mb-2 text-muted">The shared live pricing preview component will be mounted here in the next task.</p>
+                  <ul class="mb-0 pl-3">
+                    <li><strong>Metal:</strong> {{ selectedMetalName || '—' }}</li>
+                    <li><strong>Karat:</strong> {{ selectedKaratName || '—' }}</li>
+                    <li><strong>Gross Weight:</strong> {{ product.jewelry_gross_weight || '0.000' }} {{ product.jewelry_weight_uom || 'g' }}</li>
+                    <li><strong>Metal Weight:</strong> {{ product.jewelry_metal_weight || '0.000' }} {{ product.jewelry_weight_uom || 'g' }}</li>
+                    <li><strong>Stone Lines:</strong> {{ preparedItemStoneCount }}</li>
+                  </ul>
+                </div>
               </b-card>
             </div>
 
@@ -1593,6 +1977,11 @@
                 </div>
                 <ul class="side-toc__list">
                   <li><a href="#section-basic"><lucide-icon name="file" /><span>{{ $t('BasicInformation') }}</span></a></li>
+                  <li v-if="showJewelrySections"><a href="#section-jewelry-metal"><lucide-icon name="tag" /><span>Metal &amp; Karat</span></a></li>
+                  <li v-if="showJewelrySections"><a href="#section-jewelry-weight"><lucide-icon name="package" /><span>Weight Information</span></a></li>
+                  <li v-if="showJewelrySections"><a href="#section-jewelry-stones"><lucide-icon name="file" /><span>Stones &amp; Certificates</span></a></li>
+                  <li v-if="showJewelrySections"><a href="#section-jewelry-charges"><lucide-icon name="database-zap" /><span>Cost &amp; Making Charges</span></a></li>
+                  <li v-if="showJewelrySections"><a href="#section-jewelry-preview"><lucide-icon name="eye" /><span>Pricing Preview</span></a></li>
                   <li><a href="#section-gallery"><lucide-icon name="upload" /><span>{{ $t('ProductImagesGallery') }}</span></a></li>
                   <li><a href="#section-inventory"><lucide-icon name="package" /><span>{{ $t('Inventory') }}</span></a></li>
                   <li v-if="product.type == 'is_variant'"><a href="#section-variants"><lucide-icon name="settings" /><span>{{ $t('Variants') }}</span></a></li>
@@ -1630,6 +2019,9 @@
                   <span v-if="product.is_featured" class="pill pill--accent">
                     <lucide-icon name="star" /> {{ $t('Featured_Product') || 'Featured' }}
                   </span>
+                  <span v-if="showJewelrySections" class="pill pill--accent">
+                    <lucide-icon name="tag" /> Jewelry
+                  </span>
                 </div>
 
                 <div class="summary-row">
@@ -1651,6 +2043,18 @@
                 <div class="summary-row">
                   <span class="summary-row__label">{{ $t('OrderTax') }}</span>
                   <span class="summary-row__value">{{ product.TaxNet || 0 }}%</span>
+                </div>
+                <div class="summary-row" v-if="showJewelrySections">
+                  <span class="summary-row__label">Jewelry Type</span>
+                  <span class="summary-row__value">{{ jewelryItemTypeLabel || '—' }}</span>
+                </div>
+                <div class="summary-row" v-if="showJewelrySections">
+                  <span class="summary-row__label">Metal / Karat</span>
+                  <span class="summary-row__value">{{ selectedMetalName || '—' }}<span v-if="selectedKaratName"> / {{ selectedKaratName }}</span></span>
+                </div>
+                <div class="summary-row" v-if="showJewelrySections">
+                  <span class="summary-row__label">Metal Weight</span>
+                  <span class="summary-row__value">{{ product.jewelry_metal_weight || '0.000' }} {{ product.jewelry_weight_uom || 'g' }}</span>
                 </div>
               </div>
 
@@ -1840,7 +2244,7 @@
 <script>
 import VueTagsInput from "@johmun/vue-tags-input";
 import NProgress from "nprogress";
-import { mapActions, mapGetters } from "vuex";
+import { mapGetters } from "vuex";
 import draggable from "vuedraggable";
 import { getPriceDecimals } from "../../../../utils/priceFormat";
 
@@ -1900,6 +2304,45 @@ export default {
       units_base: [],
       units_sub: [],
       brands: [],
+      metalTypes: [],
+      karats: [],
+      stoneTypes: [],
+      jewelryModeEnabled: false,
+      jewelryValidationVisible: false,
+      jewelryStoneRowSeed: 0,
+      jewelryDefaults: {
+        making_charge_type: "",
+        making_charge_value: "",
+        wastage_type: "",
+        wastage_value: "",
+        weight_uom: "g"
+      },
+      jewelryItemTypeOptions: [
+        { label: "Serialized", value: "serialized" },
+        { label: "Weighted", value: "weighted" },
+        { label: "Style", value: "style" },
+        { label: "Set", value: "set" },
+        { label: "Service", value: "service" },
+        { label: "Non-stock", value: "non_stock" }
+      ],
+      makingChargeTypeOptions: [
+        { label: "Fixed", value: "fixed" },
+        { label: "Per Gram", value: "per_gram" },
+        { label: "Percentage", value: "percentage" },
+        { label: "Manual", value: "manual" }
+      ],
+      wastageTypeOptions: [
+        { label: "Percentage of Weight", value: "percentage_of_weight" },
+        { label: "Percentage of Value", value: "percentage_of_value" },
+        { label: "Fixed Value", value: "fixed_value" }
+      ],
+      jewelryWeightUnitOptions: [
+        { label: "Gram (g)", value: "g" },
+        { label: "Milligram (mg)", value: "mg" },
+        { label: "Kilogram (kg)", value: "kg" },
+        { label: "Carat (ct)", value: "ct" },
+        { label: "Ounce (oz)", value: "oz" }
+      ],
       roles: {},
       variants: [],
       materiels: [],
@@ -1919,6 +2362,8 @@ export default {
         brand_id: "",
         category_id: "",
         sub_category_id: "",
+        assigned_category_ids: [],
+        assigned_subcategory_ids: [],
         TaxNet: "0",
         tax_method: "1",
         discount_method: "1",
@@ -1958,6 +2403,21 @@ export default {
         has_guarantee: false,
         guarantee_period: null,
         guarantee_unit: 'months',
+        is_jewelry_item: false,
+        jewelry_item_type: "",
+        metal_type_id: "",
+        karat_id: "",
+        jewelry_gross_weight: "",
+        jewelry_net_weight: "",
+        jewelry_metal_weight: "",
+        jewelry_weight_uom: "g",
+        hallmark_reference: "",
+        certificate_number: "",
+        making_charge_type: "",
+        making_charge_value: "",
+        wastage_type: "",
+        wastage_value: "",
+        item_stones: [],
       },
       code_exist: "",
       productGalleryItems: [],
@@ -2001,6 +2461,148 @@ export default {
           value: sc.id
         };
       });
+    },
+    canManageJewelryItems() {
+      return Array.isArray(this.currentUserPermissions)
+        && this.currentUserPermissions.includes("jewelry_items_manage");
+    },
+    showJewelrySections() {
+      return this.jewelryModeEnabled && this.canManageJewelryItems && !!this.product.is_jewelry_item;
+    },
+    metalTypeOptions() {
+      return (this.metalTypes || []).map(type => ({
+        label: type.name,
+        value: type.id
+      }));
+    },
+    filteredKaratOptions() {
+      const selectedMetalId = this.product.metal_type_id ? String(this.product.metal_type_id) : "";
+      return (this.karats || [])
+        .filter(karat => !selectedMetalId || String(karat.metal_type_id) === selectedMetalId)
+        .map(karat => ({
+          label: karat.name,
+          value: karat.id
+        }));
+    },
+    stoneTypeOptions() {
+      return (this.stoneTypes || []).map(type => ({
+        label: type.name,
+        value: type.id
+      }));
+    },
+    selectedMetalName() {
+      const match = (this.metalTypes || []).find(type => String(type.id) === String(this.product.metal_type_id || ""));
+      return match ? match.name : "";
+    },
+    selectedKaratName() {
+      const match = (this.karats || []).find(karat => String(karat.id) === String(this.product.karat_id || ""));
+      return match ? match.name : "";
+    },
+    jewelryItemTypeLabel() {
+      const match = (this.jewelryItemTypeOptions || []).find(option => option.value === this.product.jewelry_item_type);
+      return match ? match.label : "";
+    },
+    preparedItemStoneCount() {
+      return this.getPreparedItemStones().length;
+    },
+    jewelryErrors() {
+      const errors = {};
+
+      if (!this.showJewelrySections) {
+        return errors;
+      }
+
+      const grossWeight = this.toNullableNumber(this.product.jewelry_gross_weight);
+      const netWeight = this.toNullableNumber(this.product.jewelry_net_weight);
+      const metalWeight = this.toNullableNumber(this.product.jewelry_metal_weight);
+      const makingChargeValue = this.toNullableNumber(this.product.making_charge_value);
+      const wastageValue = this.toNullableNumber(this.product.wastage_value);
+      const requiresWeight = !["service", "non_stock"].includes(this.product.jewelry_item_type);
+
+      if (!this.product.jewelry_item_type) {
+        errors.jewelry_item_type = "Jewelry item type is required.";
+      }
+      if (!this.product.metal_type_id) {
+        errors.metal_type_id = "Metal type is required.";
+      }
+      if (this.product.metal_type_id && !this.product.karat_id && this.filteredKaratOptions.length) {
+        errors.karat_id = "Karat is required for the selected metal.";
+      }
+      if (!this.product.jewelry_weight_uom) {
+        errors.jewelry_weight_uom = "Weight unit is required.";
+      }
+      if (grossWeight !== null && grossWeight < 0) {
+        errors.jewelry_gross_weight = "Gross weight cannot be negative.";
+      }
+      if (netWeight !== null && netWeight < 0) {
+        errors.jewelry_net_weight = "Net weight cannot be negative.";
+      }
+      if (metalWeight !== null && metalWeight < 0) {
+        errors.jewelry_metal_weight = "Metal weight cannot be negative.";
+      }
+      if (requiresWeight && (grossWeight === null || grossWeight <= 0)) {
+        errors.jewelry_gross_weight = errors.jewelry_gross_weight || "Gross weight is required for this jewelry item.";
+      }
+      if (requiresWeight && (metalWeight === null || metalWeight <= 0)) {
+        errors.jewelry_metal_weight = errors.jewelry_metal_weight || "Metal weight is required for this jewelry item.";
+      }
+      if (grossWeight !== null && netWeight !== null && netWeight > grossWeight) {
+        errors.jewelry_net_weight = "Net weight cannot exceed gross weight.";
+      }
+      if (grossWeight !== null && metalWeight !== null && metalWeight > grossWeight) {
+        errors.jewelry_metal_weight = "Metal weight cannot exceed gross weight.";
+      }
+      if (!this.product.making_charge_type) {
+        errors.making_charge_type = "Making charge type is required.";
+      }
+      if (makingChargeValue === null || makingChargeValue < 0) {
+        errors.making_charge_value = "Making charge value is required and must be zero or greater.";
+      }
+      if (!this.product.wastage_type) {
+        errors.wastage_type = "Wastage type is required.";
+      }
+      if (wastageValue === null || wastageValue < 0) {
+        errors.wastage_value = "Wastage value is required and must be zero or greater.";
+      }
+      if (this.product.hallmark_reference && String(this.product.hallmark_reference).length > 191) {
+        errors.hallmark_reference = "Hallmark reference cannot exceed 191 characters.";
+      }
+      if (this.product.certificate_number && String(this.product.certificate_number).length > 191) {
+        errors.certificate_number = "Certificate number cannot exceed 191 characters.";
+      }
+
+      const invalidStone = this.getPreparedItemStones(true).find((stone, index) => {
+        if (!this.stoneRowHasValue(stone)) {
+          return false;
+        }
+        if (!stone.stone_type_id) {
+          errors.item_stones = `Stone type is required for stone row ${index + 1}.`;
+          return true;
+        }
+        if (!stone.quantity || Number(stone.quantity) < 1) {
+          errors.item_stones = `Quantity must be at least 1 for stone row ${index + 1}.`;
+          return true;
+        }
+        if (this.toNullableNumber(stone.carat_value) !== null && this.toNullableNumber(stone.carat_value) < 0) {
+          errors.item_stones = `Carat value cannot be negative for stone row ${index + 1}.`;
+          return true;
+        }
+        if (this.toNullableNumber(stone.unit_cost_amount) !== null && this.toNullableNumber(stone.unit_cost_amount) < 0) {
+          errors.item_stones = `Unit cost cannot be negative for stone row ${index + 1}.`;
+          return true;
+        }
+        if (stone.certificate_number && String(stone.certificate_number).length > 191) {
+          errors.item_stones = `Certificate number cannot exceed 191 characters for stone row ${index + 1}.`;
+          return true;
+        }
+        return false;
+      });
+
+      if (invalidStone) {
+        return errors;
+      }
+
+      return errors;
     }
   },
 
@@ -2036,7 +2638,205 @@ export default {
       return `${value[0]}.${formated}`;
     },
 
-    
+    toNullableNumber(value) {
+      if (value === "" || value === null || typeof value === "undefined") {
+        return null;
+      }
+      const parsed = Number(value);
+      return Number.isFinite(parsed) ? parsed : null;
+    },
+
+    jewelryFieldMessage(field) {
+      return this.jewelryValidationVisible ? (this.jewelryErrors[field] || "") : "";
+    },
+
+    jewelryFieldState(field) {
+      if (!this.jewelryValidationVisible) {
+        return null;
+      }
+      return this.jewelryErrors[field] ? false : true;
+    },
+
+    createEmptyStone() {
+      this.jewelryStoneRowSeed += 1;
+      return {
+        _rowKey: `stone-${this.jewelryStoneRowSeed}`,
+        id: null,
+        stone_type_id: "",
+        stone_name: "",
+        quantity: 1,
+        carat_value: "",
+        color: "",
+        clarity: "",
+        cut: "",
+        shape: "",
+        certificate_number: "",
+        unit_cost_amount: "",
+        total_cost_amount: "",
+        notes: ""
+      };
+    },
+
+    normalizeStoneRow(stone = {}) {
+      return {
+        _rowKey: stone._rowKey || null,
+        id: stone.id || null,
+        stone_type_id: stone.stone_type_id || "",
+        stone_name: stone.stone_name || "",
+        quantity: stone.quantity != null && stone.quantity !== "" ? Number(stone.quantity) : 1,
+        carat_value: stone.carat_value != null && stone.carat_value !== "" ? Number(stone.carat_value) : "",
+        color: stone.color || "",
+        clarity: stone.clarity || "",
+        cut: stone.cut || "",
+        shape: stone.shape || "",
+        certificate_number: stone.certificate_number || "",
+        unit_cost_amount: stone.unit_cost_amount != null && stone.unit_cost_amount !== "" ? Number(stone.unit_cost_amount) : "",
+        total_cost_amount: stone.total_cost_amount != null && stone.total_cost_amount !== "" ? Number(stone.total_cost_amount) : "",
+        notes: stone.notes || ""
+      };
+    },
+
+    stoneRowHasValue(stone = {}) {
+      const meaningfulFields = [
+        stone.stone_type_id,
+        stone.stone_name,
+        stone.carat_value,
+        stone.color,
+        stone.clarity,
+        stone.cut,
+        stone.shape,
+        stone.certificate_number,
+        stone.unit_cost_amount,
+        stone.notes
+      ];
+      if (meaningfulFields.some(value => value !== "" && value !== null && typeof value !== "undefined")) {
+        return true;
+      }
+      const quantity = this.toNullableNumber(stone.quantity);
+      return quantity !== null && quantity !== 1;
+    },
+
+    calculateStoneTotal(stone = {}) {
+      const quantity = this.toNullableNumber(stone.quantity) || 0;
+      const unitCost = this.toNullableNumber(stone.unit_cost_amount) || 0;
+      return Number((quantity * unitCost).toFixed(2));
+    },
+
+    getPreparedItemStones(includeBlankRows = false) {
+      const stones = Array.isArray(this.product.item_stones) ? this.product.item_stones : [];
+      return stones
+        .map(stone => {
+          const normalized = this.normalizeStoneRow(stone);
+          const total = this.calculateStoneTotal(normalized);
+          return {
+            ...normalized,
+            total_cost_amount: total > 0 ? total : ""
+          };
+        })
+        .filter(stone => includeBlankRows || this.stoneRowHasValue(stone));
+    },
+
+    applyJewelryDefaults() {
+      if (!this.product.jewelry_item_type) {
+        this.$set(this.product, "jewelry_item_type", "serialized");
+      }
+      if (!this.product.jewelry_weight_uom) {
+        this.$set(this.product, "jewelry_weight_uom", this.jewelryDefaults.weight_uom || "g");
+      }
+      if (!this.product.making_charge_type && this.jewelryDefaults.making_charge_type) {
+        this.$set(this.product, "making_charge_type", this.jewelryDefaults.making_charge_type);
+      }
+      if ((this.product.making_charge_value === "" || this.product.making_charge_value === null) && this.jewelryDefaults.making_charge_value !== "" && this.jewelryDefaults.making_charge_value !== null) {
+        this.$set(this.product, "making_charge_value", Number(this.jewelryDefaults.making_charge_value));
+      }
+      if (!this.product.wastage_type && this.jewelryDefaults.wastage_type) {
+        this.$set(this.product, "wastage_type", this.jewelryDefaults.wastage_type);
+      }
+      if ((this.product.wastage_value === "" || this.product.wastage_value === null) && this.jewelryDefaults.wastage_value !== "" && this.jewelryDefaults.wastage_value !== null) {
+        this.$set(this.product, "wastage_value", Number(this.jewelryDefaults.wastage_value));
+      }
+      if (!Array.isArray(this.product.item_stones)) {
+        this.$set(this.product, "item_stones", []);
+      }
+    },
+
+    handleJewelryToggle() {
+      if (this.product.is_jewelry_item) {
+        this.applyJewelryDefaults();
+      }
+    },
+
+    handleMetalTypeChange() {
+      const validKaratIds = this.filteredKaratOptions.map(option => String(option.value));
+      if (!validKaratIds.includes(String(this.product.karat_id || ""))) {
+        this.$set(this.product, "karat_id", "");
+      }
+    },
+
+    addStoneRow() {
+      if (!Array.isArray(this.product.item_stones)) {
+        this.$set(this.product, "item_stones", []);
+      }
+      this.product.item_stones.push(this.createEmptyStone());
+    },
+
+    removeStoneRow(index) {
+      if (!Array.isArray(this.product.item_stones)) {
+        return;
+      }
+      this.product.item_stones.splice(index, 1);
+    },
+
+    hydrateJewelryFields(payload = {}) {
+      this.product.is_jewelry_item = !!payload.is_jewelry_item;
+      this.product.jewelry_item_type = payload.jewelry_item_type || "";
+      this.product.metal_type_id = payload.metal_type_id || "";
+      this.product.karat_id = payload.karat_id || "";
+      this.product.jewelry_gross_weight = payload.jewelry_gross_weight !== null && payload.jewelry_gross_weight !== "" && typeof payload.jewelry_gross_weight !== "undefined"
+        ? Number(payload.jewelry_gross_weight)
+        : "";
+      this.product.jewelry_net_weight = payload.jewelry_net_weight !== null && payload.jewelry_net_weight !== "" && typeof payload.jewelry_net_weight !== "undefined"
+        ? Number(payload.jewelry_net_weight)
+        : "";
+      this.product.jewelry_metal_weight = payload.jewelry_metal_weight !== null && payload.jewelry_metal_weight !== "" && typeof payload.jewelry_metal_weight !== "undefined"
+        ? Number(payload.jewelry_metal_weight)
+        : "";
+      this.product.jewelry_weight_uom = payload.jewelry_weight_uom || this.jewelryDefaults.weight_uom || "g";
+      this.product.hallmark_reference = payload.hallmark_reference || "";
+      this.product.certificate_number = payload.certificate_number || "";
+      this.product.making_charge_type = payload.making_charge_type || "";
+      this.product.making_charge_value = payload.making_charge_value !== null && payload.making_charge_value !== "" && typeof payload.making_charge_value !== "undefined"
+        ? Number(payload.making_charge_value)
+        : "";
+      this.product.wastage_type = payload.wastage_type || "";
+      this.product.wastage_value = payload.wastage_value !== null && payload.wastage_value !== "" && typeof payload.wastage_value !== "undefined"
+        ? Number(payload.wastage_value)
+        : "";
+      this.product.item_stones = Array.isArray(payload.item_stones)
+        ? payload.item_stones.map(stone => {
+            const normalized = this.normalizeStoneRow(stone);
+            if (!normalized._rowKey) {
+              this.jewelryStoneRowSeed += 1;
+              normalized._rowKey = `stone-${this.jewelryStoneRowSeed}`;
+            }
+            return normalized;
+          })
+        : [];
+    },
+
+    validateJewelryForm() {
+      if (!this.showJewelrySections) {
+        return true;
+      }
+      const errors = this.jewelryErrors;
+      const firstKey = Object.keys(errors)[0];
+      if (!firstKey) {
+        return true;
+      }
+      this.makeToast("danger", errors[firstKey], this.$t("Failed"));
+      return false;
+    },
+
       //---------------------- Event Selected_product_type------------------------------\\
       Selected_Type_Product(value) {
 
@@ -2579,6 +3379,7 @@ export default {
     //------------- Submit Validation Create Product
     Submit_Product() {
       this.syncLegacyCategoryFields();
+      this.jewelryValidationVisible = true;
       this.$refs.Create_Product.validate().then(success => {
         if (!success) {
           this.makeToast(
@@ -2587,6 +3388,10 @@ export default {
             this.$t("Failed")
           );
         } else {
+
+            if (!this.validateJewelryForm()) {
+              return;
+            }
 
             if (this.product.type == 'is_variant' && this.variants.length <= 0) {
               this.makeToast("danger", "The variants array is required.", this.$t("Failed"));
@@ -2740,6 +3545,14 @@ export default {
           this.brands = response.data.brands;
           this.units = response.data.units;
           this.warehouses = response.data.warehouses;
+          this.metalTypes = response.data.metal_types || [];
+          this.karats = response.data.karats || [];
+          this.stoneTypes = response.data.stone_types || [];
+          this.jewelryModeEnabled = response.data.jewelry_mode === true;
+          this.jewelryDefaults = {
+            ...this.jewelryDefaults,
+            ...(response.data.jewelry_defaults || {})
+          };
           // System Settings toggle: show/hide the Barcode (GTIN/UPC/EAN/ISBN) field
           this.show_product_gtin = response.data.show_product_gtin !== false;
           this.show_serial_tracking = response.data.show_serial_tracking === true;
@@ -2820,16 +3633,18 @@ export default {
       }
 
            
-      const {
-        assigned_category_ids,
-        assigned_subcategory_ids,
-        ...prodRest
-      } = self.product;
+      const prodRest = { ...self.product };
+      const assigned_category_ids = prodRest.assigned_category_ids || [];
+      const assigned_subcategory_ids = prodRest.assigned_subcategory_ids || [];
+      delete prodRest.assigned_category_ids;
+      delete prodRest.assigned_subcategory_ids;
+      delete prodRest.item_stones;
       Object.entries(prodRest).forEach(([key, value]) => {
         self.data.append(key, value);
       });
       self.data.append("multi_category_ids", JSON.stringify(assigned_category_ids || []));
       self.data.append("multi_subcategory_ids", JSON.stringify(assigned_subcategory_ids || []));
+      self.data.append("item_stones", JSON.stringify(self.getPreparedItemStones()));
 
       // append array variants
       if (self.variants.length) {
@@ -3025,6 +3840,9 @@ export default {
           this.product.manufacturer = p.manufacturer || "";
           this.product.prescription_required = !!p.prescription_required;
           this.product.drug_schedule = p.drug_schedule || "";
+
+          // Jewelry
+          this.hydrateJewelryFields(p);
 
           // If base unit exists, load sub-units and then set sale/purchase units
           if (this.product.unit_id) {
