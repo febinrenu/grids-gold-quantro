@@ -38,10 +38,15 @@ class JewelryPricingController extends BaseController
             'overrides'    => 'nullable|array',
         ]);
 
+        $overrides = $request->input('overrides', []);
+        if (! empty($overrides)) {
+            $this->authorizeForUser($request->user('api'), 'override', [\App\Policies\JewelryPricingPolicy::class]);
+        }
+
         $breakdown = $this->pricingService->preview(
-            (int)$request->input('product_id'),
-            $request->input('warehouse_id') ? (int)$request->input('warehouse_id') : null,
-            $request->input('overrides', [])
+            (int) $request->input('product_id'),
+            $request->filled('warehouse_id') ? (int) $request->input('warehouse_id') : null,
+            $overrides
         );
 
         return $this->sendResponse($breakdown, 'Pricing preview generated successfully');
