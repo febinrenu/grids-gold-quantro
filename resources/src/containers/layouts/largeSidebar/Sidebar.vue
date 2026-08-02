@@ -533,8 +533,6 @@
                         || currentUserPermissions.includes('backup')
                         || currentUserPermissions.includes('payment_methods')
                         || currentUserPermissions.includes('currency')
-                        || currentUserPermissions.includes('gold_rates_view')
-                        || currentUserPermissions.includes('gold_rates_manage')
                         || currentUserPermissions.includes('login_device_management')
                         || currentUserPermissions.includes('system_health_view')
                         || currentUserPermissions.includes('webhooks_view'))"
@@ -1976,16 +1974,6 @@
             <router-link tag="a" class to="/app/settings/Currencies">
               <lucide-icon class="nav-icon" name="dollar-sign" />
               <span class="item-name">{{$t('Currencies')}}</span>
-            </router-link>
-          </li>
-
-          <li
-            class="nav-item"
-            v-if="currentUserPermissions && (currentUserPermissions.includes('gold_rates_view') || currentUserPermissions.includes('gold_rates_manage'))"
-          >
-            <router-link tag="a" class to="/app/settings/gold_rates">
-              <lucide-icon class="nav-icon" name="dollar-sign" />
-              <span class="item-name">{{$t('Gold_Rates') || 'Gold Rates'}}</span>
             </router-link>
           </li>
          

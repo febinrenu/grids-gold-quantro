@@ -18,7 +18,6 @@ class PosSetting extends Model
         'show_paid', 'show_due', 'show_payments', 'show_zatca_qr',
         'cash_drawer_auto_open', 'cash_drawer_printer_name',
         'direct_network_printing', 'network_printer_ip', 'network_printer_port',
-        'show_gold_rate_on_pos', 'allow_jewelry_price_override', 'jewelry_override_approval_threshold',
     ];
 
     protected $casts = [
@@ -59,8 +58,5 @@ class PosSetting extends Model
         'cash_drawer_auto_open' => 'boolean',
         'direct_network_printing' => 'boolean',
         'network_printer_port' => 'integer',
-        'show_gold_rate_on_pos' => 'boolean',
-        'allow_jewelry_price_override' => 'boolean',
-        'jewelry_override_approval_threshold' => 'decimal:2',
     ];
 }

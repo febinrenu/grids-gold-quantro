@@ -137,52 +137,6 @@
                     </small>
                   </b-col>
 
-                  <b-col md="12" class="mt-4 mb-2">
-                    <hr class="my-4">
-                    <h6 class="mb-3">Jewelry POS Settings</h6>
-                    <b-alert show variant="light" class="small mb-0">
-                      These settings apply only when jewelry mode is enabled and a jewelry item is sold through POS.
-                    </b-alert>
-                  </b-col>
-
-                  <b-col md="4" class="mt-3 mb-3">
-                    <label class="switch switch-primary mr-3">
-                      Show Gold Rate on POS
-                      <input type="checkbox" v-model="pos_settings.show_gold_rate_on_pos">
-                      <span class="slider"></span>
-                    </label>
-                    <small class="text-muted d-block mt-2">
-                      Show the live gold-rate line inside jewelry pricing previews on the POS screen.
-                    </small>
-                  </b-col>
-
-                  <b-col md="4" class="mt-3 mb-3">
-                    <label class="switch switch-primary mr-3">
-                      Allow Jewelry Price Override
-                      <input type="checkbox" v-model="pos_settings.allow_jewelry_price_override">
-                      <span class="slider"></span>
-                    </label>
-                    <small class="text-muted d-block mt-2">
-                      Permit manual price overrides for jewelry items when creating a sale.
-                    </small>
-                  </b-col>
-
-                  <b-col md="4" class="mt-3 mb-3">
-                    <b-form-group label="Override Approval Threshold">
-                      <b-form-input
-                        v-model="pos_settings.jewelry_override_approval_threshold"
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        placeholder="0.00"
-                        :disabled="!pos_settings.allow_jewelry_price_override"
-                      ></b-form-input>
-                      <small class="text-muted d-block mt-2">
-                        Overrides above this amount require an approver.
-                      </small>
-                    </b-form-group>
-                  </b-col>
-
                   <!-- Enable Keyboard Shortcuts in POS (per-device, stored in localStorage) -->
                   <b-col md="4" class="mt-3 mb-3">
                     <label class="switch switch-primary mr-3">
@@ -365,9 +319,6 @@ export default {
         show_categories: false,
         show_brands: false,
         allow_overselling: false,
-        show_gold_rate_on_pos: false,
-        allow_jewelry_price_override: false,
-        jewelry_override_approval_threshold: "",
         cash_drawer_auto_open: false,
         cash_drawer_printer_name: "",
       },
@@ -482,11 +433,6 @@ export default {
           show_categories: this.pos_settings.show_categories,
           show_brands: this.pos_settings.show_brands,
           allow_overselling: this.pos_settings.allow_overselling ? 1 : 0,
-          show_gold_rate_on_pos: this.pos_settings.show_gold_rate_on_pos ? 1 : 0,
-          allow_jewelry_price_override: this.pos_settings.allow_jewelry_price_override ? 1 : 0,
-          jewelry_override_approval_threshold: this.pos_settings.jewelry_override_approval_threshold !== '' && this.pos_settings.jewelry_override_approval_threshold != null
-            ? Number(this.pos_settings.jewelry_override_approval_threshold)
-            : null,
           cash_drawer_auto_open: this.pos_settings.cash_drawer_auto_open ? 1 : 0,
           cash_drawer_printer_name: this.pos_settings.cash_drawer_printer_name || null,
           invoice_format: this.invoice_format,
@@ -533,10 +479,7 @@ export default {
       axios
         .get("get_pos_Settings_api")
         .then(response => {
-          this.pos_settings = {
-            ...this.pos_settings,
-            ...(response.data.pos_settings || {})
-          };
+          this.pos_settings = response.data.pos_settings;
           this.isLoading = false;
         })
         .catch(error => {

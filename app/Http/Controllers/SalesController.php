@@ -245,9 +245,6 @@ class SalesController extends BaseController
             $order->sales_agent_id = $request->sales_agent_id ?? null;
             $order->save();
 
-            $isJewelryMode = (bool)(\App\Models\Setting::whereNull('deleted_at')->first()->jewelry_mode ?? false);
-            $posSetting = \App\Models\PosSetting::whereNull('deleted_at')->first();
-
             $data = $request['details'];
             $total_points_earned = 0;
             $inputDetailsForBatches = [];
@@ -271,64 +268,6 @@ class SalesController extends BaseController
                 $baseDate = $request->date ? \Carbon\Carbon::parse($request->date) : now();
                 $warrantyGuarantee = SaleDetail::computeWarrantyGuaranteeDates($product, $baseDate);
 
-                $jewelryFields = [
-                    'gold_rate_id' => null,
-                    'gold_rate_value' => null,
-                    'karat_id' => null,
-                    'metal_weight_used' => null,
-                    'making_charge_amount' => null,
-                    'wastage_amount' => null,
-                    'stone_value_amount' => null,
-                    'price_breakdown' => null,
-                    'override_approved_by' => null,
-                ];
-
-                if ($isJewelryMode && (bool)($product->is_jewelry_item ?? false)) {
-                    $pricingService = app(\App\Services\Jewelry\JewelryPricingService::class);
-                    $priceResult = $pricingService->priceForSale($product->id, (int)$order->warehouse_id);
-
-                    if ($product->tax_method == '1') {
-                        $expectedPrice = (float)($priceResult['base_value'] ?? 0.0) + (float)($priceResult['markup'] ?? 0.0);
-                    } else {
-                        $expectedPrice = (float)($priceResult['base_value'] ?? 0.0) + (float)($priceResult['markup'] ?? 0.0) + (float)($priceResult['tax'] ?? 0.0);
-                    }
-
-                    $actualPrice = (float)$value['Unit_price'];
-                    $overrideAmount = abs($expectedPrice - $actualPrice);
-
-                    if ($overrideAmount > 0.001) {
-                        if (!$posSetting || !$posSetting->allow_jewelry_price_override) {
-                            throw new \Exception("Price override is disabled for jewelry items.");
-                        }
-
-                        $threshold = (float)($posSetting->jewelry_override_approval_threshold ?? 0.0);
-                        if ($overrideAmount > $threshold) {
-                            $approverId = $value['override_approved_by'] ?? null;
-                            if (!$approverId) {
-                                throw new \Exception("Price override exceeds threshold (" . number_format($threshold, 2) . ") and requires manager approval.");
-                            }
-                            $approver = \App\Models\User::find($approverId);
-                            if (!$approver) {
-                                throw new \Exception("Invalid manager approval user ID.");
-                            }
-                            $permission = \App\Models\Permission::where('name', 'jewelry_pricing_override')->first();
-                            if (!$permission || !$approver->hasRole($permission->roles)) {
-                                throw new \Exception("The approving manager is not authorized to approve price overrides.");
-                            }
-                            $jewelryFields['override_approved_by'] = $approverId;
-                        }
-                    }
-
-                    $jewelryFields['gold_rate_id'] = $priceResult['gold_rate_id'] ?? null;
-                    $jewelryFields['gold_rate_value'] = $priceResult['gold_rate'] ?? null;
-                    $jewelryFields['karat_id'] = $product->karat_id;
-                    $jewelryFields['metal_weight_used'] = $priceResult['metal_weight'] ?? null;
-                    $jewelryFields['making_charge_amount'] = $priceResult['making_charge'] ?? null;
-                    $jewelryFields['wastage_amount'] = $priceResult['wastage'] ?? null;
-                    $jewelryFields['stone_value_amount'] = $priceResult['stone_value'] ?? null;
-                    $jewelryFields['price_breakdown'] = $priceResult;
-                }
-
                 $orderDetails[] = array_merge([
                     'date' => $request->date,
                     'sale_id' => $order->id,
@@ -347,7 +286,7 @@ class SalesController extends BaseController
                     'product_pack_id' => isset($value['product_pack_id']) && $value['product_pack_id'] ? (int) $value['product_pack_id'] : null,
                     'pack_multiplier' => $packMultiplier,
                     'pack_name' => $value['pack_name'] ?? null,
-                ], $warrantyGuarantee, $jewelryFields);
+                ], $warrantyGuarantee);
 
                 if ($order->statut == 'completed') {
                     if ($value['product_variant_id'] !== null) {
@@ -733,9 +672,6 @@ class SalesController extends BaseController
                     }
                 }
 
-                $isJewelryMode = (bool)(\App\Models\Setting::whereNull('deleted_at')->first()->jewelry_mode ?? false);
-                $posSetting = \App\Models\PosSetting::whereNull('deleted_at')->first();
-
                 // Update Data with New request
                 $total_points_earned = 0;
                 $newPersistedDetails = [];
@@ -811,83 +747,6 @@ class SalesController extends BaseController
                         $wg = SaleDetail::computeWarrantyGuaranteeDates($product, $baseDate);
                         $orderDetails['warranty_date'] = $wg['warranty_date'];
                         $orderDetails['guarantee_date'] = $wg['guarantee_date'];
-
-                        $jewelryFields = [
-                            'gold_rate_id' => null,
-                            'gold_rate_value' => null,
-                            'karat_id' => null,
-                            'metal_weight_used' => null,
-                            'making_charge_amount' => null,
-                            'wastage_amount' => null,
-                            'stone_value_amount' => null,
-                            'price_breakdown' => null,
-                            'override_approved_by' => null,
-                        ];
-
-                        if ($isJewelryMode && (bool)($product->is_jewelry_item ?? false)) {
-                            $existingDetail = null;
-                            if (isset($prod_detail['id']) && $prod_detail['id']) {
-                                $existingDetail = SaleDetail::where('sale_id', $id)->where('id', $prod_detail['id'])->first();
-                            }
-
-                            if ($current_Sale->statut === 'completed' && $existingDetail) {
-                                $jewelryFields['gold_rate_id'] = $existingDetail->gold_rate_id;
-                                $jewelryFields['gold_rate_value'] = $existingDetail->gold_rate_value;
-                                $jewelryFields['karat_id'] = $existingDetail->karat_id;
-                                $jewelryFields['metal_weight_used'] = $existingDetail->metal_weight_used;
-                                $jewelryFields['making_charge_amount'] = $existingDetail->making_charge_amount;
-                                $jewelryFields['wastage_amount'] = $existingDetail->wastage_amount;
-                                $jewelryFields['stone_value_amount'] = $existingDetail->stone_value_amount;
-                                $jewelryFields['price_breakdown'] = $existingDetail->price_breakdown;
-                                $jewelryFields['override_approved_by'] = $existingDetail->override_approved_by;
-                            } else {
-                                $pricingService = app(\App\Services\Jewelry\JewelryPricingService::class);
-                                $priceResult = $pricingService->priceForSale($product->id, (int)$request->warehouse_id);
-
-                                if ($product->tax_method == '1') {
-                                    $expectedPrice = (float)($priceResult['base_value'] ?? 0.0) + (float)($priceResult['markup'] ?? 0.0);
-                                } else {
-                                    $expectedPrice = (float)($priceResult['base_value'] ?? 0.0) + (float)($priceResult['markup'] ?? 0.0) + (float)($priceResult['tax'] ?? 0.0);
-                                }
-
-                                $actualPrice = (float)$prod_detail['Unit_price'];
-                                $overrideAmount = abs($expectedPrice - $actualPrice);
-
-                                if ($overrideAmount > 0.001) {
-                                    if (!$posSetting || !$posSetting->allow_jewelry_price_override) {
-                                        throw new \Exception("Price override is disabled for jewelry items.");
-                                    }
-
-                                    $threshold = (float)($posSetting->jewelry_override_approval_threshold ?? 0.0);
-                                    if ($overrideAmount > $threshold) {
-                                        $approverId = $prod_detail['override_approved_by'] ?? null;
-                                        if (!$approverId) {
-                                            throw new \Exception("Price override exceeds threshold (" . number_format($threshold, 2) . ") and requires manager approval.");
-                                        }
-                                        $approver = \App\Models\User::find($approverId);
-                                        if (!$approver) {
-                                            throw new \Exception("Invalid manager approval user ID.");
-                                        }
-                                        $permission = \App\Models\Permission::where('name', 'jewelry_pricing_override')->first();
-                                        if (!$permission || !$approver->hasRole($permission->roles)) {
-                                            throw new \Exception("The approving manager is not authorized to approve price overrides.");
-                                        }
-                                        $jewelryFields['override_approved_by'] = $approverId;
-                                    }
-                                }
-
-                                $jewelryFields['gold_rate_id'] = $priceResult['gold_rate_id'] ?? null;
-                                $jewelryFields['gold_rate_value'] = $priceResult['gold_rate'] ?? null;
-                                $jewelryFields['karat_id'] = $product->karat_id;
-                                $jewelryFields['metal_weight_used'] = $priceResult['metal_weight'] ?? null;
-                                $jewelryFields['making_charge_amount'] = $priceResult['making_charge'] ?? null;
-                                $jewelryFields['wastage_amount'] = $priceResult['wastage'] ?? null;
-                                $jewelryFields['stone_value_amount'] = $priceResult['stone_value'] ?? null;
-                                $jewelryFields['price_breakdown'] = $priceResult;
-                            }
-                        }
-
-                        $orderDetails = array_merge($orderDetails, $jewelryFields);
 
                         if (! in_array($prod_detail['id'], $old_products_id)) {
                             $orderDetails['date'] = $request['date'];

@@ -1289,33 +1289,6 @@ class PermissionRoleSeeder extends Seeder
                     'role_id' => 1,
                 ],
 
-                // Jewelry (Grids Gold) module
-                [
-                    'id' => 242,
-                    'permission_id' => 242,
-                    'role_id' => 1,
-                ],
-                [
-                    'id' => 243,
-                    'permission_id' => 243,
-                    'role_id' => 1,
-                ],
-                [
-                    'id' => 244,
-                    'permission_id' => 244,
-                    'role_id' => 1,
-                ],
-                [
-                    'id' => 245,
-                    'permission_id' => 245,
-                    'role_id' => 1,
-                ],
-                [
-                    'id' => 246,
-                    'permission_id' => 246,
-                    'role_id' => 1,
-                ],
-
             ]
         );
     }
