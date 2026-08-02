@@ -63,7 +63,8 @@ class GoldRateService
         float $ratePerUnit,
         int $currencyId,
         ?int $warehouseId,
-        int $userId
+        int $userId,
+        string $weightUom = 'g'
     ): GoldRate {
         return GoldRate::create([
             'metal_type_id'        => $metalTypeId,
@@ -75,7 +76,7 @@ class GoldRateService
             'effective_at'         => Carbon::now(),
             'status'               => 'active',
             'rate_source'          => 'manual',
-            'weight_uom'           => 'g',
+            'weight_uom'           => $weightUom ?: 'g',
         ]);
     }
 
@@ -83,12 +84,24 @@ class GoldRateService
      * Retrieve history of gold rates ordered newest first, with optional date range filter.
      */
     public function history(
-        int $metalTypeId,
-        int $karatId,
+        ?int $metalTypeId = null,
+        ?int $karatId = null,
+        ?int $warehouseId = null,
         ?array $dateRange = null
     ): Collection {
-        $query = GoldRate::where('metal_type_id', $metalTypeId)
-            ->where('karat_id', $karatId);
+        $query = GoldRate::with(['metalType', 'karat', 'currency', 'warehouse']);
+
+        if ($metalTypeId !== null) {
+            $query->where('metal_type_id', $metalTypeId);
+        }
+
+        if ($karatId !== null) {
+            $query->where('karat_id', $karatId);
+        }
+
+        if ($warehouseId !== null) {
+            $query->where('warehouse_id', $warehouseId);
+        }
 
         if ($dateRange) {
             $start = $dateRange['start'] ?? $dateRange[0] ?? null;

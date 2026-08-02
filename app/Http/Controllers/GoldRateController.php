@@ -2,9 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Currency;
 use App\Models\GoldRate;
+use App\Models\Karat;
+use App\Models\MetalType;
+use App\Models\UserWarehouse;
+use App\Models\Warehouse;
 use App\Services\Jewelry\GoldRateService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 
 class GoldRateController extends BaseController
 {
@@ -36,8 +42,9 @@ class GoldRateController extends BaseController
         $this->authorizeForUser($request->user('api'), 'view', GoldRate::class);
 
         $request->validate([
-            'metal_type_id' => 'required|integer|exists:metal_types,id',
-            'karat_id'      => 'required|integer|exists:karats,id',
+            'metal_type_id' => 'nullable|integer|exists:metal_types,id',
+            'karat_id'      => 'nullable|integer|exists:karats,id',
+            'warehouse_id'  => 'nullable|integer|exists:warehouses,id',
             'start_date'    => 'nullable|date',
             'end_date'      => 'nullable|date',
         ]);
@@ -51,8 +58,9 @@ class GoldRateController extends BaseController
         }
 
         $history = $this->goldRateService->history(
-            (int)$request->input('metal_type_id'),
-            (int)$request->input('karat_id'),
+            $request->filled('metal_type_id') ? (int) $request->input('metal_type_id') : null,
+            $request->filled('karat_id') ? (int) $request->input('karat_id') : null,
+            $request->filled('warehouse_id') ? (int) $request->input('warehouse_id') : null,
             $dateRange
         );
 
@@ -75,6 +83,7 @@ class GoldRateController extends BaseController
             'rate_per_weight_unit' => 'required|numeric|min:0',
             'currency_id'          => 'required|integer|exists:currencies,id',
             'warehouse_id'         => 'nullable|integer|exists:warehouses,id',
+            'weight_uom'           => 'nullable|string|max:16',
         ]);
 
         $rate = $this->goldRateService->setRate(
@@ -83,7 +92,8 @@ class GoldRateController extends BaseController
             (float)$request->input('rate_per_weight_unit'),
             (int)$request->input('currency_id'),
             $request->input('warehouse_id') ? (int)$request->input('warehouse_id') : null,
-            (int)$request->user('api')->id
+            (int)$request->user('api')->id,
+            (string) ($request->input('weight_uom') ?: 'g')
         );
 
         return $this->sendResponse($rate, 'Gold rate stored successfully');
@@ -112,5 +122,50 @@ class GoldRateController extends BaseController
         );
 
         return $this->sendResponse($rate, 'Current gold rate retrieved successfully');
+    }
+
+    /**
+     * Return option lists required by the gold-rate management UI.
+     */
+    public function options(Request $request)
+    {
+        $this->authorizeForUser($request->user('api'), 'view', GoldRate::class);
+
+        $user = auth()->user();
+        if ($user && $user->is_all_warehouses) {
+            $warehouses = Warehouse::whereNull('deleted_at')->orderBy('name')->get(['id', 'name']);
+        } else {
+            $warehouseIds = UserWarehouse::where('user_id', optional($user)->id)->pluck('warehouse_id')->toArray();
+            $warehouses = Warehouse::whereNull('deleted_at')->whereIn('id', $warehouseIds)->orderBy('name')->get(['id', 'name']);
+        }
+
+        $metalTypes = Schema::hasTable('metal_types')
+            ? MetalType::query()
+                ->when(Schema::hasColumn('metal_types', 'is_active'), function ($query) {
+                    $query->where('is_active', true);
+                })
+                ->orderBy('name')
+                ->get(['id', 'name', 'code'])
+            : collect();
+
+        $karats = Schema::hasTable('karats')
+            ? Karat::query()
+                ->when(Schema::hasColumn('karats', 'is_active'), function ($query) {
+                    $query->where('is_active', true);
+                })
+                ->orderBy('metal_type_id')
+                ->orderByDesc('purity_percentage')
+                ->orderBy('name')
+                ->get(['id', 'metal_type_id', 'name', 'purity_percentage'])
+            : collect();
+
+        $currencies = Currency::whereNull('deleted_at')->orderBy('name')->get(['id', 'name', 'code', 'symbol']);
+
+        return $this->sendResponse([
+            'metal_types' => $metalTypes,
+            'karats' => $karats,
+            'warehouses' => $warehouses,
+            'currencies' => $currencies,
+        ], 'Gold rate options retrieved successfully');
     }
 }
