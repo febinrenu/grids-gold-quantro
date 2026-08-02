@@ -80,7 +80,18 @@ class ProductsController extends BaseController
         $columns = [0 => 'name', 1 => 'category_id', 2 => 'brand_id', 3 => 'code', 4 => 'sub_category_id'];
         $param = [0 => 'like', 1 => '=', 2 => '=', 3 => 'like', 4 => '='];
 
-        $productsQuery = Product::with('unit', 'category', 'subCategory', 'brand', 'categories')
+        $withRelations = ['unit', 'category', 'subCategory', 'brand', 'categories'];
+        if (Schema::hasTable('metal_types')) {
+            $withRelations[] = 'metalType';
+        }
+        if (Schema::hasTable('karats')) {
+            $withRelations[] = 'karat';
+        }
+        if (Schema::hasTable('item_stones') && Schema::hasTable('stone_types')) {
+            $withRelations[] = 'stones.stoneType';
+        }
+
+        $productsQuery = Product::with($withRelations)
             ->whereNull('deleted_at');
          
 
@@ -91,7 +102,7 @@ class ProductsController extends BaseController
                 return $query->when($request->filled('search'), function ($query) use ($request) {
                     $s = $request->search;
 
-                    return $query->where('products.name', 'LIKE', "%{$s}%")
+                    $query->where('products.name', 'LIKE', "%{$s}%")
                         ->orWhere('products.code', 'LIKE', "%{$s}%")
                         ->orWhere(function ($q) use ($s) {
                             $q->whereHas('category', function ($cq) use ($s) {
@@ -107,9 +118,79 @@ class ProductsController extends BaseController
                             $q->whereHas('brand', function ($bq) use ($s) {
                                 $bq->where('name', 'LIKE', "%{$s}%");
                             });
+                        })
+                        ->orWhere('products.certificate_number', 'LIKE', "%{$s}%");
+
+                    if (Schema::hasTable('metal_types')) {
+                        $query->orWhere(function ($q) use ($s) {
+                            $q->whereHas('metalType', function ($mq) use ($s) {
+                                $mq->where('name', 'LIKE', "%{$s}%");
+                            });
                         });
+                    }
+
+                    if (Schema::hasTable('karats')) {
+                        $query->orWhere(function ($q) use ($s) {
+                            $q->whereHas('karat', function ($kq) use ($s) {
+                                $kq->where('name', 'LIKE', "%{$s}%");
+                            });
+                        });
+                    }
+
+                    return $query;
                 });
             });
+
+        if ($request->filled('metal_type_id')) {
+            $filtered->where('metal_type_id', (int) $request->input('metal_type_id'));
+        }
+
+        if ($request->filled('karat_id')) {
+            $filtered->where('karat_id', (int) $request->input('karat_id'));
+        }
+
+        if ($request->filled('stone_type_id') && Schema::hasTable('item_stones')) {
+            $filtered->whereHas('stones', function ($query) use ($request) {
+                $query->where('stone_type_id', (int) $request->input('stone_type_id'));
+            });
+        }
+
+        if ($request->filled('certificate_number')) {
+            $certificateLike = '%'.$request->input('certificate_number').'%';
+            $filtered->where(function ($query) use ($certificateLike) {
+                $query->where('certificate_number', 'LIKE', $certificateLike);
+
+                if (Schema::hasTable('item_stones')) {
+                    $query->orWhereHas('stones', function ($stoneQuery) use ($certificateLike) {
+                        $stoneQuery->where('certificate_number', 'LIKE', $certificateLike);
+                    });
+                }
+            });
+        }
+
+        if ($request->filled('min_price')) {
+            $filtered->where('price', '>=', (float) $request->input('min_price'));
+        }
+
+        if ($request->filled('max_price')) {
+            $filtered->where('price', '<=', (float) $request->input('max_price'));
+        }
+
+        if ($request->filled('min_gross_weight')) {
+            $filtered->where('jewelry_gross_weight', '>=', (float) $request->input('min_gross_weight'));
+        }
+
+        if ($request->filled('max_gross_weight')) {
+            $filtered->where('jewelry_gross_weight', '<=', (float) $request->input('max_gross_weight'));
+        }
+
+        if ($request->filled('min_metal_weight')) {
+            $filtered->where('jewelry_metal_weight', '>=', (float) $request->input('min_metal_weight'));
+        }
+
+        if ($request->filled('max_metal_weight')) {
+            $filtered->where('jewelry_metal_weight', '<=', (float) $request->input('max_metal_weight'));
+        }
 
         // Optional status filter: status=1 (active), status=0 (inactive)
         if ($request->filled('status') && $request->status !== '') {
@@ -158,6 +239,18 @@ class ProductsController extends BaseController
             $isActive = (int) ($product->is_active ?? 1) === 1;
             $item['status'] = $isActive ? __('Active') : __('Inactif');
             $item['is_active'] = $isActive;
+            $item['is_jewelry_item'] = (bool) ($product->is_jewelry_item ?? false);
+            $item['metal_type'] = optional($product->metalType)->name ?? '';
+            $item['karat'] = optional($product->karat)->name ?? '';
+            $item['certificate_number'] = $product->certificate_number ?? '';
+
+            $weightUom = $product->jewelry_weight_uom ?: 'g';
+            $item['gross_weight_display'] = $product->jewelry_gross_weight !== null
+                ? number_format((float) $product->jewelry_gross_weight, 3, '.', '').' '.$weightUom
+                : '';
+            $item['metal_weight_display'] = $product->jewelry_metal_weight !== null
+                ? number_format((float) $product->jewelry_metal_weight, 3, '.', '').' '.$weightUom
+                : '';
 
             $firstimage = explode(',', (string) $product->image);
             $item['image'] = $firstimage[0] ?? '';
@@ -265,11 +358,43 @@ class ProductsController extends BaseController
         $subcategories = SubCategory::orderBy('name')->get(['id', 'name', 'category_id']);
         $brands = Brand::whereNull('deleted_at')->get(['id', 'name']);
 
+        $metalTypes = Schema::hasTable('metal_types')
+            ? MetalType::query()
+                ->when(Schema::hasColumn('metal_types', 'is_active'), function ($query) {
+                    $query->where('is_active', true);
+                })
+                ->orderBy('name')
+                ->get(['id', 'name'])
+            : collect();
+
+        $karats = Schema::hasTable('karats')
+            ? Karat::query()
+                ->when(Schema::hasColumn('karats', 'is_active'), function ($query) {
+                    $query->where('is_active', true);
+                })
+                ->orderBy('metal_type_id')
+                ->orderByDesc('purity_percentage')
+                ->orderBy('name')
+                ->get(['id', 'metal_type_id', 'name'])
+            : collect();
+
+        $stoneTypes = Schema::hasTable('stone_types')
+            ? StoneType::query()
+                ->when(Schema::hasColumn('stone_types', 'is_active'), function ($query) {
+                    $query->where('is_active', true);
+                })
+                ->orderBy('name')
+                ->get(['id', 'name'])
+            : collect();
+
         return response()->json([
             'warehouses' => $warehouses,
             'categories' => $categories,
             'subcategories' => $subcategories,
             'brands' => $brands,
+            'metal_types' => $metalTypes,
+            'karats' => $karats,
+            'stone_types' => $stoneTypes,
             'products' => $data,
             'totalRows' => $totalRows,
         ]);
@@ -1647,7 +1772,18 @@ class ProductsController extends BaseController
         $this->authorizeForUser($request->user('api'), 'view', Product::class);
         $helpers = new helpers;
 
-        $Product = Product::with(['category', 'categories', 'subCategory', 'subcategories', 'images'])
+        $detailRelations = ['category', 'categories', 'subCategory', 'subcategories', 'images'];
+        if (Schema::hasTable('metal_types')) {
+            $detailRelations[] = 'metalType';
+        }
+        if (Schema::hasTable('karats')) {
+            $detailRelations[] = 'karat';
+        }
+        if (Schema::hasTable('item_stones') && Schema::hasTable('stone_types')) {
+            $detailRelations[] = 'stones.stoneType';
+        }
+
+        $Product = Product::with($detailRelations)
             ->where('deleted_at', '=', null)
             ->findOrFail($id);
         // get warehouses assigned to user
@@ -1694,6 +1830,53 @@ class ProductsController extends BaseController
 
         // Pharmacy: surface batch tracking flag so the detail UI can render the Batches section.
         $item['is_batch_tracked'] = (bool) ($Product->is_batch_tracked ?? false);
+
+        // Jewelry payload for item detail view
+        $weightUom = $Product->jewelry_weight_uom ?: 'g';
+        $item['is_jewelry_item'] = (bool) ($Product->is_jewelry_item ?? false);
+        $item['jewelry_item_type'] = $Product->jewelry_item_type ?? '';
+        $item['metal_type_id'] = $Product->metal_type_id ?? null;
+        $item['karat_id'] = $Product->karat_id ?? null;
+        $item['metal_type'] = optional($Product->metalType)->name ?? '';
+        $item['karat'] = optional($Product->karat)->name ?? '';
+        $item['jewelry_gross_weight'] = $Product->jewelry_gross_weight !== null ? (float) $Product->jewelry_gross_weight : null;
+        $item['jewelry_net_weight'] = $Product->jewelry_net_weight !== null ? (float) $Product->jewelry_net_weight : null;
+        $item['jewelry_metal_weight'] = $Product->jewelry_metal_weight !== null ? (float) $Product->jewelry_metal_weight : null;
+        $item['jewelry_weight_uom'] = $weightUom;
+        $item['jewelry_gross_weight_display'] = $Product->jewelry_gross_weight !== null ? number_format((float) $Product->jewelry_gross_weight, 3, '.', '').' '.$weightUom : '';
+        $item['jewelry_net_weight_display'] = $Product->jewelry_net_weight !== null ? number_format((float) $Product->jewelry_net_weight, 3, '.', '').' '.$weightUom : '';
+        $item['jewelry_metal_weight_display'] = $Product->jewelry_metal_weight !== null ? number_format((float) $Product->jewelry_metal_weight, 3, '.', '').' '.$weightUom : '';
+        $item['hallmark_reference'] = $Product->hallmark_reference ?? '';
+        $item['certificate_number'] = $Product->certificate_number ?? '';
+        $item['making_charge_type'] = $Product->making_charge_type ?? '';
+        $item['making_charge_value'] = $Product->making_charge_value !== null ? (float) $Product->making_charge_value : null;
+        $item['wastage_type'] = $Product->wastage_type ?? '';
+        $item['wastage_value'] = $Product->wastage_value !== null ? (float) $Product->wastage_value : null;
+        $item['item_stones'] = Schema::hasTable('item_stones')
+            ? $Product->stones->map(function ($stone) {
+                $stoneTypeName = '';
+                if (Schema::hasTable('stone_types')) {
+                    $stoneTypeName = optional($stone->stoneType)->name ?? '';
+                }
+
+                return [
+                    'id' => $stone->id,
+                    'stone_type_id' => $stone->stone_type_id,
+                    'stone_type_name' => $stoneTypeName,
+                    'stone_name' => $stone->stone_name ?? '',
+                    'quantity' => (int) ($stone->quantity ?? 1),
+                    'carat_value' => $stone->carat_value !== null ? (float) $stone->carat_value : null,
+                    'color' => $stone->color ?? '',
+                    'clarity' => $stone->clarity ?? '',
+                    'cut' => $stone->cut ?? '',
+                    'shape' => $stone->shape ?? '',
+                    'certificate_number' => $stone->certificate_number ?? '',
+                    'unit_cost_amount' => $stone->unit_cost_amount !== null ? (float) $stone->unit_cost_amount : null,
+                    'total_cost_amount' => $stone->total_cost_amount !== null ? (float) $stone->total_cost_amount : null,
+                    'notes' => $stone->notes ?? '',
+                ];
+            })->values()->all()
+            : [];
 
         if ($Product->type == 'is_single') {
             $item['type_name'] = 'Single';

@@ -312,6 +312,83 @@
               </div>
             </div>
 
+            <!-- Jewelry specification -->
+            <div :style="cardStyle" v-if="isJewelryItem">
+              <div :style="cardHeaderStyle">
+                <lucide-icon name="tag" :style="{ marginRight: '8px', color: '#f59e0b' }" />
+                Jewelry Specification
+              </div>
+              <div :style="{ padding: '8px 20px 20px 20px' }">
+                <div class="pd-info-grid" :style="infoGrid">
+                  <div :style="infoRow"><span :style="infoKey">Jewelry Item Type</span><span :style="infoVal">{{ product.jewelry_item_type || '—' }}</span></div>
+                  <div :style="infoRow"><span :style="infoKey">Metal Type</span><span :style="infoVal">{{ product.metal_type || '—' }}</span></div>
+                  <div :style="infoRow"><span :style="infoKey">Karat</span><span :style="infoVal">{{ product.karat || '—' }}</span></div>
+                  <div :style="infoRow"><span :style="infoKey">Gross Weight</span><span :style="infoVal">{{ product.jewelry_gross_weight_display || '—' }}</span></div>
+                  <div :style="infoRow"><span :style="infoKey">Net Weight</span><span :style="infoVal">{{ product.jewelry_net_weight_display || '—' }}</span></div>
+                  <div :style="infoRow"><span :style="infoKey">Metal Weight</span><span :style="infoVal">{{ product.jewelry_metal_weight_display || '—' }}</span></div>
+                  <div :style="infoRow"><span :style="infoKey">Hallmark Reference</span><span :style="infoVal">{{ product.hallmark_reference || '—' }}</span></div>
+                  <div :style="infoRow"><span :style="infoKey">Certificate Number</span><span :style="infoVal">{{ product.certificate_number || '—' }}</span></div>
+                  <div :style="infoRow"><span :style="infoKey">Making Charge</span><span :style="infoVal">{{ product.making_charge_type || '—' }}<span v-if="product.making_charge_value !== null && product.making_charge_value !== ''"> • {{ formatPriceWithSymbol(currentUser && currentUser.currency, product.making_charge_value, 2) }}</span></span></div>
+                  <div :style="infoRow"><span :style="infoKey">Wastage</span><span :style="infoVal">{{ product.wastage_type || '—' }}<span v-if="product.wastage_value !== null && product.wastage_value !== ''"> • {{ product.wastage_value }}</span></span></div>
+                  <div :style="infoRow"><span :style="infoKey">Stone Value</span><span :style="infoValAccent('#7c3aed')">{{ formatPriceWithSymbol(currentUser && currentUser.currency, jewelryStoneTotal, 2) }}</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div :style="cardStyle" v-if="isJewelryItem">
+              <div :style="cardHeaderStyle">
+                <lucide-icon name="sparkles" :style="{ marginRight: '8px', color: '#7c3aed' }" />
+                Stones & Certificates
+              </div>
+              <div :style="{ padding: '20px' }">
+                <div v-if="!jewelryStoneLines.length" class="text-muted small">No stone rows were recorded for this jewelry item.</div>
+                <div v-else class="table-responsive">
+                  <table :style="tableStyle">
+                    <thead>
+                      <tr>
+                        <th :style="thStyle">Stone</th>
+                        <th :style="thStyle">Qty</th>
+                        <th :style="thStyle">Carat</th>
+                        <th :style="thStyle">Color</th>
+                        <th :style="thStyle">Clarity</th>
+                        <th :style="thStyle">Certificate</th>
+                        <th :style="{ ...thStyle, textAlign: 'right' }">Total Cost</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(stone, idx) in jewelryStoneLines" :key="stone.id || idx" :style="trHover">
+                        <td :style="tdStyle">{{ stone.stone_type_name || stone.stone_name || '—' }}</td>
+                        <td :style="tdStyle">{{ stone.quantity || 0 }}</td>
+                        <td :style="tdStyle">{{ stone.carat_value || '—' }}</td>
+                        <td :style="tdStyle">{{ stone.color || '—' }}</td>
+                        <td :style="tdStyle">{{ stone.clarity || '—' }}</td>
+                        <td :style="tdStyle">{{ stone.certificate_number || '—' }}</td>
+                        <td :style="{ ...tdStyle, textAlign: 'right' }">{{ formatPriceWithSymbol(currentUser && currentUser.currency, stone.total_cost_amount || 0, 2) }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <b-alert show variant="light" class="mt-3 mb-0 small">
+                  Jewelry movement history and attachment drill-down will appear here automatically once inventory movement logging is available on this tenant.
+                </b-alert>
+              </div>
+            </div>
+
+            <div :style="cardStyle" v-if="isJewelryItem">
+              <div :style="cardHeaderStyle">
+                <lucide-icon name="calculator" :style="{ marginRight: '8px', color: '#10b981' }" />
+                Current Price & Rate Used
+              </div>
+              <div :style="{ padding: '20px' }">
+                <PricingPreview
+                  :product-id="product.id"
+                  :product-data="product"
+                  :currency-symbol="(currentUser && currentUser.currency) || ''"
+                  :price-decimals="priceDecimals"
+                />
+              </div>
+            </div>
+
             <!-- Warranty & Guarantee card -->
             <div :style="cardStyle" v-if="product.warranty_period || product.warranty_terms || product.has_guarantee">
               <div :style="cardHeaderStyle">
@@ -736,6 +813,7 @@
 <script>
 import VueBarcode from "vue-barcode";
 import { mapActions, mapGetters } from "vuex";
+import PricingPreview from "../../components/PricingPreview.vue";
 import {
   formatPriceDisplay as formatPriceDisplayHelper,
   getPriceFormatSetting,
@@ -747,7 +825,8 @@ export default {
     title: "Detail Product"
   },
   components: {
-    barcode: VueBarcode
+    barcode: VueBarcode,
+    PricingPreview
   },
 
   data() {
@@ -1022,6 +1101,17 @@ export default {
     totalStock() {
       if (!this.product || !Array.isArray(this.product.CountQTY)) return 0;
       return this.product.CountQTY.reduce((sum, w) => sum + (parseFloat(w.qte) || 0), 0);
+    },
+    isJewelryItem() {
+      return !!(this.product && this.product.is_jewelry_item);
+    },
+    jewelryStoneLines() {
+      return Array.isArray(this.product && this.product.item_stones)
+        ? this.product.item_stones
+        : [];
+    },
+    jewelryStoneTotal() {
+      return this.jewelryStoneLines.reduce((sum, stone) => sum + (Number(stone.total_cost_amount) || 0), 0);
     },
     batchesTotalQty() {
       if (!Array.isArray(this.batches)) return 0;
