@@ -19,7 +19,7 @@ class GoldRateServiceTest extends TestCase
      * This is required because this project places tenant-specific tables
      * (such as 'gold_rates') in a dedicated path: database/migrations/tenant.
      */
-    protected function migrateFreshParameters()
+    protected function migrateFreshUsing(): array
     {
         return [
             '--path' => 'database/migrations/tenant',
