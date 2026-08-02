@@ -214,21 +214,123 @@ class JewelryPricingService
 
         foreach ($variables as $varName => $value) {
             $num = rtrim(rtrim(sprintf('%.15F', (float) $value), '0'), '.');
-            $expr = str_replace(strtolower($varName), $num === '' ? '0' : $num, $expr);
+            $expr = preg_replace('/\b' . preg_quote(strtolower($varName), '/') . '\b/', $num === '' ? '0' : $num, $expr);
         }
 
-        // Clean expression to strictly contain numbers, arithmetic operators, parentheses, and whitespace
-        $expr = preg_replace('/[^0-9\+\-\*\/\.\(\)\s]/', '', $expr);
-
-        if (trim($expr) === '') {
-            return 0.0;
+        $expr = trim($expr);
+        if ($expr === '' || strlen($expr) > 200) {
+            throw new \InvalidArgumentException('Invalid formula.');
         }
 
-        try {
-            $result = @eval("return {$expr};");
-            return is_numeric($result) ? (float)$result : 0.0;
-        } catch (\Throwable $e) {
-            return 0.0;
+        $normalizedExpression = preg_replace('/\s+/', '', $expr);
+        if ($normalizedExpression === '' || ! preg_match('/^[0-9\+\-\*\/\.\(\)]+$/', $normalizedExpression)) {
+            throw new \InvalidArgumentException('Invalid formula.');
         }
+
+        preg_match_all('/\d+(?:\.\d+)?|[+\-*\/\(\)]/', $normalizedExpression, $matches);
+        $tokens = $matches[0] ?? [];
+
+        if (implode('', $tokens) !== $normalizedExpression || count($tokens) > 100) {
+            throw new \InvalidArgumentException('Invalid formula.');
+        }
+
+        $outputQueue = [];
+        $operatorStack = [];
+        $previousToken = null;
+        $precedence = ['+' => 1, '-' => 1, '*' => 2, '/' => 2];
+
+        foreach ($tokens as $token) {
+            if (is_numeric($token)) {
+                $outputQueue[] = $token;
+                $previousToken = 'number';
+                continue;
+            }
+
+            if ($token === '(') {
+                $operatorStack[] = $token;
+                $previousToken = '(';
+                continue;
+            }
+
+            if ($token === ')') {
+                while (! empty($operatorStack) && end($operatorStack) !== '(') {
+                    $outputQueue[] = array_pop($operatorStack);
+                }
+
+                if (empty($operatorStack) || end($operatorStack) !== '(') {
+                    throw new \InvalidArgumentException('Invalid formula.');
+                }
+
+                array_pop($operatorStack);
+                $previousToken = ')';
+                continue;
+            }
+
+            if (in_array($token, ['+', '-', '*', '/'], true)) {
+                if (($token === '+' || $token === '-') && ($previousToken === null || $previousToken === '(' || $previousToken === 'operator')) {
+                    if ($token === '+') {
+                        continue;
+                    }
+
+                    $outputQueue[] = '0';
+                }
+
+                while (
+                    ! empty($operatorStack)
+                    && end($operatorStack) !== '('
+                    && $precedence[end($operatorStack)] >= $precedence[$token]
+                ) {
+                    $outputQueue[] = array_pop($operatorStack);
+                }
+
+                $operatorStack[] = $token;
+                $previousToken = 'operator';
+                continue;
+            }
+
+            throw new \InvalidArgumentException('Invalid formula.');
+        }
+
+        while (! empty($operatorStack)) {
+            $operator = array_pop($operatorStack);
+            if ($operator === '(' || $operator === ')') {
+                throw new \InvalidArgumentException('Invalid formula.');
+            }
+            $outputQueue[] = $operator;
+        }
+
+        $valueStack = [];
+        foreach ($outputQueue as $token) {
+            if (is_numeric($token)) {
+                $valueStack[] = (float) $token;
+                continue;
+            }
+
+            if (count($valueStack) < 2) {
+                throw new \InvalidArgumentException('Invalid formula.');
+            }
+
+            $right = array_pop($valueStack);
+            $left = array_pop($valueStack);
+
+            if ($token === '+') {
+                $valueStack[] = $left + $right;
+            } elseif ($token === '-') {
+                $valueStack[] = $left - $right;
+            } elseif ($token === '*') {
+                $valueStack[] = $left * $right;
+            } elseif ($token === '/') {
+                if ($right == 0.0) {
+                    throw new \InvalidArgumentException('Invalid formula.');
+                }
+                $valueStack[] = $left / $right;
+            }
+        }
+
+        if (count($valueStack) !== 1 || ! is_finite($valueStack[0])) {
+            throw new \InvalidArgumentException('Invalid formula.');
+        }
+
+        return (float) $valueStack[0];
     }
 }

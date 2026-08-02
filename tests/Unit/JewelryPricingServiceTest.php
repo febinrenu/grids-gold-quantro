@@ -193,6 +193,21 @@ class JewelryPricingServiceTest extends TestCase
         $this->assertEquals(70.00, $result['making_charge']);
     }
 
+    public function test_invalid_formula_throws_validation_exception(): void
+    {
+        $product = $this->createProduct([
+            'jewelry_gross_weight' => 15.0,
+            'making_charge_type'   => 'formula',
+        ]);
+
+        $this->expectException(\InvalidArgumentException::class);
+
+        $this->pricingService->preview($product->id, null, [
+            'gold_rate'             => 100.00,
+            'making_charge_formula' => 'gross_weight * (4.0 + )',
+        ]);
+    }
+
     /**
      * Test 7: Fixed wastage.
      */

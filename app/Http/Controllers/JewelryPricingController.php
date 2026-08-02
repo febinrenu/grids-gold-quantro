@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Services\Jewelry\JewelryPricingService;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class JewelryPricingController extends BaseController
 {
@@ -43,11 +44,17 @@ class JewelryPricingController extends BaseController
             $this->authorizeForUser($request->user('api'), 'override', [\App\Policies\JewelryPricingPolicy::class]);
         }
 
-        $breakdown = $this->pricingService->preview(
-            (int) $request->input('product_id'),
-            $request->filled('warehouse_id') ? (int) $request->input('warehouse_id') : null,
-            $overrides
-        );
+        try {
+            $breakdown = $this->pricingService->preview(
+                (int) $request->input('product_id'),
+                $request->filled('warehouse_id') ? (int) $request->input('warehouse_id') : null,
+                $overrides
+            );
+        } catch (\InvalidArgumentException $exception) {
+            throw ValidationException::withMessages([
+                'overrides.making_charge_formula' => ['Invalid formula.'],
+            ]);
+        }
 
         return $this->sendResponse($breakdown, 'Pricing preview generated successfully');
     }
