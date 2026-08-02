@@ -497,6 +497,13 @@ Route::middleware(['auth:api', 'Is_Active', 'request.safety', 'token.timeout', '
         Route::post('cash-registers/cash-move', 'CashRegisterController@cashInOut');
         Route::get('report/cash_registers', 'CashRegisterController@report');
     });
+
+    // ---------------------- Jewelry Gold Rates & Pricing Preview ------------------\\
+    Route::get('gold-rates', 'GoldRateController@index');
+    Route::post('gold-rates', 'GoldRateController@store');
+    Route::get('gold-rates/current', 'GoldRateController@current');
+    Route::post('pricing/preview', 'JewelryPricingController@preview');
+
     Route::get('report/warranty_guarantee', 'ReportController@warrantyGuaranteeReport');
 
     // ------------------------------- Contracts -----------------------\\
