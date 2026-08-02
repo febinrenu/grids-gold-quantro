@@ -4254,7 +4254,6 @@ export default {
         { value: 'per_gram', text: 'Per Gram' },
         { value: 'percentage', text: 'Percentage' },
         { value: 'manual', text: 'Manual' },
-        { value: 'formula', text: 'Formula' },
       ];
     },
 

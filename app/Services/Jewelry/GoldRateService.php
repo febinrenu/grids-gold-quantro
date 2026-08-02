@@ -81,14 +81,31 @@ class GoldRateService
     }
 
     /**
-     * Retrieve history of gold rates ordered newest first, with optional date range filter.
+     * Retrieve history of gold rates ordered newest first, with optional filters.
+     *
+     * Backward compatibility note:
+     * - Older callers passed the date-range array as the 3rd argument.
+     * - Newer callers may pass warehouse_id as the 3rd argument and date range as the 4th.
+     *
+     * @param int|null $metalTypeId
+     * @param int|null $karatId
+     * @param int|array|null $warehouseIdOrDateRange
+     * @param array|null $dateRange
      */
     public function history(
         ?int $metalTypeId = null,
         ?int $karatId = null,
-        ?int $warehouseId = null,
+        $warehouseIdOrDateRange = null,
         ?array $dateRange = null
     ): Collection {
+        $warehouseId = null;
+
+        if (is_array($warehouseIdOrDateRange) && $dateRange === null) {
+            $dateRange = $warehouseIdOrDateRange;
+        } elseif ($warehouseIdOrDateRange !== null) {
+            $warehouseId = (int) $warehouseIdOrDateRange;
+        }
+
         $query = GoldRate::with(['metalType', 'karat', 'currency', 'warehouse']);
 
         if ($metalTypeId !== null) {

@@ -6,6 +6,7 @@ use App\Models\Currency;
 use App\Models\GoldRate;
 use App\Models\Karat;
 use App\Models\MetalType;
+use App\Models\User;
 use App\Models\UserWarehouse;
 use App\Models\Warehouse;
 use App\Services\Jewelry\GoldRateService;
@@ -49,20 +50,34 @@ class GoldRateController extends BaseController
             'end_date'      => 'nullable|date',
         ]);
 
+        $user = $request->user('api');
+        $warehouseId = $request->filled('warehouse_id') ? (int) $request->input('warehouse_id') : null;
+        $this->assertWarehouseAccess($user, $warehouseId);
+
         $dateRange = null;
         if ($request->filled('start_date') || $request->filled('end_date')) {
             $dateRange = [
-                'start' => $request->input('start_date'),
-                'end'   => $request->input('end_date'),
+                'start' => $request->filled('start_date') ? $request->input('start_date').' 00:00:00' : null,
+                'end'   => $request->filled('end_date') ? $request->input('end_date').' 23:59:59' : null,
             ];
         }
 
         $history = $this->goldRateService->history(
             $request->filled('metal_type_id') ? (int) $request->input('metal_type_id') : null,
             $request->filled('karat_id') ? (int) $request->input('karat_id') : null,
-            $request->filled('warehouse_id') ? (int) $request->input('warehouse_id') : null,
+            $warehouseId,
             $dateRange
         );
+
+        if ($user && ! $user->is_all_warehouses) {
+            $accessibleWarehouseIds = $this->getAccessibleWarehouseIds($user);
+            $history = $history
+                ->filter(function ($rate) use ($accessibleWarehouseIds) {
+                    return $rate->warehouse_id === null
+                        || in_array((int) $rate->warehouse_id, $accessibleWarehouseIds, true);
+                })
+                ->values();
+        }
 
         return $this->sendResponse($history, 'Gold rate history retrieved successfully');
     }
@@ -83,15 +98,18 @@ class GoldRateController extends BaseController
             'rate_per_weight_unit' => 'required|numeric|min:0',
             'currency_id'          => 'required|integer|exists:currencies,id',
             'warehouse_id'         => 'nullable|integer|exists:warehouses,id',
-            'weight_uom'           => 'nullable|string|max:16',
+            'weight_uom'           => 'nullable|string|in:g,mg,kg,ct,oz',
         ]);
+
+        $warehouseId = $request->filled('warehouse_id') ? (int) $request->input('warehouse_id') : null;
+        $this->assertWarehouseAccess($request->user('api'), $warehouseId);
 
         $rate = $this->goldRateService->setRate(
             (int)$request->input('metal_type_id'),
             (int)$request->input('karat_id'),
             (float)$request->input('rate_per_weight_unit'),
             (int)$request->input('currency_id'),
-            $request->input('warehouse_id') ? (int)$request->input('warehouse_id') : null,
+            $warehouseId,
             (int)$request->user('api')->id,
             (string) ($request->input('weight_uom') ?: 'g')
         );
@@ -115,10 +133,13 @@ class GoldRateController extends BaseController
             'warehouse_id'  => 'nullable|integer|exists:warehouses,id',
         ]);
 
+        $warehouseId = $request->filled('warehouse_id') ? (int) $request->input('warehouse_id') : null;
+        $this->assertWarehouseAccess($request->user('api'), $warehouseId);
+
         $rate = $this->goldRateService->getCurrentRate(
             (int)$request->input('metal_type_id'),
             (int)$request->input('karat_id'),
-            $request->input('warehouse_id') ? (int)$request->input('warehouse_id') : null
+            $warehouseId
         );
 
         return $this->sendResponse($rate, 'Current gold rate retrieved successfully');
@@ -131,11 +152,11 @@ class GoldRateController extends BaseController
     {
         $this->authorizeForUser($request->user('api'), 'view', GoldRate::class);
 
-        $user = auth()->user();
+        $user = $request->user('api');
         if ($user && $user->is_all_warehouses) {
             $warehouses = Warehouse::whereNull('deleted_at')->orderBy('name')->get(['id', 'name']);
         } else {
-            $warehouseIds = UserWarehouse::where('user_id', optional($user)->id)->pluck('warehouse_id')->toArray();
+            $warehouseIds = $this->getAccessibleWarehouseIds($user);
             $warehouses = Warehouse::whereNull('deleted_at')->whereIn('id', $warehouseIds)->orderBy('name')->get(['id', 'name']);
         }
 
@@ -167,5 +188,31 @@ class GoldRateController extends BaseController
             'warehouses' => $warehouses,
             'currencies' => $currencies,
         ], 'Gold rate options retrieved successfully');
+    }
+
+    protected function getAccessibleWarehouseIds(?User $user): array
+    {
+        if (! $user || $user->is_all_warehouses) {
+            return [];
+        }
+
+        return UserWarehouse::where('user_id', $user->id)
+            ->pluck('warehouse_id')
+            ->map(function ($id) {
+                return (int) $id;
+            })
+            ->values()
+            ->all();
+    }
+
+    protected function assertWarehouseAccess(?User $user, ?int $warehouseId): void
+    {
+        if ($warehouseId === null || ! $user || $user->is_all_warehouses) {
+            return;
+        }
+
+        if (! in_array($warehouseId, $this->getAccessibleWarehouseIds($user), true)) {
+            abort(403, 'You are not authorized to access the selected warehouse gold rates.');
+        }
     }
 }

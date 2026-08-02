@@ -370,6 +370,52 @@ class GoldRateServiceTest extends TestCase
         $this->assertEquals($rate1->id, $filteredHistory->first()->id);
     }
 
+    public function test_history_supports_warehouse_filter_without_breaking_legacy_date_range_calls(): void
+    {
+        $metalTypeId = 1;
+        $karatId = 1;
+        $currencyId = 1;
+        $userId = 1;
+        $warehouseId = 5;
+
+        $companyRate = GoldRate::create([
+            'metal_type_id'        => $metalTypeId,
+            'karat_id'             => $karatId,
+            'rate_per_weight_unit' => 50.00,
+            'currency_id'          => $currencyId,
+            'warehouse_id'         => null,
+            'created_by'           => $userId,
+            'effective_at'         => Carbon::now()->subHours(2),
+            'status'               => 'active',
+            'rate_source'          => 'manual',
+            'weight_uom'           => 'g',
+        ]);
+
+        $warehouseRate = GoldRate::create([
+            'metal_type_id'        => $metalTypeId,
+            'karat_id'             => $karatId,
+            'rate_per_weight_unit' => 60.00,
+            'currency_id'          => $currencyId,
+            'warehouse_id'         => $warehouseId,
+            'created_by'           => $userId,
+            'effective_at'         => Carbon::now()->subHour(),
+            'status'               => 'active',
+            'rate_source'          => 'manual',
+            'weight_uom'           => 'g',
+        ]);
+
+        $legacyRangeHistory = $this->service->history($metalTypeId, $karatId, [
+            'start' => Carbon::now()->subHours(3),
+            'end' => Carbon::now()->addMinute(),
+        ]);
+        $this->assertCount(2, $legacyRangeHistory);
+
+        $warehouseHistory = $this->service->history($metalTypeId, $karatId, $warehouseId);
+        $this->assertCount(1, $warehouseHistory);
+        $this->assertEquals($warehouseRate->id, $warehouseHistory->first()->id);
+        $this->assertNotEquals($companyRate->id, $warehouseHistory->first()->id);
+    }
+
     /**
      * Test 9: Inactive warehouse-specific rate falls back to active company-wide rate.
      */

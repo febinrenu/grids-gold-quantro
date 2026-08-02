@@ -1345,13 +1345,38 @@ class SettingsController extends Controller
         $bool = function ($v) {
             return ($v === '1' || $v === 'true' || $v === 1 || $v === true) ? 1 : 0;
         };
+        $nullableNumber = function ($value) {
+            if ($value === null || $value === '' || $value === 'null') {
+                return null;
+            }
+
+            return is_numeric($value) ? max(0, (float) $value) : null;
+        };
+        $sanitizeEnum = function ($value, array $allowed) {
+            if ($value === null) {
+                return null;
+            }
+
+            $normalized = trim((string) $value);
+            if ($normalized === '' || strtolower($normalized) === 'null') {
+                return null;
+            }
+
+            return in_array($normalized, $allowed, true) ? $normalized : null;
+        };
 
         return [
             'jewelry_mode' => $request->has('jewelry_mode') ? $bool($request->input('jewelry_mode')) : (int) ($setting->jewelry_mode ?? 0),
-            'default_making_charge_type' => $request->input('default_making_charge_type', $setting->default_making_charge_type ?? null),
-            'default_making_charge_value' => $request->input('default_making_charge_value', $setting->default_making_charge_value ?? null),
-            'default_wastage_type' => $request->input('default_wastage_type', $setting->default_wastage_type ?? null),
-            'default_wastage_value' => $request->input('default_wastage_value', $setting->default_wastage_value ?? null),
+            'default_making_charge_type' => $sanitizeEnum(
+                $request->input('default_making_charge_type', $setting->default_making_charge_type ?? null),
+                ['fixed', 'per_gram', 'percentage', 'manual']
+            ),
+            'default_making_charge_value' => $nullableNumber($request->input('default_making_charge_value', $setting->default_making_charge_value ?? null)),
+            'default_wastage_type' => $sanitizeEnum(
+                $request->input('default_wastage_type', $setting->default_wastage_type ?? null),
+                ['percentage_of_weight', 'percentage_of_value', 'fixed_value']
+            ),
+            'default_wastage_value' => $nullableNumber($request->input('default_wastage_value', $setting->default_wastage_value ?? null)),
             'gold_rate_requires_approval' => $request->has('gold_rate_requires_approval') ? $bool($request->input('gold_rate_requires_approval')) : (int) ($setting->gold_rate_requires_approval ?? 0),
         ];
     }

@@ -2600,21 +2600,31 @@ class ProductsController extends BaseController
                 ->get(['id', 'name', 'code']);
         }
 
+        $defaultMakingChargeType = $hasSettingsTable && Schema::hasColumn('settings', 'default_making_charge_type')
+            ? ($setting->default_making_charge_type ?? null)
+            : null;
+        if (! in_array($defaultMakingChargeType, ['fixed', 'per_gram', 'percentage', 'manual'], true)) {
+            $defaultMakingChargeType = null;
+        }
+
+        $defaultWastageType = $hasSettingsTable && Schema::hasColumn('settings', 'default_wastage_type')
+            ? ($setting->default_wastage_type ?? null)
+            : null;
+        if (! in_array($defaultWastageType, ['percentage_of_weight', 'percentage_of_value', 'fixed_value'], true)) {
+            $defaultWastageType = null;
+        }
+
         return [
             'jewelry_mode' => $this->isJewelryModeEnabled($setting),
             'metal_types' => $metalTypes->values(),
             'karats' => $karats->values(),
             'stone_types' => $stoneTypes->values(),
             'jewelry_defaults' => [
-                'making_charge_type' => $hasSettingsTable && Schema::hasColumn('settings', 'default_making_charge_type')
-                    ? ($setting->default_making_charge_type ?? null)
-                    : null,
+                'making_charge_type' => $defaultMakingChargeType,
                 'making_charge_value' => $hasSettingsTable && Schema::hasColumn('settings', 'default_making_charge_value')
                     ? ($setting->default_making_charge_value ?? null)
                     : null,
-                'wastage_type' => $hasSettingsTable && Schema::hasColumn('settings', 'default_wastage_type')
-                    ? ($setting->default_wastage_type ?? null)
-                    : null,
+                'wastage_type' => $defaultWastageType,
                 'wastage_value' => $hasSettingsTable && Schema::hasColumn('settings', 'default_wastage_value')
                     ? ($setting->default_wastage_value ?? null)
                     : null,
