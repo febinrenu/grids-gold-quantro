@@ -758,17 +758,12 @@
                 <h4 class="section-title">Pricing Preview</h4>
               </div>
               <b-card class="section-card">
-                <div class="alert alert-secondary mb-0">
-                  <h6 class="mb-2">Task 3.2 placeholder</h6>
-                  <p class="mb-2 text-muted">The shared live pricing preview component will be mounted here in the next task.</p>
-                  <ul class="mb-0 pl-3">
-                    <li><strong>Metal:</strong> {{ selectedMetalName || '—' }}</li>
-                    <li><strong>Karat:</strong> {{ selectedKaratName || '—' }}</li>
-                    <li><strong>Gross Weight:</strong> {{ product.jewelry_gross_weight || '0.000' }} {{ product.jewelry_weight_uom || 'g' }}</li>
-                    <li><strong>Metal Weight:</strong> {{ product.jewelry_metal_weight || '0.000' }} {{ product.jewelry_weight_uom || 'g' }}</li>
-                    <li><strong>Stone Lines:</strong> {{ preparedItemStoneCount }}</li>
-                  </ul>
-                </div>
+                <PricingPreview
+                  :product-id="product.id || null"
+                  :product-data="product"
+                  :currency-symbol="(currentUser && currentUser.currency) || ''"
+                  :price-decimals="priceDecimals"
+                />
               </b-card>
             </div>
 
@@ -1966,6 +1961,7 @@ import draggable from "vuedraggable";
 import NProgress from "nprogress";
 import { mapGetters } from "vuex";
 import { getPriceDecimals } from "../../../../utils/priceFormat";
+import PricingPreview from "../../components/PricingPreview.vue";
 
 export default {
   metaInfo: {
@@ -2117,7 +2113,8 @@ export default {
 
   components: {
     VueTagsInput,
-    draggable
+    draggable,
+    PricingPreview
   },
 
   computed: {

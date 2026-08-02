@@ -360,4 +360,60 @@ class JewelryPricingServiceTest extends TestCase
 
         $this->assertSame($previewResult, $saleResult);
     }
+
+    public function test_preview_draft_calculates_for_unsaved_product_payload(): void
+    {
+        $result = $this->pricingService->previewDraft([
+            'is_jewelry_item'      => true,
+            'metal_type_id'        => 1,
+            'karat_id'             => 1,
+            'jewelry_gross_weight' => 12.5,
+            'jewelry_metal_weight' => 10.0,
+            'making_charge_type'   => 'fixed',
+            'making_charge_value'  => 45.00,
+            'wastage_type'         => 'fixed_value',
+            'wastage_value'        => 15.00,
+            'TaxNet'               => 5.00,
+            'item_stones'          => [
+                ['quantity' => 2, 'unit_cost_amount' => 25.00],
+                ['quantity' => 1, 'total_cost_amount' => 40.00],
+            ],
+        ], null, ['gold_rate' => 100.00]);
+
+        $this->assertNull($result['product_id']);
+        $this->assertEquals(90.00, $result['stone_value']);
+        $this->assertEquals(1150.00, $result['base_value']);
+        $this->assertEquals(57.50, $result['tax']);
+        $this->assertEquals(1207.50, $result['selling_price']);
+    }
+
+    public function test_preview_draft_prefers_in_progress_changes_over_persisted_product_values(): void
+    {
+        $product = $this->createProduct([
+            'jewelry_gross_weight' => 10.0,
+            'jewelry_metal_weight' => 8.0,
+            'making_charge_type'   => 'fixed',
+            'making_charge_value'  => 50.00,
+            'wastage_type'         => 'fixed_value',
+            'wastage_value'        => 20.00,
+        ]);
+
+        $result = $this->pricingService->previewDraft([
+            'is_jewelry_item'      => true,
+            'metal_type_id'        => 1,
+            'karat_id'             => 1,
+            'jewelry_gross_weight' => 14.0,
+            'jewelry_metal_weight' => 11.0,
+            'making_charge_type'   => 'fixed',
+            'making_charge_value'  => 90.00,
+            'wastage_type'         => 'fixed_value',
+            'wastage_value'        => 10.00,
+            'item_stones'          => [],
+        ], null, ['gold_rate' => 100.00], $product->id);
+
+        $this->assertEquals($product->id, $result['product_id']);
+        $this->assertEquals(1100.00, $result['metal_value']);
+        $this->assertEquals(90.00, $result['making_charge']);
+        $this->assertEquals(10.00, $result['wastage']);
+    }
 }

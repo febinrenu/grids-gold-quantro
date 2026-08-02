@@ -43,6 +43,42 @@ class JewelryPricingService
     }
 
     /**
+     * Preview the complete pricing breakdown for an unsaved or in-progress product payload.
+     * This keeps the item form preview aligned with the shared backend pricing logic
+     * before the product itself has been persisted.
+     *
+     * @param array $productPayload
+     * @param int|null $warehouseId
+     * @param array $overrides
+     * @param int|null $existingProductId
+     * @return array
+     */
+    public function previewDraft(
+        array $productPayload,
+        ?int $warehouseId,
+        array $overrides = [],
+        ?int $existingProductId = null
+    ): array {
+        $product = $this->buildPreviewProductFromPayload($productPayload, $existingProductId);
+        $derivedOverrides = $overrides;
+
+        if (! array_key_exists('stone_value', $derivedOverrides)) {
+            $derivedOverrides['stone_value'] = $this->calculateStoneValueFromDraft($productPayload['item_stones'] ?? []);
+        }
+
+        if (
+            ! array_key_exists('tax_rate', $derivedOverrides)
+            && array_key_exists('TaxNet', $productPayload)
+            && $productPayload['TaxNet'] !== null
+            && $productPayload['TaxNet'] !== ''
+        ) {
+            $derivedOverrides['tax_rate'] = (float) $productPayload['TaxNet'];
+        }
+
+        return $this->calculate($product, $warehouseId, $derivedOverrides);
+    }
+
+    /**
      * Calculate the final pricing details for a sale line item.
      * Must call the same calculation method as preview().
      *
@@ -203,6 +239,55 @@ class JewelryPricingService
      * @param array $variables
      * @return float
      */
+    protected function buildPreviewProductFromPayload(array $productPayload, ?int $existingProductId = null): Product
+    {
+        $product = $existingProductId ? Product::findOrFail($existingProductId) : new Product();
+
+        $product->forceFill([
+            'is_jewelry_item'      => (bool)($productPayload['is_jewelry_item'] ?? false),
+            'jewelry_item_type'    => $productPayload['jewelry_item_type'] ?? null,
+            'metal_type_id'        => $productPayload['metal_type_id'] ?? null,
+            'karat_id'             => $productPayload['karat_id'] ?? null,
+            'jewelry_gross_weight' => $productPayload['jewelry_gross_weight'] ?? null,
+            'jewelry_net_weight'   => $productPayload['jewelry_net_weight'] ?? null,
+            'jewelry_metal_weight' => $productPayload['jewelry_metal_weight'] ?? null,
+            'jewelry_weight_uom'   => $productPayload['jewelry_weight_uom'] ?? 'g',
+            'making_charge_type'   => $productPayload['making_charge_type'] ?? null,
+            'making_charge_value'  => $productPayload['making_charge_value'] ?? null,
+            'wastage_type'         => $productPayload['wastage_type'] ?? null,
+            'wastage_value'        => $productPayload['wastage_value'] ?? null,
+        ]);
+
+        return $product;
+    }
+
+    protected function calculateStoneValueFromDraft($stones): float
+    {
+        if (! is_array($stones)) {
+            return 0.0;
+        }
+
+        $total = 0.0;
+
+        foreach ($stones as $stone) {
+            if (! is_array($stone)) {
+                continue;
+            }
+
+            $quantity = isset($stone['quantity']) && is_numeric($stone['quantity']) ? (float) $stone['quantity'] : 0.0;
+            $unitCost = isset($stone['unit_cost_amount']) && is_numeric($stone['unit_cost_amount']) ? (float) $stone['unit_cost_amount'] : 0.0;
+
+            if (isset($stone['total_cost_amount']) && is_numeric($stone['total_cost_amount'])) {
+                $total += (float) $stone['total_cost_amount'];
+                continue;
+            }
+
+            $total += $quantity * $unitCost;
+        }
+
+        return round($total, 2);
+    }
+
     protected function evaluateFormula(string $formula, array $variables): float
     {
         $expr = strtolower($formula);
