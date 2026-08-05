@@ -77,7 +77,306 @@ class JewelryDemoDataSeeder extends Seeder
             $this->seedPurchases($products, $providers, $onHand, $now);
             $this->seedSales($products, $clients, $goldRates, $onHand, $now);
             $this->seedStock($products, $onHand, $now);
+
+            $this->seedOrgHierarchyAndGoldLedger($now);
         });
+    }
+
+    /**
+     * Minimal, realistic demo data for the SRS-domain tables added in
+     * database/jewelrydatabase.sql Part 3 (app/Models + app/Http/Controllers/Jewelry):
+     * one company owning the demo warehouse via a branch, a vault under it,
+     * and a starter gold ledger account with one opening-balance entry.
+     * The other ~130 new tables are intentionally left empty here -- they're
+     * schema-complete and CRUD-ready, but populating all of them with
+     * realistic data is out of scope for the demo seeder.
+     */
+    private function seedOrgHierarchyAndGoldLedger(Carbon $now): void
+    {
+        if (DB::table('branches')->exists()) {
+            return;
+        }
+
+        $companyId = DB::table('companies')->orderBy('id')->value('id');
+        if (! $companyId) {
+            $companyId = DB::table('companies')->insertGetId([
+                'name' => 'Grids Gold',
+                'email' => 'info@gridsgold.test',
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+        }
+        DB::table('companies')->where('id', $companyId)->update([
+            'company_code' => 'GG-HQ',
+            'legal_name' => 'Grids Gold LLC',
+            'status' => 'active',
+        ]);
+
+        $branchId = DB::table('branches')->insertGetId([
+            'company_id' => $companyId,
+            'branch_code' => 'HQ01',
+            'branch_name' => 'Main Showroom',
+            'status' => 'active',
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+
+        DB::table('warehouses')->where('id', self::WAREHOUSE_ID)->update([
+            'branch_id' => $branchId,
+        ]);
+
+        DB::table('vaults')->insert([
+            'warehouse_id' => self::WAREHOUSE_ID,
+            'vault_code' => 'V01',
+            'vault_name' => 'Main Safe',
+            'security_level' => 'high',
+            'status' => 'active',
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+
+        $goldAccountId = DB::table('gold_ledger_accounts')->insertGetId([
+            'name' => 'Company Gold Stock',
+            'account_type' => 'company_gold',
+            'is_active' => true,
+        ]);
+
+        DB::table('gold_ledger_entries')->insert([
+            'gold_ledger_account_id' => $goldAccountId,
+            'transaction_type' => 'purchase',
+            'gross_weight' => 500.000,
+            'net_weight' => 500.000,
+            'fine_gold_weight' => 458.333, // 22K opening stock
+            'purity_percentage' => 91.60,
+            'direction' => 'in',
+            'reference_module' => 'opening_balance',
+            'transaction_date' => $now,
+        ]);
+
+        DB::table('gold_balances')->insert([
+            'gold_ledger_account_id' => $goldAccountId,
+            'gross_weight' => 500.000,
+            'fine_gold_weight' => 458.333,
+            'last_updated_at' => $now,
+        ]);
+
+        $this->seedGeography();
+        $this->seedProductMasterReferenceData();
+        $this->seedInventoryOperationsReferenceData();
+        $this->seedManufacturingAndRepair($branchId, $now);
+        $this->seedGoldTestingAndExchange($now);
+        $this->seedAccountingReferenceData($now);
+        $this->seedWorkflowReferenceData();
+    }
+
+    private function seedGeography(): void
+    {
+        $countries = [
+            ['name' => 'United States', 'iso_code' => 'USA', 'phone_code' => '+1', 'timezone' => 'America/New_York'],
+            ['name' => 'United Kingdom', 'iso_code' => 'GBR', 'phone_code' => '+44', 'timezone' => 'Europe/London'],
+            ['name' => 'India', 'iso_code' => 'IND', 'phone_code' => '+91', 'timezone' => 'Asia/Kolkata'],
+        ];
+        $stateNames = [
+            'USA' => ['California', 'New York'],
+            'GBR' => ['England', 'Scotland'],
+            'IND' => ['Maharashtra', 'Gujarat'],
+        ];
+        $cityNames = [
+            'California' => ['Los Angeles', 'San Francisco'],
+            'New York' => ['New York City', 'Buffalo'],
+            'England' => ['London', 'Manchester'],
+            'Scotland' => ['Edinburgh', 'Glasgow'],
+            'Maharashtra' => ['Mumbai', 'Pune'],
+            'Gujarat' => ['Surat', 'Ahmedabad'],
+        ];
+
+        foreach ($countries as $country) {
+            $countryId = DB::table('countries')->insertGetId($country);
+            foreach ($stateNames[$country['iso_code']] as $stateName) {
+                $stateId = DB::table('states')->insertGetId([
+                    'country_id' => $countryId,
+                    'name' => $stateName,
+                ]);
+                foreach ($cityNames[$stateName] as $cityName) {
+                    DB::table('cities')->insert([
+                        'state_id' => $stateId,
+                        'country_id' => $countryId,
+                        'name' => $cityName,
+                    ]);
+                }
+            }
+        }
+    }
+
+    private function seedProductMasterReferenceData(): void
+    {
+        DB::table('manufacturers')->insert([
+            ['name' => 'Aurum Craftworks', 'contact_details' => 'orders@aurumcraft.test', 'rating' => 4.80, 'is_active' => true],
+            ['name' => 'Solstice Jewelers', 'contact_details' => 'sales@solsticejewelers.test', 'rating' => 4.50, 'is_active' => true],
+            ['name' => 'Heritage Gold Works', 'contact_details' => 'contact@heritagegold.test', 'rating' => 4.65, 'is_active' => true],
+        ]);
+
+        DB::table('jewelry_collections')->insert([
+            ['name' => 'Wedding', 'description' => 'Bridal sets, engagement rings, and wedding bands.', 'is_active' => true],
+            ['name' => 'Luxury', 'description' => 'High-karat statement pieces with premium stones.', 'is_active' => true],
+            ['name' => 'Festival', 'description' => 'Lightweight everyday and festive-occasion pieces.', 'is_active' => true],
+        ]);
+
+        DB::table('hallmarks')->insert([
+            ['hallmark_authority' => 'Bureau of Indian Standards', 'country' => 'India', 'hallmark_code' => 'BIS 916', 'verification_status' => 'verified'],
+            ['hallmark_authority' => 'Bureau of Indian Standards', 'country' => 'India', 'hallmark_code' => 'BIS 750', 'verification_status' => 'verified'],
+            ['hallmark_authority' => 'London Assay Office', 'country' => 'United Kingdom', 'hallmark_code' => 'UK 916', 'verification_status' => 'verified'],
+        ]);
+
+        DB::table('certificates')->insert([
+            ['authority_name' => 'Gemological Institute of America (GIA)', 'website' => 'https://www.gia.edu', 'is_active' => true],
+            ['authority_name' => 'International Gemological Institute (IGI)', 'website' => 'https://www.igi.org', 'is_active' => true],
+        ]);
+    }
+
+    private function seedInventoryOperationsReferenceData(): void
+    {
+        DB::table('movement_types')->insert([
+            ['code' => 'RECEIVING', 'name' => 'Receiving', 'is_active' => true],
+            ['code' => 'SALE', 'name' => 'Sale', 'is_active' => true],
+            ['code' => 'TRANSFER', 'name' => 'Transfer', 'is_active' => true],
+            ['code' => 'ADJUSTMENT', 'name' => 'Adjustment', 'is_active' => true],
+        ]);
+
+        DB::table('movement_reasons')->insert([
+            ['code' => 'STOCK_COUNT', 'name' => 'Physical stock count correction', 'is_active' => true],
+            ['code' => 'DAMAGE', 'name' => 'Damaged item write-off', 'is_active' => true],
+            ['code' => 'BRANCH_TRANSFER', 'name' => 'Inter-branch transfer', 'is_active' => true],
+        ]);
+
+        DB::table('ownership_types')->insert([
+            ['code' => 'OWN', 'name' => 'Company Owned', 'is_active' => true],
+            ['code' => 'MEMO', 'name' => 'On Memo', 'is_active' => true],
+            ['code' => 'CONSIGNMENT', 'name' => 'Consignment', 'is_active' => true],
+        ]);
+
+        DB::table('inventory_statuses')->insert([
+            ['code' => 'AVAILABLE', 'name' => 'Available', 'is_active' => true],
+            ['code' => 'RESERVED', 'name' => 'Reserved', 'is_active' => true],
+            ['code' => 'SOLD', 'name' => 'Sold', 'is_active' => true],
+            ['code' => 'DAMAGED', 'name' => 'Damaged', 'is_active' => true],
+        ]);
+    }
+
+    private function seedManufacturingAndRepair(int $branchId, Carbon $now): void
+    {
+        $workshopId = DB::table('workshops')->insertGetId([
+            'workshop_code' => 'WS01',
+            'name' => 'In-House Workshop',
+            'type' => 'internal',
+            'rating' => 4.70,
+            'is_active' => true,
+        ]);
+
+        DB::table('manufacturing_orders')->insert([
+            'manufacturing_number' => 'MFG-0001',
+            'branch_id' => $branchId,
+            'warehouse_id' => self::WAREHOUSE_ID,
+            'workshop_id' => $workshopId,
+            'planned_quantity' => 5,
+            'completed_quantity' => 0,
+            'planned_gold_weight' => 250.000,
+            'planned_fine_gold' => 229.167,
+            'order_date' => $now->toDateString(),
+            'expected_completion' => $now->copy()->addDays(14)->toDateString(),
+            'status' => 'draft',
+        ]);
+
+        $clientId = DB::table('clients')->orderBy('id')->value('id');
+        if ($clientId) {
+            DB::table('repair_orders')->insert([
+                'repair_number' => 'RPR-0001',
+                'client_id' => $clientId,
+                'is_customer_owned' => true,
+                'status' => 'received',
+                'estimated_cost' => 45.00,
+            ]);
+        }
+    }
+
+    private function seedGoldTestingAndExchange(Carbon $now): void
+    {
+        $productId = DB::table('products')->where('code', 'JWL-RNG-001')->value('id');
+        $karatId = $this->karatIds['GOLD:18K'] ?? null;
+
+        if ($productId) {
+            DB::table('gold_tests')->insert([
+                'product_id' => $productId,
+                'test_method' => 'acid_test',
+                'purity_percentage' => 75.00,
+                'fineness' => 750.000,
+                'result' => 'pass',
+                'tested_at' => $now,
+            ]);
+        }
+
+        if ($productId && $karatId) {
+            DB::table('karat_conversions')->insert([
+                'product_id' => $productId,
+                'original_weight' => 4.200,
+                'original_karat_id' => $karatId,
+                'new_weight' => 3.850,
+                'new_karat_id' => $karatId,
+                'converted_at' => $now,
+            ]);
+        }
+    }
+
+    private function seedAccountingReferenceData(Carbon $now): void
+    {
+        DB::table('cash_accounts')->insert([
+            'name' => 'Main Till',
+            'type' => 'branch_cash',
+            'warehouse_id' => self::WAREHOUSE_ID,
+            'current_balance' => 5000.000,
+            'is_active' => true,
+        ]);
+
+        DB::table('bank_accounts')->insert([
+            'bank_name' => 'First National Bank',
+            'account_number' => '000123456789',
+            'ifsc_swift' => 'FNBAUS33',
+            'currency_id' => self::CURRENCY_ID,
+            'current_balance' => 25000.000,
+            'is_active' => true,
+        ]);
+
+        DB::table('tax_codes')->insert([
+            ['code' => 'VAT5', 'name' => 'VAT 5%', 'rate' => 5.00, 'type' => 'vat', 'effective_date' => $now->toDateString(), 'is_active' => true],
+            ['code' => 'GST3', 'name' => 'GST 3% (Gold)', 'rate' => 3.00, 'type' => 'gst', 'effective_date' => $now->toDateString(), 'is_active' => true],
+        ]);
+
+        $eurId = DB::table('currencies')->where('code', 'EUR')->value('id');
+        if (! $eurId) {
+            $eurId = DB::table('currencies')->insertGetId([
+                'code' => 'EUR', 'name' => 'Euro', 'symbol' => '€',
+            ]);
+        }
+        DB::table('exchange_rates')->insert([
+            'base_currency_id' => self::CURRENCY_ID,
+            'target_currency_id' => $eurId,
+            'rate' => 0.92,
+            'effective_date' => $now->toDateString(),
+            'source' => 'manual',
+        ]);
+    }
+
+    private function seedWorkflowReferenceData(): void
+    {
+        DB::table('approval_workflows')->insert([
+            ['workflow_name' => 'Gold Rate Override Approval', 'module' => 'pricing', 'trigger_condition' => 'gold_rate_manual_override', 'approval_levels' => 1, 'is_active' => true],
+            ['workflow_name' => 'High-Value Sale Approval', 'module' => 'sales', 'trigger_condition' => 'sale_total_over_threshold', 'approval_levels' => 2, 'is_active' => true],
+        ]);
+
+        DB::table('notification_templates')->insert([
+            ['code' => 'gold_rate_updated', 'name' => 'Gold Rate Updated', 'channel' => 'in_app', 'subject' => 'Gold rate updated', 'body' => 'The {{metal}} rate for {{karat}} was updated to {{rate}} per gram.', 'is_active' => true],
+            ['code' => 'repair_ready', 'name' => 'Repair Ready for Pickup', 'channel' => 'email', 'subject' => 'Your repair is ready', 'body' => 'Hi {{customer_name}}, your repair order {{repair_number}} is ready for pickup.', 'is_active' => true],
+        ]);
     }
 
     /**
