@@ -477,6 +477,106 @@ export default {
   font-weight: 800;
 }
 
+body.dark-theme .pricing-preview-card,
+body.theme-luxury.dark-theme .pricing-preview-card {
+  border-color: rgba(214, 177, 122, 0.16);
+  background:
+    radial-gradient(circle at top right, rgba(214, 177, 122, 0.08), transparent 38%),
+    linear-gradient(180deg, rgba(27, 23, 19, 0.96) 0%, rgba(18, 15, 13, 0.98) 100%);
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.22);
+}
+
+body.dark-theme .pricing-preview-card__title,
+body.theme-luxury.dark-theme .pricing-preview-card__title {
+  color: #fbf5ea;
+}
+
+body.dark-theme .pricing-preview-card__subtitle,
+body.theme-luxury.dark-theme .pricing-preview-card__subtitle {
+  color: #bcae9a !important;
+}
+
+body.dark-theme .pricing-preview-card .badge-light,
+body.theme-luxury.dark-theme .pricing-preview-card .badge-light {
+  background: rgba(214, 177, 122, 0.14) !important;
+  color: #f0d5a4 !important;
+  border: 1px solid rgba(214, 177, 122, 0.18);
+}
+
+body.dark-theme .pricing-preview-card .badge-warning,
+body.theme-luxury.dark-theme .pricing-preview-card .badge-warning {
+  background: rgba(245, 158, 11, 0.16) !important;
+  color: #f7d18d !important;
+  border: 1px solid rgba(245, 158, 11, 0.18);
+}
+
+body.dark-theme .pricing-preview-card__alert,
+body.theme-luxury.dark-theme .pricing-preview-card__alert {
+  border-color: rgba(214, 177, 122, 0.14);
+}
+
+body.dark-theme .pricing-preview-card__alert.alert-light,
+body.theme-luxury.dark-theme .pricing-preview-card__alert.alert-light {
+  background: rgba(34, 28, 24, 0.92) !important;
+  color: #e8dfd0 !important;
+}
+
+body.dark-theme .pricing-preview-card__alert.alert-warning,
+body.theme-luxury.dark-theme .pricing-preview-card__alert.alert-warning {
+  background: rgba(82, 56, 25, 0.35) !important;
+  color: #f4deaf !important;
+  border-color: rgba(214, 177, 122, 0.22) !important;
+}
+
+body.dark-theme .pricing-preview-card__alert.alert-danger,
+body.theme-luxury.dark-theme .pricing-preview-card__alert.alert-danger {
+  background: rgba(98, 41, 35, 0.34) !important;
+  color: #f2c0b8 !important;
+  border-color: rgba(209, 123, 112, 0.22) !important;
+}
+
+body.dark-theme .pricing-preview-row,
+body.theme-luxury.dark-theme .pricing-preview-row {
+  background: rgba(36, 30, 24, 0.88);
+  border-color: rgba(214, 177, 122, 0.12);
+}
+
+body.dark-theme .pricing-preview-row__label,
+body.theme-luxury.dark-theme .pricing-preview-row__label {
+  color: #cdbfa9;
+}
+
+body.dark-theme .pricing-preview-row__method,
+body.theme-luxury.dark-theme .pricing-preview-row__method {
+  color: #a8957b;
+}
+
+body.dark-theme .pricing-preview-row__value,
+body.theme-luxury.dark-theme .pricing-preview-row__value {
+  color: #fbf5ea;
+}
+
+body.dark-theme .pricing-preview-row--base,
+body.theme-luxury.dark-theme .pricing-preview-row--base {
+  background: rgba(43, 35, 28, 0.94);
+}
+
+body.dark-theme .pricing-preview-total,
+body.theme-luxury.dark-theme .pricing-preview-total {
+  background: linear-gradient(135deg, rgba(214, 177, 122, 0.16) 0%, rgba(69, 51, 31, 0.68) 100%);
+  border-color: rgba(214, 177, 122, 0.2);
+}
+
+body.dark-theme .pricing-preview-total__label,
+body.theme-luxury.dark-theme .pricing-preview-total__label {
+  color: #f0d5a4;
+}
+
+body.dark-theme .pricing-preview-total__value,
+body.theme-luxury.dark-theme .pricing-preview-total__value {
+  color: #fbf5ea;
+}
+
 @media (max-width: 767.98px) {
   .pricing-preview-card__header,
   .pricing-preview-row,

@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunk=self.webpackChunk||[]).push([[3240],{11639(e,n,u){u.r(n),u.d(n,{default:()=>l});const t={name:"SupportIndex"};const l=(0,u(14486).A)(t,function(){return(0,this._self._c)("router-view")},[],!1,null,null,null).exports}}]);

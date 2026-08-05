@@ -171,12 +171,7 @@
             <div class="triangle"></div>
           </li>
           <li
-            v-show="currentUserPermissions && (currentUserPermissions.includes('Sales_view') 
-                        || currentUserPermissions.includes('Sales_add')
-                        || currentUserPermissions.includes('Pos_view')
-                        || currentUserPermissions.includes('customer_display_screen_setup')
-                        || currentUserPermissions.includes('shipment')
-                        || currentUserPermissions.includes('real_time_sales_counter'))"
+            v-show="hasVisibleSalesMenu"
             class="nav-item"
             @mouseenter="toggleSubMenu"
             :class="{ active: selectedParentMenu == 'sales' }"
@@ -266,7 +261,7 @@
           </li>
 
             <li
-            v-show="planFeature('hrm') && currentUserPermissions && (currentUserPermissions.includes('company')
+            v-show="showJewelryMenu('hrm') && planFeature('hrm') && currentUserPermissions && (currentUserPermissions.includes('company')
                      || currentUserPermissions.includes('department')
                      || currentUserPermissions.includes('designation')
                      || currentUserPermissions.includes('office_shift')
@@ -290,7 +285,7 @@
             <div class="triangle"></div>
           </li>
           <li
-            v-show="currentUserPermissions && (currentUserPermissions.includes('recruit_job')
+            v-show="showJewelryMenu('recruit') && currentUserPermissions && (currentUserPermissions.includes('recruit_job')
                      || currentUserPermissions.includes('recruit_category')
                      || currentUserPermissions.includes('recruit_candidate')
                      || currentUserPermissions.includes('recruit_application')
@@ -309,7 +304,7 @@
             <div class="triangle"></div>
           </li>
           <li
-            v-show="currentUserPermissions && (currentUserPermissions.includes('meeting')
+            v-show="showJewelryMenu('meeting') && currentUserPermissions && (currentUserPermissions.includes('meeting')
                      || currentUserPermissions.includes('meeting_attendance')
                      || currentUserPermissions.includes('meeting_report')
                      )"
@@ -326,7 +321,7 @@
             <div class="triangle"></div>
           </li>
           <li
-            v-show="currentUserPermissions && (currentUserPermissions.includes('marketing_dashboard')
+            v-show="showJewelryMenu('marketing') && currentUserPermissions && (currentUserPermissions.includes('marketing_dashboard')
                      || currentUserPermissions.includes('marketing_campaigns')
                      || currentUserPermissions.includes('marketing_segments')
                      || currentUserPermissions.includes('marketing_templates')
@@ -376,7 +371,7 @@
           
 
             <li
-            v-if="currentUserPermissions && currentUserPermissions.includes('subscription_product')"
+            v-if="showJewelryMenu('subscription_product') && currentUserPermissions && currentUserPermissions.includes('subscription_product')"
             @mouseenter="toggleSubMenu"
             :class="{ active: selectedParentMenu == 'subscription_product' }"
             class="nav-item"
@@ -391,7 +386,7 @@
 
 
           <li
-            v-show="planFeature('service_maintenance') && currentUserPermissions && currentUserPermissions.includes('service_jobs')"
+            v-show="showJewelryMenu('service') && planFeature('service_maintenance') && currentUserPermissions && currentUserPermissions.includes('service_jobs')"
             @mouseenter="toggleSubMenu"
             :class="{ active: selectedParentMenu == 'service' }"
             class="nav-item"
@@ -406,7 +401,7 @@
           </li>
 
           <li
-            v-show="currentUserPermissions && currentUserPermissions.includes('assets')"
+            v-show="showJewelryMenu('assets') && currentUserPermissions && currentUserPermissions.includes('assets')"
             @mouseenter="toggleSubMenu"
             :class="{ active: selectedParentMenu == 'assets' }"
             class="nav-item"
@@ -421,7 +416,7 @@
           </li>
 
           <li
-            v-show="currentUserPermissions && currentUserPermissions.includes('projects')"
+            v-show="showJewelryMenu('projects') && currentUserPermissions && currentUserPermissions.includes('projects')"
             @mouseenter="toggleSubMenu"
             :class="{ active: selectedParentMenu == 'projects' }"
             class="nav-item"
@@ -434,7 +429,7 @@
           </li>
 
           <li
-            v-show="currentUserPermissions && currentUserPermissions.includes('contracts')"
+            v-show="showJewelryMenu('contracts') && currentUserPermissions && currentUserPermissions.includes('contracts')"
             @mouseenter="toggleSubMenu"
             :class="{ active: selectedParentMenu == 'contracts' }"
             class="nav-item"
@@ -447,7 +442,7 @@
           </li>
 
           <li
-            v-show="currentUserPermissions && currentUserPermissions.includes('tasks')"
+            v-show="showJewelryMenu('tasks') && currentUserPermissions && currentUserPermissions.includes('tasks')"
             @mouseenter="toggleSubMenu"
             :class="{ active: selectedParentMenu == 'tasks' }"
             class="nav-item"
@@ -461,7 +456,7 @@
 
           <!-- Bookings (with submenu: Booking List, Google Calendar) -->
           <li
-            v-show="currentUserPermissions && currentUserPermissions.includes('bookings')"
+            v-show="showJewelryMenu('bookings') && currentUserPermissions && currentUserPermissions.includes('bookings')"
             @mouseenter="toggleSubMenu"
             :class="{ active: selectedParentMenu == 'bookings' }"
             class="nav-item"
@@ -477,7 +472,7 @@
 
           <!-- Commissions -->
           <li
-            v-show="currentUserPermissions && currentUserPermissions.includes('commissions_view')"
+            v-show="showJewelryMenu('commissions') && currentUserPermissions && currentUserPermissions.includes('commissions_view')"
             @mouseenter="toggleSubMenu"
             :class="{ active: selectedParentMenu == 'commissions' }"
             class="nav-item"
@@ -493,7 +488,7 @@
 
           <!-- woocommerce_settings -->
           <li
-            v-show="planFeature('woocommerce') && currentUserPermissions && currentUserPermissions.includes('woocommerce_settings')"
+            v-show="showJewelryMenu('woocommerce_settings') && planFeature('woocommerce') && currentUserPermissions && currentUserPermissions.includes('woocommerce_settings')"
             :class="{ active: selectedParentMenu == 'woocommerce_settings' }"
             class="nav-item"
             data-item="woocommerce_settings"
@@ -506,7 +501,7 @@
 
           <!-- Knowledge Base -->
           <li
-            v-show="currentUserPermissions && currentUserPermissions.includes('knowledge_base_view')"
+            v-show="showJewelryMenu('knowledge-base') && currentUserPermissions && currentUserPermissions.includes('knowledge_base_view')"
             @mouseenter="toggleSubMenu"
             :class="{ active: selectedParentMenu == 'knowledge-base' }"
             class="nav-item"
@@ -553,7 +548,7 @@
 
           <!-- AI Reports -->
           <li
-            v-show="planFeature('ai_reports') && currentUserPermissions && currentUserPermissions.includes('AI_Reports')"
+            v-show="showJewelryMenu('ai_reports') && planFeature('ai_reports') && currentUserPermissions && currentUserPermissions.includes('AI_Reports')"
             :class="{ active: selectedParentMenu == 'ai_reports' }"
             class="nav-item"
             data-item="ai_reports"
@@ -749,7 +744,7 @@
         <!-- Real Estate (collapsible group) -->
         <li
           class="nav-item"
-          v-if="currentUserPermissions && (
+          v-if="showJewelryMenu('realestate') && currentUserPermissions && (
             currentUserPermissions.includes('realestate_properties')
             || currentUserPermissions.includes('realestate_categories')
             || currentUserPermissions.includes('realestate_inquiries')
@@ -899,7 +894,7 @@
           </li>
           <li
             class="nav-item"
-            v-if="currentUserPermissions && (currentUserPermissions.includes('view_batches') || currentUserPermissions.includes('batch_view'))"
+            v-if="showPharmacyModule && currentUserPermissions && (currentUserPermissions.includes('view_batches') || currentUserPermissions.includes('batch_view'))"
           >
             <router-link tag="a" class to="/app/products/Batches">
               <lucide-icon class="nav-icon" name="heart-pulse" />
@@ -1295,7 +1290,7 @@
           </li>
           <li
             class="nav-item"
-            v-if="currentUserPermissions && currentUserPermissions.includes('customer_display_screen_setup')"
+            v-if="showOperationalSalesExtras && currentUserPermissions && currentUserPermissions.includes('customer_display_screen_setup')"
           >
             <router-link tag="a" class to="/app/customer-display/setup">
               <lucide-icon class="nav-icon" name="barcode" />
@@ -1304,7 +1299,7 @@
           </li>
           <li
             class="nav-item"
-            v-if="currentUserPermissions && currentUserPermissions.includes('shipment')"
+            v-if="showOperationalSalesExtras && currentUserPermissions && currentUserPermissions.includes('shipment')"
           >
             <router-link tag="a" class to="/app/sales/shipment">
               <lucide-icon class="nav-icon" name="files" />
@@ -1313,7 +1308,7 @@
           </li>
           <li
             class="nav-item"
-            v-if="currentUserPermissions && currentUserPermissions.includes('real_time_sales_counter')"
+            v-if="showOperationalSalesExtras && currentUserPermissions && currentUserPermissions.includes('real_time_sales_counter')"
           >
             <router-link tag="a" class to="/app/real-time-sales-counter">
               <lucide-icon class="nav-icon" name="shopping-cart" />
@@ -2647,6 +2642,53 @@ export default {
   computed: {
     ...mapGetters(["getSideBarToggleProperties", "currentUserPermissions"]),
 
+    isJewelryTenant() {
+      if (typeof window === 'undefined' || !window.location) return false;
+      const host = String(window.location.hostname || '').toLowerCase();
+      return host.split('.')[0] === 'jewelry';
+    },
+
+    showOperationalSalesExtras() {
+      return !this.isJewelryTenant;
+    },
+
+    showPharmacyModule() {
+      return !this.isJewelryTenant;
+    },
+
+    jewelryHiddenMenus() {
+      return new Set([
+        'realestate',
+        'hrm',
+        'recruit',
+        'meeting',
+        'marketing',
+        'subscription_product',
+        'service',
+        'assets',
+        'projects',
+        'contracts',
+        'tasks',
+        'bookings',
+        'commissions',
+        'woocommerce_settings',
+        'knowledge-base',
+        'ai_reports'
+      ]);
+    },
+
+    hasVisibleSalesMenu() {
+      const permissions = Array.isArray(this.currentUserPermissions) ? this.currentUserPermissions : [];
+      return permissions.includes('Sales_view')
+        || permissions.includes('Sales_add')
+        || permissions.includes('Pos_view')
+        || (this.showOperationalSalesExtras && (
+          permissions.includes('customer_display_screen_setup')
+          || permissions.includes('shipment')
+          || permissions.includes('real_time_sales_counter')
+        ));
+    },
+
     planFeatures() {
       const ps = window.__planSummary;
       return (ps && ps.has_plan && ps.features) ? ps.features : {};
@@ -2660,6 +2702,10 @@ export default {
       "changeSecondarySidebarPropertiesViaOverlay",
       "changeSidebarProperties"
     ]),
+
+    showJewelryMenu(menu) {
+      return !this.isJewelryTenant || !this.jewelryHiddenMenus.has(String(menu || '').toLowerCase());
+    },
 
     planFeature(key) {
       const f = this.planFeatures[key];

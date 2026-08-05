@@ -381,6 +381,12 @@ export default {
     },
     // Whether the Kitchen Display feature is enabled (system setting, exposed via auth store).
     kitchenEnabled() {
+      if (typeof window !== 'undefined' && window.location) {
+        const host = String(window.location.hostname || '').toLowerCase();
+        if (host.split('.')[0] === 'jewelry') {
+          return false;
+        }
+      }
       const user = this.$store && this.$store.getters && this.$store.getters.currentUser;
       return !!(user && user.enable_kitchen_display);
     },

@@ -366,16 +366,25 @@ function readStoredCustomizeButtonVisible() {
 
 function readStoredDarkMode() {
   try {
+    const explicit = localStorage.getItem('darkModePreferenceExplicit');
     const v = localStorage.getItem('darkMode');
-    if (v === 'true') return true;
-    if (v === 'false') return false;
+
+    if (explicit === 'true') {
+      if (v === 'true') return true;
+      if (v === 'false') return false;
+    }
+
+    // Default the app to dark mode unless the user explicitly chose otherwise.
+    localStorage.setItem('darkMode', 'true');
+    return true;
   } catch (e) {}
-  return false;
+  return true;
 }
 
 function persistDarkMode(value) {
   try {
     localStorage.setItem('darkMode', value ? 'true' : 'false');
+    localStorage.setItem('darkModePreferenceExplicit', 'true');
   } catch (e) {}
 }
 

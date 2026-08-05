@@ -19,7 +19,7 @@
 
   </head>
 
-  <body class="text-left">
+  <body class="text-left theme-luxury">
     <noscript>
       <strong>
         We're sorry but Stocky doesn't work properly without JavaScript

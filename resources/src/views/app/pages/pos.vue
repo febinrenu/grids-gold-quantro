@@ -8,7 +8,7 @@
 
       <!-- Brand block (28x28 logo only on mobile; register info follows as a sibling) -->
       <div class="pos-shell-brand-block" style="display: flex; align-items: center; gap: 10px; padding-right: 12px; border-right: 1px solid #e6e6ec; height: 32px;">
-        <div style="width: 28px; height: 28px; border-radius: 8px; background: transparent; display: grid; place-items: center; color: #1f1f2c; font-weight: 700; font-size: 13px; font-family: 'JetBrains Mono', monospace; overflow: hidden; flex-shrink: 0;">
+        <div class="pos-shell-brand-mark" style="width: 28px; height: 28px; border-radius: 8px; background: transparent; display: grid; place-items: center; color: #1f1f2c; font-weight: 700; font-size: 13px; font-family: 'JetBrains Mono', monospace; overflow: hidden; flex-shrink: 0;">
           <img v-if="currentUser && currentUser.logo" :src="$imgUrl('settings', currentUser.logo)" alt="logo" style="width: 100%; height: 100%; object-fit: cover;" />
           <span v-else>{{ (currentUser && currentUser.company) ? (currentUser.company[0] || 'P') : 'P' }}</span>
         </div>
@@ -22,6 +22,7 @@
         <button
           v-if="isOnline"
           type="button"
+          class="pos-shell-register-pill"
           @click="(currentRegister && currentRegister.status === 'open') ? $bvModal.show('CloseRegisterModal') : $bvModal.show('OpenRegisterModal')"
           :title="(currentRegister && currentRegister.status === 'open') ? $t('Close Register') : $t('Open Register')"
           style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; font-family: inherit; text-transform: uppercase; cursor: pointer; border: 0;"
@@ -343,12 +344,12 @@
           </div>
 
           <!-- Empty state — cart icon + 2-line copy (matches POS.html) -->
-          <div v-if="details.length === 0" style="padding: 32px 16px; text-align: center; color: #8d8da0;">
+          <div v-if="details.length === 0" class="pos-shell-empty-state" style="padding: 32px 16px; text-align: center; color: #8d8da0;">
             <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width: 32px; height: 32px; opacity: 0.3; margin: 0 auto 8px;">
               <path d="M3 4h2l2 9h9l1.5-6H6"/><circle cx="8" cy="16.5" r="1"/><circle cx="15" cy="16.5" r="1"/>
             </svg>
-            <div style="font-size: 13px; font-weight: 500; margin-bottom: 4px; color: #54546a;">{{ $t('pos.No_items_added') || 'Cart is empty' }}</div>
-            <div style="font-size: 11px; color: #8d8da0;">{{ $t('pos.Select_products_from_right_panel') || 'Scan or click a product to begin' }}</div>
+            <div class="pos-shell-empty-title" style="font-size: 13px; font-weight: 500; margin-bottom: 4px; color: #54546a;">{{ $t('pos.No_items_added') || 'Cart is empty' }}</div>
+            <div class="pos-shell-empty-desc" style="font-size: 11px; color: #8d8da0;">{{ $t('pos.Select_products_from_right_panel') || 'Scan or click a product to begin' }}</div>
           </div>
 
           <!-- Cart items list — 3-col grid: thumb | details | actions/total -->
@@ -363,6 +364,7 @@
                    Mirrors the product-card behaviour at the grid above so the
                    cart row reuses the same image source / fallback rules. -->
               <div
+                class="pos-shell-cart-thumb"
                 style="width: 32px; height: 32px; border-radius: 6px; align-self: center; display: grid; place-items: center; font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 10px; color: rgba(31,31,44,0.55); letter-spacing: 0.02em; text-transform: uppercase;"
                 :style="{
                   background: (pos_settings.show_product_images && item.image)
@@ -387,15 +389,15 @@
                    created blank space between name and SKU when names were
                    short. Promoted to its own subtitle line so the middle
                    column reads top-to-bottom as title / subtitle / controls. -->
-              <div style="min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 2px;">
+              <div class="pos-shell-cart-body" style="min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 2px;">
                 <!-- Name -->
-                <div style="font-size: 13px; font-weight: 600; color: #1f1f2c; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ item.name }}</div>
+                <div class="pos-shell-cart-name" style="font-size: 13px; font-weight: 600; color: #1f1f2c; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ item.name }}</div>
 
                 <!-- SKU subtitle -->
-                <div v-if="item.code" style="font-size: 10px; color: #8d8da0; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">SKU · {{ item.code }}</div>
+                <div v-if="item.code" class="pos-shell-cart-sku" style="font-size: 10px; color: #8d8da0; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">SKU · {{ item.code }}</div>
 
                 <!-- Jewelry breakdown: metal, karat, weight, gold rate, metal value, making charge, wastage, stone value, discount, tax -->
-                <div v-if="item.is_jewelry_item" style="font-size: 10px; color: #8d6a1e; background: #fdf6e8; border-radius: 5px; padding: 3px 6px; margin-top: 2px; line-height: 1.5;">
+                <div v-if="item.is_jewelry_item" class="pos-shell-cart-jewelry" style="font-size: 10px; color: #8d6a1e; background: #fdf6e8; border-radius: 5px; padding: 3px 6px; margin-top: 2px; line-height: 1.5;">
                   <div>
                     <span v-if="item.metal_type">{{ item.metal_type }}</span>
                     <span v-if="item.karat"> · {{ item.karat }}</span>
@@ -415,33 +417,34 @@
                 </div>
 
                 <!-- Controls row: qty stepper + unit price + price-type -->
-                <div style="display: flex; align-items: center; gap: 8px; margin-top: 2px;">
+                <div class="pos-shell-cart-controls" style="display: flex; align-items: center; gap: 8px; margin-top: 2px;">
                   <!-- qty stepper -->
-                  <div style="display: inline-flex; align-items: center; border: 1px solid #e6e6ec; border-radius: 5px; height: 24px; background: #ffffff; flex-shrink: 0;">
+                  <div class="pos-shell-cart-stepper" style="display: inline-flex; align-items: center; border: 1px solid #e6e6ec; border-radius: 5px; height: 24px; background: #ffffff; flex-shrink: 0;">
                     <button @click="decrement(item, item.detail_id)" :title="$t('pos.Decrease')" style="width: 22px; height: 22px; background: transparent; border: 0; color: #54546a; font-size: 14px; cursor: pointer; padding: 0;">−</button>
                     <input v-model.number="item.quantity" type="text" @change="Verified_Qty(item, item.detail_id)" style="width: 32px; height: 100%; border: 0; text-align: center; font-size: 12px; font-family: 'JetBrains Mono', monospace; background: transparent; color: #1f1f2c; outline: none; padding: 0;" />
                     <button @click="increment(item.detail_id)" :title="$t('pos.Increase')" style="width: 22px; height: 22px; background: transparent; border: 0; color: #54546a; font-size: 14px; cursor: pointer; padding: 0;">+</button>
                   </div>
                   <!-- × unit price (darker + larger so the per-unit math reads at a glance) -->
-                  <span style="font-size: 12px; color: #54546a; font-weight: 500; font-family: 'JetBrains Mono', monospace; white-space: nowrap;">× {{ formatPriceWithCurrentCurrency(item.Total_price, 2) }}</span>
+                  <span class="pos-shell-cart-unit" style="font-size: 12px; color: #54546a; font-weight: 500; font-family: 'JetBrains Mono', monospace; white-space: nowrap;">× {{ formatPriceWithCurrentCurrency(item.Total_price, 2) }}</span>
                   <!-- Price type (sized to match qty stepper, dark text instead of muted) -->
-                  <select v-model="item.price_type" @change="onChangePriceType(item)" style="height: 24px; padding: 0 6px; font-size: 11px; font-weight: 500; border: 1px solid #d8d8e0; border-radius: 5px; background: #ffffff; color: #1f1f2c; outline: none; cursor: pointer; flex-shrink: 0;">
+                  <select v-model="item.price_type" class="pos-shell-cart-select" @change="onChangePriceType(item)" style="height: 24px; padding: 0 6px; font-size: 11px; font-weight: 500; border: 1px solid #d8d8e0; border-radius: 5px; background: #ffffff; color: #1f1f2c; outline: none; cursor: pointer; flex-shrink: 0;">
                     <option value="retail">{{ $t('Retail Price') }}</option>
                     <option value="wholesale">{{ $t('Wholesale Price') }}</option>
                   </select>
                   <!-- Multi-Pack Selling: per-line pack picker (only when packs exist) -->
-                  <select v-if="item.packs && item.packs.length" v-model="item.product_pack_id" @change="onChangePack(item)" :title="$t('Pack')" style="height: 24px; padding: 0 6px; font-size: 11px; font-weight: 500; border: 1px solid #d8d8e0; border-radius: 5px; background: #ffffff; color: #1f1f2c; outline: none; cursor: pointer; flex-shrink: 0;">
+                  <select v-if="item.packs && item.packs.length" v-model="item.product_pack_id" class="pos-shell-cart-select pos-shell-cart-pack-select" @change="onChangePack(item)" :title="$t('Pack')" style="height: 24px; padding: 0 6px; font-size: 11px; font-weight: 500; border: 1px solid #d8d8e0; border-radius: 5px; background: #ffffff; color: #1f1f2c; outline: none; cursor: pointer; flex-shrink: 0;">
                     <option v-for="pack in item.packs" :key="'pk-'+item.detail_id+'-'+pack.id" :value="pack.id" :disabled="!isOversellingAllowed && item.product_type !== 'is_service' && Number(pack.multiplier) > 1 && Number(pack.multiplier) > Number(item.current)">{{ pack.name }} (×{{ pack.multiplier }})<template v-if="!isOversellingAllowed && item.product_type !== 'is_service' && Number(pack.multiplier) > 1 && Number(pack.multiplier) > Number(item.current)"> — {{ $t('Out_of_Stock') || 'out of stock' }}</template></option>
                   </select>
                 </div>
               </div>
 
               <!-- Right column: edit/remove top, line total bottom -->
-              <div style="display: flex; flex-direction: column; align-items: flex-end; justify-content: space-between; gap: 4px;">
-                <div style="display: inline-flex; gap: 2px;">
+              <div class="pos-shell-cart-side" style="display: flex; flex-direction: column; align-items: flex-end; justify-content: space-between; gap: 4px;">
+                <div class="pos-shell-cart-actions" style="display: inline-flex; gap: 2px;">
                   <button
                     v-if="currentUserPermissions && currentUserPermissions.includes('edit_product_sale')"
                     type="button"
+                    class="pos-shell-cart-action"
                     @mousedown.prevent
                     @click="Modal_Updat_Detail(item)"
                     :title="$t('pos.Edit')"
@@ -452,6 +455,7 @@
                   </button>
                   <button
                     type="button"
+                    class="pos-shell-cart-action"
                     @mousedown.prevent
                     @click="delete_Product_Detail(item.detail_id)"
                     :title="$t('pos.Remove')"
@@ -461,7 +465,7 @@
                     </svg>
                   </button>
                 </div>
-                <div style="font-size: 13px; font-weight: 600; font-family: 'JetBrains Mono', monospace; color: #1f1f2c;">{{ formatPriceWithCurrentCurrency(item.subtotal, 2) }}</div>
+                <div class="pos-shell-cart-line-total" style="font-size: 13px; font-weight: 600; font-family: 'JetBrains Mono', monospace; color: #1f1f2c;">{{ formatPriceWithCurrentCurrency(item.subtotal, 2) }}</div>
               </div>
 
               <!-- Batches panel (full-width, only for tracked items) -->
@@ -525,6 +529,14 @@
         <!-- Totals / charges -->
         <div class="pos-shell-totals" style="border-top: 1px solid #e6e6ec; padding: 8px 12px; background: #f7f7fb;">
 
+          <div class="pos-shell-totals-hero">
+            <div class="pos-shell-totals-copy">
+              <div class="pos-shell-totals-eyebrow">Order Summary</div>
+              <div class="pos-shell-totals-title">{{ details.length }} {{ details.length === 1 ? 'item' : 'items' }} ready for checkout</div>
+            </div>
+            <div class="pos-shell-totals-amount">{{ formatPriceWithCurrentCurrency(GrandTotal || 0, 2) }}</div>
+          </div>
+
           <!-- Charges row — matches POS.html FieldNum (no uppercase, prefix/suffix inside box without borders) -->
           <div class="pos-shell-charges-row" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 8px;">
             <label style="display: block;">
@@ -553,6 +565,7 @@
           <!-- Points convert row -->
           <div
             v-if="isOnline && pos_settings.enable_customer_points && clientIsEligible && currentUserPermissions && currentUserPermissions.includes('edit_tax_discount_shipping_sale')"
+            class="pos-shell-points-bar"
             :style="{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', padding: '10px', background: pointsConverted ? '#eaf7ef' : '#f5f3fd', borderRadius: '8px', marginBottom: '10px' }">
             <div style="min-width: 0;">
               <div style="display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: #54546a;">
@@ -587,7 +600,7 @@
           </div>
 
           <!-- Totals — Subtotal + Tax always, Discount + Shipping only when > 0 (matches POS.html) -->
-          <div>
+          <div class="pos-shell-summary">
             <div style="display: flex; justify-content: space-between; padding: 4px 0; font-size: 12px;">
               <span style="color: #54546a;">{{ $t('pos.Subtotal') }}</span>
               <span style="color: #1f1f2c; font-family: 'JetBrains Mono', monospace; font-weight: 500;">{{ formatPriceWithCurrentCurrency(total, 2) }}</span>
@@ -669,7 +682,7 @@
           @touchend="onProductsTouchEnd"
           @touchcancel="onProductsTouchEnd">
           <!-- Empty state -->
-          <div v-if="paginated_Products.length === 0" style="padding: 48px 16px; text-align: center; color: #8d8da0;">
+          <div v-if="paginated_Products.length === 0" class="pos-shell-products-empty" style="padding: 48px 16px; text-align: center; color: #8d8da0;">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width: 40px; height: 40px; opacity: 0.3; margin: 0 auto 8px;">
               <circle cx="11" cy="11" r="8"></circle>
               <path d="m21 21-4.35-4.35"></path>
@@ -691,8 +704,9 @@
               </div>
 
               <!-- Image / swatch area (matches POS.html ProductSwatch) -->
-              <div style="margin: -10px -10px 8px; position: relative;">
+              <div class="pos-shell-card-media-wrap" style="margin: -10px -10px 8px; position: relative;">
                 <div
+                  class="pos-shell-card-media"
                   :style="{
                     width: '100%',
                     height: '58px',
@@ -714,14 +728,14 @@
                   </span>
                 </div>
                 <!-- Discount % badge (top-left) -->
-                <div v-if="product.discount" style="position: absolute; top: 6px; left: 6px; background: rgba(255,255,255,0.9); border-radius: 6px; padding: 2px 6px; color: #d64545; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700;">-{{ product.discount }}%</div>
+                <div v-if="product.discount" class="pos-shell-card-badge" style="position: absolute; top: 6px; left: 6px; background: rgba(255,255,255,0.9); border-radius: 6px; padding: 2px 6px; color: #d64545; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700;">-{{ product.discount }}%</div>
               </div>
 
               <!-- Name (single 13px line) -->
-              <div style="font-size: 13px; font-weight: 500; margin-bottom: 2px; line-height: 1.2; color: #1f1f2c; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ product.name }}</div>
+              <div class="pos-shell-card-name" style="font-size: 13px; font-weight: 500; margin-bottom: 2px; line-height: 1.2; color: #1f1f2c; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ product.name }}</div>
 
               <!-- SKU · X in stock -->
-              <div style="font-size: 10px; color: #8d8da0; font-family: 'JetBrains Mono', monospace; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+              <div class="pos-shell-card-meta" style="font-size: 10px; color: #8d8da0; font-family: 'JetBrains Mono', monospace; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                 <span v-if="product.code">SKU {{ product.code }}</span>
                 <span
                   v-if="product.product_type !== 'is_service' && pos_settings.show_stock_quantity"
@@ -731,7 +745,7 @@
               </div>
 
               <!-- Jewelry summary: metal, karat, weight, stones, gold rate -->
-              <div v-if="product.is_jewelry_item" style="font-size: 10px; color: #a8792f; background: #fdf6e8; border-radius: 6px; padding: 3px 6px; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+              <div v-if="product.is_jewelry_item" class="pos-shell-card-jewelry" style="font-size: 10px; color: #a8792f; background: #fdf6e8; border-radius: 6px; padding: 3px 6px; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                 <span v-if="product.metal_type">{{ product.metal_type }}</span>
                 <span v-if="product.karat"> · {{ product.karat }}</span>
                 <span v-if="product.jewelry_gross_weight"> · {{ formatNumber(product.jewelry_gross_weight, 3) }}{{ product.jewelry_weight_uom }}</span>
@@ -740,8 +754,8 @@
               </div>
 
               <!-- Price + plus button row -->
-              <div style="display: flex; align-items: center; justify-content: space-between;">
-                <div style="font-size: 14px; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: #6f53d9; letter-spacing: -0.01em;">{{ formatPriceWithCurrentCurrency(product.Net_price, 2) }}</div>
+              <div class="pos-shell-card-price-row" style="display: flex; align-items: center; justify-content: space-between;">
+                <div class="pos-shell-card-price" style="font-size: 14px; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: #6f53d9; letter-spacing: -0.01em;">{{ formatPriceWithCurrentCurrency(product.Net_price, 2) }}</div>
                 <span
                   class="pos-shell-add-btn"
                   :style="{ width: '24px', height: '24px', background: '#f0ecfb', color: '#6f53d9', borderRadius: '6px', display: 'grid', placeItems: 'center', opacity: (!isOversellingAllowed && product.product_type !== 'is_service' && product.qte_sale <= 0) ? 0.4 : 1 }">
@@ -807,7 +821,7 @@
     <div v-if="productsReady" class="pos-shell-pay-bar" style="display: flex; background: rgb(255, 255, 255); align-items: center; gap: 8px; padding: 8px 16px 8px 20px; flex-shrink: 0; flex-grow: 0; border-top: 1px solid rgb(230, 230, 236);">
 
       <!-- Online indicator -->
-      <div :style="{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 500, color: isOnline ? '#1e7a44' : '#a83232' }" :title="offlineStatusTitle">
+      <div class="pos-shell-connection-status" :style="{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 500, color: isOnline ? '#1e7a44' : '#a83232' }" :title="offlineStatusTitle">
         <span :style="{ width: '6px', height: '6px', borderRadius: '99px', background: isOnline ? '#2fae5e' : '#d64545' }"></span>
         <span v-if="isOnline">{{ $t('Online') || 'Online' }} <span v-if="lastProductsSyncAt" style="opacity: 0.7;">· {{ $t('pos.Synced') || 'synced' }}</span></span>
         <span v-else>{{ $t('pos.Offline_Mode') }}<span v-if="offlineSalesCount > 0" style="opacity: 0.7;"> · {{ offlineSalesCount }} {{ $t('pos.Pending') || 'pending' }}</span></span>
@@ -861,9 +875,9 @@
       <div style="flex: 1;"></div>
 
       <!-- Total payable -->
-      <div style="display: flex; flex-direction: column; align-items: flex-end; text-align: right; margin-right: 12px;">
-        <span style="font-size: 10px; color: #8d8da0; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;">{{ $t('pos.Total_Payable') }}</span>
-        <span style="font-size: 20px; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: #1f1f2c; letter-spacing: -0.01em;">{{ formatPriceWithCurrentCurrency(GrandTotal, 2) }}</span>
+      <div class="pos-shell-pay-summary" style="display: flex; flex-direction: column; align-items: flex-end; text-align: right; margin-right: 12px;">
+        <span class="pos-shell-pay-summary-label" style="font-size: 10px; color: #8d8da0; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;">{{ $t('pos.Total_Payable') }}</span>
+        <span class="pos-shell-pay-summary-value" style="font-size: 20px; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: #1f1f2c; letter-spacing: -0.01em;">{{ formatPriceWithCurrentCurrency(GrandTotal, 2) }}</span>
       </div>
 
       <!-- Pay now -->
@@ -11571,9 +11585,9 @@ $transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: fixed;
   inset: 0;
   z-index: 1080; /* above POS UI, below bootstrap modals (1050+) — pick high enough to win in-app */
-  background: rgba(15, 15, 30, 0.42);
-  backdrop-filter: blur(2px);
-  -webkit-backdrop-filter: blur(2px);
+  background: rgba(9, 7, 6, 0.52);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   display: flex;
   justify-content: flex-start;
 }
@@ -11582,12 +11596,16 @@ $transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   height: 100%;
   width: 380px;
   max-width: 92vw;
-  background: #ffffff;
+  background:
+    radial-gradient(circle at top right, rgba(214, 177, 122, 0.08), transparent 42%),
+    linear-gradient(180deg, var(--pos-panel-strong) 0%, var(--pos-panel) 100%);
+  color: var(--pos-text);
   display: flex;
   flex-direction: column;
-  box-shadow: 18px 0 40px -12px rgba(20, 20, 40, 0.25);
-  border-top-right-radius: 18px;
-  border-bottom-right-radius: 18px;
+  box-shadow: 18px 0 40px -12px rgba(0, 0, 0, 0.28);
+  border-top-right-radius: 22px;
+  border-bottom-right-radius: 22px;
+  border-right: 1px solid var(--pos-border);
   overflow: hidden;
 }
 
@@ -11611,9 +11629,9 @@ $transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   justify-content: space-between;
   gap: 12px;
   background:
-    radial-gradient(900px 200px at -10% -40%, rgba(255,255,255,0.18), transparent 60%),
-    linear-gradient(135deg, #6f53d9 0%, #8a6cf0 50%, #b58cff 100%);
-  color: #fff;
+    radial-gradient(900px 220px at -10% -40%, rgba(255,255,255,0.12), transparent 60%),
+    linear-gradient(135deg, rgba(92, 66, 37, 0.98) 0%, rgba(138, 104, 62, 0.94) 52%, rgba(214, 177, 122, 0.9) 100%);
+  color: #fffaf2;
   position: relative;
 }
 .cat-drawer-header::after {
@@ -11641,7 +11659,7 @@ $transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   align-items: center;
   justify-content: center;
   background: rgba(255,255,255,0.2);
-  color: #fff;
+  color: #fffaf2;
   flex: 0 0 36px;
   i { font-size: 16px; }
   svg { width: 18px; height: 18px; }
@@ -11654,7 +11672,7 @@ $transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .cat-drawer-title-sub {
   font-size: 11.5px;
-  color: rgba(255,255,255,0.85);
+  color: rgba(255, 247, 235, 0.82);
   margin-top: 2px;
 }
 .cat-drawer-close {
@@ -11662,8 +11680,8 @@ $transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   height: 32px;
   border-radius: 10px;
   border: 0;
-  background: rgba(255,255,255,0.18);
-  color: #fff;
+  background: rgba(255,255,255,0.14);
+  color: #fffaf2;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -11673,7 +11691,7 @@ $transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 1;
   i { font-size: 16px; }
   svg { width: 16px; height: 16px; }
-  &:hover { background: rgba(255,255,255,0.28); transform: rotate(90deg); }
+  &:hover { background: rgba(255,255,255,0.24); transform: rotate(90deg); }
 }
 
 /* Search */
@@ -11687,7 +11705,7 @@ $transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     left: 28px;
     top: 50%;
     transform: translateY(-50%);
-    color: $color-text-tertiary;
+    color: var(--pos-muted);
     pointer-events: none;
     font-size: 14px;
     width: 14px;
@@ -11695,20 +11713,20 @@ $transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
   input {
     width: 100%;
-    height: 38px;
-    padding: 0 36px 0 36px;
-    border-radius: 10px;
-    border: 1px solid $color-border-light;
-    background: #f7f7fb;
+    height: 42px;
+    padding: 0 38px 0 38px;
+    border-radius: 14px;
+    border: 1px solid var(--pos-border);
+    background: var(--pos-panel-strong);
     font-size: 13px;
-    color: $color-text-primary;
+    color: var(--pos-text);
     transition: border-color 150ms ease, box-shadow 150ms ease, background 150ms ease;
-    &::placeholder { color: $color-text-tertiary; }
+    &::placeholder { color: var(--pos-muted); }
     &:focus {
       outline: none;
-      border-color: #6f53d9;
-      background: #fff;
-      box-shadow: 0 0 0 3px rgba(111,83,217,0.15);
+      border-color: var(--pos-accent);
+      background: var(--pos-panel-strong);
+      box-shadow: 0 0 0 3px var(--pos-accent-soft);
     }
   }
 }
@@ -11722,7 +11740,7 @@ $transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border-radius: 6px;
   border: 0;
   background: transparent;
-  color: $color-text-tertiary;
+  color: var(--pos-muted);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -11730,58 +11748,61 @@ $transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   padding: 0;
   i { font-size: 12px; }
   svg { width: 12px; height: 12px; position: static; transform: none; }
-  &:hover { background: #ececf3; color: $color-text-primary; }
+  &:hover { background: rgba(214, 177, 122, 0.12); color: var(--pos-text); }
 }
 
 /* List */
 .cat-drawer-list {
   flex: 1 1 auto;
   overflow-y: auto;
-  padding: 6px 12px 16px;
+  padding: 8px 12px 18px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   &::-webkit-scrollbar { width: 8px; }
-  &::-webkit-scrollbar-thumb { background: #d8d8e3; border-radius: 99px; }
+  &::-webkit-scrollbar-thumb { background: rgba(180, 136, 82, 0.28); border-radius: 99px; }
 }
 .cat-drawer-item {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 12px;
-  border-radius: 12px;
+  padding: 12px 13px;
+  border-radius: 16px;
   border: 1px solid transparent;
-  background: transparent;
+  background: rgba(255, 255, 255, 0.02);
   cursor: pointer;
   text-align: left;
   width: 100%;
-  transition: background 150ms ease, border-color 150ms ease, transform 150ms ease;
+  transition: background 150ms ease, border-color 150ms ease, transform 150ms ease, box-shadow 150ms ease;
   &:hover {
-    background: #f7f7fb;
-    border-color: #ececf3;
+    background: rgba(214, 177, 122, 0.1);
+    border-color: rgba(180, 136, 82, 0.2);
+    transform: translateX(2px);
   }
   &.active {
-    background: linear-gradient(135deg, rgba(111,83,217,0.08), rgba(138,108,240,0.08));
-    border-color: rgba(111,83,217,0.35);
-    .cat-drawer-item-name { color: #6f53d9; font-weight: 700; }
+    background: linear-gradient(135deg, rgba(214, 177, 122, 0.18), rgba(214, 177, 122, 0.06));
+    border-color: rgba(180, 136, 82, 0.34);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+    .cat-drawer-item-name { color: var(--pos-accent-strong); font-weight: 700; }
   }
 }
 .cat-drawer-item-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   font-size: 14px;
   font-weight: 700;
   color: #fff;
-  background: linear-gradient(135deg, #6f53d9, #8a6cf0);
-  flex: 0 0 36px;
+  background: linear-gradient(135deg, var(--pos-accent) 0%, var(--pos-accent-strong) 100%);
+  flex: 0 0 38px;
   letter-spacing: 0.2px;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.12);
   &.all {
-    background: linear-gradient(135deg, rgba(111,83,217,0.12), rgba(138,108,240,0.12));
-    color: #6f53d9;
+    background: linear-gradient(135deg, var(--pos-accent-soft), rgba(214, 177, 122, 0.04));
+    color: var(--pos-accent-strong);
     i { font-size: 16px; }
     svg { width: 16px; height: 16px; }
   }
@@ -11790,14 +11811,14 @@ $transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   flex: 1 1 auto;
   min-width: 0;
   font-size: 13.5px;
-  font-weight: 500;
-  color: $color-text-primary;
+  font-weight: 600;
+  color: var(--pos-text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .cat-drawer-item-check {
-  color: #6f53d9;
+  color: var(--pos-accent-strong);
   flex: 0 0 auto;
   i { font-size: 16px; }
   svg { width: 16px; height: 16px; }
@@ -11807,7 +11828,7 @@ $transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 .cat-drawer-empty {
   text-align: center;
   padding: 32px 12px 20px;
-  color: $color-text-tertiary;
+  color: var(--pos-muted);
 }
 .cat-drawer-empty-icon {
   width: 48px;
@@ -11816,8 +11837,9 @@ $transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(111,83,217,0.06);
-  color: #6f53d9;
+  background: var(--pos-panel-soft);
+  color: var(--pos-accent-strong);
+  border: 1px solid var(--pos-border);
   margin-bottom: 8px;
   i { font-size: 20px; }
   svg { width: 20px; height: 20px; }
@@ -11825,6 +11847,7 @@ $transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 .cat-drawer-empty-text {
   font-size: 13px;
   font-weight: 500;
+  color: var(--pos-text);
 }
 
 /* Mobile */
@@ -17053,6 +17076,660 @@ $transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     min-width: 0 !important;
     max-width: none !important;
     order: 53 !important;
+  }
+}
+
+/* ============================================================
+   Luxury desktop retouch
+   ============================================================ */
+.pos-codecanyon .pos-shell-brand-mark {
+  background: linear-gradient(135deg, rgba(214, 177, 122, 0.18) 0%, rgba(255, 255, 255, 0.02) 100%) !important;
+  border: 1px solid var(--pos-border) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 12px 24px rgba(58, 36, 16, 0.16);
+}
+
+.pos-codecanyon .pos-shell-empty-state,
+.pos-codecanyon .pos-shell-products-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 240px;
+  margin: 10px 6px;
+  padding: 28px 20px !important;
+  border: 1px dashed rgba(180, 136, 82, 0.22);
+  border-radius: 26px;
+  background:
+    radial-gradient(circle at top, rgba(214, 177, 122, 0.12), transparent 55%),
+    linear-gradient(180deg, var(--pos-panel-strong) 0%, var(--pos-panel) 100%) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.pos-codecanyon .pos-shell-empty-state svg,
+.pos-codecanyon .pos-shell-products-empty svg {
+  width: 54px !important;
+  height: 54px !important;
+  margin-bottom: 14px !important;
+  opacity: 0.8 !important;
+  color: var(--pos-accent-strong) !important;
+}
+
+.pos-codecanyon .pos-shell-empty-title,
+.pos-codecanyon .pos-shell-products-empty > div:last-child {
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-size: 1.4rem !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.03em;
+  color: var(--pos-text) !important;
+}
+
+.pos-codecanyon .pos-shell-empty-desc {
+  max-width: 280px;
+  font-size: 0.88rem !important;
+  line-height: 1.7;
+  color: var(--pos-muted) !important;
+}
+
+.pos-codecanyon .pos-shell-cart-aside {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.015) 0%, rgba(0, 0, 0, 0.04) 100%) !important;
+}
+
+.pos-codecanyon .pos-shell-cart-scroll {
+  position: relative;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(214, 177, 122, 0.08), transparent 34%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.01) 0%, rgba(0, 0, 0, 0) 100%);
+}
+
+.pos-codecanyon .pos-shell-cart-row {
+  position: relative;
+  margin-bottom: 10px !important;
+  padding: 12px 14px !important;
+  border: 1px solid var(--pos-border) !important;
+  border-radius: 22px !important;
+  background: linear-gradient(180deg, var(--pos-panel-strong) 0%, rgba(255, 255, 255, 0.01) 100%) !important;
+  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.16);
+  overflow: hidden;
+}
+
+.pos-codecanyon .pos-shell-cart-row::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, var(--lux-accent) 0%, rgba(214, 177, 122, 0) 100%);
+  opacity: 0.88;
+}
+
+.pos-codecanyon .pos-shell-cart-thumb {
+  width: 46px !important;
+  height: 46px !important;
+  border-radius: 16px !important;
+  align-self: start !important;
+  background-color: var(--pos-panel-soft) !important;
+  border: 1px solid rgba(180, 136, 82, 0.18) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 12px 24px rgba(0, 0, 0, 0.16);
+}
+
+.pos-codecanyon .pos-shell-cart-body {
+  gap: 6px !important;
+}
+
+.pos-codecanyon .pos-shell-cart-name {
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.02em;
+  color: var(--pos-text) !important;
+}
+
+.pos-codecanyon .pos-shell-cart-sku {
+  font-size: 10px !important;
+  text-transform: uppercase;
+  letter-spacing: 0.12em !important;
+  color: var(--pos-muted) !important;
+}
+
+.pos-codecanyon .pos-shell-cart-jewelry {
+  margin-top: 0 !important;
+  padding: 7px 10px !important;
+  border-radius: 14px !important;
+  border: 1px solid rgba(180, 136, 82, 0.16);
+  background: linear-gradient(135deg, rgba(214, 177, 122, 0.14) 0%, rgba(255, 255, 255, 0.015) 100%) !important;
+  color: var(--pos-accent-strong) !important;
+  line-height: 1.7 !important;
+}
+
+.pos-codecanyon .pos-shell-cart-controls {
+  flex-wrap: wrap;
+  gap: 8px !important;
+  margin-top: 2px !important;
+}
+
+.pos-codecanyon .pos-shell-cart-stepper {
+  height: 34px !important;
+  padding: 0 4px;
+  border-radius: 14px !important;
+  background: var(--pos-panel-soft) !important;
+  border-color: var(--pos-border) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.pos-codecanyon .pos-shell-cart-stepper > button {
+  width: 28px !important;
+  height: 28px !important;
+  border-radius: 10px !important;
+  color: var(--pos-text) !important;
+}
+
+.pos-codecanyon .pos-shell-cart-stepper > input {
+  width: 42px !important;
+  color: var(--pos-text) !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+}
+
+.pos-codecanyon .pos-shell-cart-unit {
+  display: inline-flex;
+  align-items: center;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 14px;
+  background: rgba(214, 177, 122, 0.1);
+  border: 1px solid rgba(180, 136, 82, 0.16);
+  color: var(--pos-accent-strong) !important;
+  font-weight: 700 !important;
+}
+
+.pos-codecanyon .pos-shell-cart-select {
+  height: 34px !important;
+  padding: 0 10px !important;
+  border-radius: 14px !important;
+  border-color: var(--pos-border) !important;
+  background: var(--pos-panel-soft) !important;
+  color: var(--pos-text) !important;
+}
+
+.pos-codecanyon .pos-shell-cart-side {
+  min-width: 92px;
+  padding-left: 8px;
+}
+
+.pos-codecanyon .pos-shell-cart-actions {
+  gap: 6px !important;
+}
+
+.pos-codecanyon .pos-shell-cart-action {
+  width: 30px;
+  height: 30px;
+  border-radius: 12px !important;
+  border: 1px solid rgba(180, 136, 82, 0.14) !important;
+  background: rgba(255, 255, 255, 0.02) !important;
+  color: var(--pos-muted) !important;
+}
+
+.pos-codecanyon .pos-shell-cart-action:hover {
+  background: rgba(214, 177, 122, 0.12) !important;
+  color: var(--pos-text) !important;
+  border-color: rgba(180, 136, 82, 0.24) !important;
+}
+
+.pos-codecanyon .pos-shell-cart-line-total {
+  font-size: 18px !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.03em;
+  color: var(--pos-accent-strong) !important;
+}
+
+.pos-codecanyon .pos-shell-totals {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, var(--pos-panel-soft) 100%) !important;
+  border-top: 1px solid var(--pos-border) !important;
+}
+
+.pos-codecanyon .pos-shell-totals-hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  border: 1px solid rgba(180, 136, 82, 0.22);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at top right, rgba(214, 177, 122, 0.18), transparent 44%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.02), rgba(214, 177, 122, 0.08));
+  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.14);
+}
+
+.pos-codecanyon .pos-shell-totals-copy {
+  min-width: 0;
+}
+
+.pos-codecanyon .pos-shell-totals-eyebrow {
+  margin-bottom: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--pos-muted) !important;
+}
+
+.pos-codecanyon .pos-shell-totals-title {
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-size: 1.15rem;
+  line-height: 1.3;
+  color: var(--pos-text) !important;
+}
+
+.pos-codecanyon .pos-shell-totals-amount {
+  flex-shrink: 0;
+  font-size: 1.55rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: var(--pos-accent-strong) !important;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.pos-codecanyon .pos-shell-charges-row > label {
+  display: flex !important;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  border: 1px solid rgba(180, 136, 82, 0.14);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.015) 0%, rgba(0, 0, 0, 0.04) 100%);
+}
+
+.pos-codecanyon .pos-shell-charges-row > label > div:first-child {
+  height: auto !important;
+  margin-bottom: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  font-size: 10px !important;
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase;
+  color: var(--pos-muted) !important;
+}
+
+.pos-codecanyon .pos-shell-charges-row > label > div:last-child {
+  height: 40px !important;
+  border-radius: 14px !important;
+  background: var(--pos-panel-strong) !important;
+  border: 1px solid var(--pos-border) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.pos-codecanyon .pos-shell-charges-row > label > div:last-child > input,
+.pos-codecanyon .pos-shell-charges-row > label > div:last-child > button,
+.pos-codecanyon .pos-shell-charges-row > label > div:last-child > span {
+  font-size: 12px !important;
+}
+
+.pos-codecanyon .pos-shell-points-bar {
+  border: 1px solid rgba(180, 136, 82, 0.22);
+  border-radius: 18px !important;
+  background: linear-gradient(135deg, rgba(214, 177, 122, 0.14) 0%, var(--pos-panel-strong) 62%) !important;
+  box-shadow: 0 14px 28px rgba(58, 36, 16, 0.12);
+}
+
+.pos-codecanyon .pos-shell-points-bar input {
+  height: 38px !important;
+  width: 88px !important;
+  border-radius: 14px !important;
+  border-color: var(--pos-border) !important;
+  background: var(--pos-panel-strong) !important;
+  color: var(--pos-text) !important;
+}
+
+.pos-codecanyon .pos-shell-points-bar button {
+  height: 38px !important;
+  padding: 0 14px !important;
+  border-radius: 14px !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  box-shadow: 0 12px 24px rgba(139, 98, 47, 0.18);
+}
+
+.pos-codecanyon .pos-shell-summary {
+  margin-top: 6px;
+}
+
+.pos-codecanyon .pos-shell-summary > div {
+  display: flex !important;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 0 !important;
+  border-bottom: 1px dashed rgba(180, 136, 82, 0.14);
+  font-size: 12.5px !important;
+}
+
+.pos-codecanyon .pos-shell-summary > div:last-child {
+  border-bottom: 0;
+}
+
+.pos-codecanyon .pos-shell-summary > div span:first-child {
+  color: var(--pos-muted) !important;
+}
+
+.pos-codecanyon .pos-shell-summary > div span:last-child {
+  color: var(--pos-text) !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  font-weight: 700 !important;
+}
+
+.pos-codecanyon .pos-shell-connection-status {
+  height: 44px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: var(--pos-panel-strong);
+  border: 1px solid var(--pos-border);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.pos-codecanyon .pos-shell-pay-summary-label {
+  color: var(--pos-muted) !important;
+  letter-spacing: 0.16em !important;
+}
+
+.pos-codecanyon .pos-shell-pay-summary-value {
+  color: var(--pos-text) !important;
+}
+
+@media (min-width: 1025px) {
+  .pos-codecanyon {
+    font-size: 14px;
+  }
+
+  .pos-codecanyon .pos-shell-header {
+    min-height: 78px !important;
+    height: 78px !important;
+    margin: 12px 12px 0;
+    padding: 0 18px !important;
+    gap: 10px !important;
+    border-radius: 26px !important;
+    border: 1px solid var(--pos-border) !important;
+    background: linear-gradient(180deg, var(--pos-panel-strong) 0%, var(--pos-panel) 100%) !important;
+  }
+
+  .pos-codecanyon .pos-shell-brand-block {
+    height: 44px !important;
+    padding-right: 16px !important;
+  }
+
+  .pos-codecanyon .pos-shell-brand-mark {
+    width: 44px !important;
+    height: 44px !important;
+    border-radius: 16px !important;
+  }
+
+  .pos-codecanyon .pos-shell-register-status > div:first-child {
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    color: var(--pos-text) !important;
+  }
+
+  .pos-codecanyon .pos-shell-register-pill {
+    height: 34px;
+    padding: 0 14px !important;
+    border-radius: 999px !important;
+    letter-spacing: 0.16em;
+    font-size: 10px !important;
+    box-shadow: 0 10px 20px rgba(58, 36, 16, 0.14);
+  }
+
+  .pos-codecanyon .pos-shell-header .pos-wh-trigger,
+  .pos-codecanyon .pos-shell-header .pos-cat-trigger,
+  .pos-codecanyon .pos-shell-header .pos-cust-trigger {
+    height: 48px !important;
+    min-height: 48px !important;
+    padding: 0 16px !important;
+    border-radius: 18px !important;
+  }
+
+  .pos-codecanyon .pos-wh-trigger .pos-wh-trigger-eyebrow,
+  .pos-codecanyon .pos-cust-trigger .pos-cust-trigger-eyebrow {
+    font-size: 10px !important;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .pos-codecanyon .pos-wh-trigger .pos-wh-trigger-label,
+  .pos-codecanyon .pos-cust-trigger .pos-cust-trigger-label,
+  .pos-codecanyon .pos-cat-trigger .pos-cat-trigger-label {
+    font-size: 14px !important;
+    font-weight: 700 !important;
+  }
+
+  .pos-codecanyon .pos-wh-trigger .pos-wh-trigger-icon,
+  .pos-codecanyon .pos-cust-trigger .pos-cust-trigger-avatar,
+  .pos-codecanyon .pos-cat-trigger .pos-cat-trigger-icon {
+    width: 32px !important;
+    height: 32px !important;
+    flex: 0 0 32px !important;
+    border-radius: 12px !important;
+  }
+
+  .pos-codecanyon .pos-shell-icon-btn,
+  .pos-codecanyon button.pos-shell-icon-btn,
+  .pos-codecanyon a.pos-shell-icon-btn,
+  .pos-codecanyon .pos-shell-header button.dropdown-toggle-no-caret > span {
+    width: 42px !important;
+    height: 42px !important;
+    min-width: 42px !important;
+    border-radius: 14px !important;
+  }
+
+  .pos-codecanyon .pos-shell-user-dd-wrapper button > img,
+  .pos-codecanyon .pos-shell-user-dd-wrapper button > div {
+    width: 42px !important;
+    height: 42px !important;
+  }
+
+  .pos-codecanyon .pos-shell-main {
+    gap: 14px;
+    padding: 12px;
+  }
+
+  .pos-codecanyon .pos-shell-cart-aside {
+    flex: 0 0 clamp(360px, 34vw, 520px);
+    width: clamp(360px, 34vw, 520px);
+    min-width: clamp(360px, 34vw, 520px);
+    border: 1px solid var(--pos-border) !important;
+    border-radius: 28px !important;
+    overflow: hidden !important;
+  }
+
+  .pos-codecanyon .pos-shell-section {
+    border: 1px solid var(--pos-border) !important;
+    border-radius: 28px !important;
+    overflow: hidden !important;
+  }
+
+  .pos-codecanyon .pos-shell-cart-scroll {
+    padding: 10px !important;
+  }
+
+  .pos-codecanyon .pos-cart-header {
+    top: -10px;
+    margin: -10px -10px 12px -10px;
+    padding: 14px 16px;
+    border-bottom-color: var(--pos-border);
+    background: linear-gradient(180deg, var(--pos-panel-strong) 0%, var(--pos-panel) 100%);
+  }
+
+  .pos-codecanyon .pos-cart-header-title {
+    font-size: 16px !important;
+  }
+
+  .pos-codecanyon .pos-cart-header-sub,
+  .pos-codecanyon .pos-cart-header-total-label {
+    font-size: 11px !important;
+  }
+
+  .pos-codecanyon .pos-cart-header-total-value {
+    font-size: 17px !important;
+  }
+
+  .pos-codecanyon .pos-shell-search-row {
+    padding: 12px 14px 10px !important;
+    gap: 12px !important;
+  }
+
+  .pos-codecanyon .pos-shell-search-input {
+    height: 48px !important;
+    padding: 0 16px 0 44px !important;
+    border-radius: 16px !important;
+    font-size: 14px !important;
+  }
+
+  .pos-codecanyon .pos-shell-search-row > button {
+    height: 48px !important;
+    padding: 0 18px !important;
+    border-radius: 16px !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+  }
+
+  .pos-codecanyon .pos-shell-products-scroll {
+    padding: 0 12px 12px !important;
+  }
+
+  .pos-codecanyon .pos-shell-products-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    align-content: start;
+  }
+
+  .pos-codecanyon .pos-shell-product-card {
+    display: flex;
+    flex-direction: column;
+    min-height: 214px;
+    padding: 14px !important;
+    border-radius: 24px !important;
+    background: linear-gradient(180deg, var(--pos-panel-strong) 0%, var(--pos-panel) 100%) !important;
+  }
+
+  .pos-codecanyon .pos-shell-card-media-wrap {
+    margin: -14px -14px 14px !important;
+  }
+
+  .pos-codecanyon .pos-shell-card-media {
+    height: 104px !important;
+    border-radius: 24px 24px 0 0 !important;
+  }
+
+  .pos-codecanyon .pos-shell-card-badge {
+    border-radius: 999px !important;
+    padding: 4px 9px !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .pos-codecanyon .pos-shell-card-name {
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    line-height: 1.34 !important;
+    margin-bottom: 6px !important;
+    min-height: 40px;
+    white-space: normal !important;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+
+  .pos-codecanyon .pos-shell-card-meta {
+    font-size: 11px !important;
+    letter-spacing: 0.05em !important;
+    text-transform: uppercase;
+    color: var(--pos-muted) !important;
+    margin-bottom: 10px !important;
+  }
+
+  .pos-codecanyon .pos-shell-card-jewelry {
+    min-height: 44px;
+    white-space: normal !important;
+    line-height: 1.55 !important;
+    font-size: 10.5px !important;
+    border: 1px solid rgba(180, 136, 82, 0.18);
+    background: linear-gradient(135deg, rgba(214, 177, 122, 0.14) 0%, rgba(255, 255, 255, 0.01) 100%) !important;
+    color: var(--pos-accent-strong) !important;
+  }
+
+  .pos-codecanyon .pos-shell-card-price-row {
+    margin-top: auto;
+    padding-top: 12px;
+    border-top: 1px solid var(--pos-border);
+  }
+
+  .pos-codecanyon .pos-shell-card-price {
+    font-size: 21px !important;
+    font-weight: 800 !important;
+    color: var(--pos-accent-strong) !important;
+  }
+
+  .pos-codecanyon .pos-shell-add-btn {
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 14px !important;
+    border: 1px solid rgba(180, 136, 82, 0.18);
+    background: linear-gradient(135deg, var(--lux-accent) 0%, var(--lux-accent-strong) 100%) !important;
+    color: var(--lux-accent-contrast) !important;
+    box-shadow: 0 14px 26px rgba(139, 98, 47, 0.22);
+  }
+
+  .pos-codecanyon .pos-shell-add-btn svg {
+    width: 16px !important;
+    height: 16px !important;
+  }
+
+  .pos-codecanyon .pos-shell-pagination {
+    min-height: 58px !important;
+    padding: 10px 14px !important;
+    border-top: 1px solid var(--pos-border) !important;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.01) 0%, var(--pos-panel) 100%) !important;
+  }
+
+  .pos-codecanyon .pos-shell-pay-bar {
+    min-height: 84px !important;
+    height: auto !important;
+    margin: 0 12px 12px;
+    padding: 14px 18px !important;
+    gap: 12px !important;
+    border-radius: 26px !important;
+    border: 1px solid var(--pos-border) !important;
+    background: linear-gradient(180deg, var(--pos-panel-strong) 0%, var(--pos-panel) 100%) !important;
+  }
+
+  .pos-codecanyon .pos-shell-action-btn {
+    height: 44px !important;
+    padding: 0 18px !important;
+    border-radius: 16px !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+  }
+
+  .pos-codecanyon .pos-shell-pay-summary-label {
+    font-size: 11px !important;
+  }
+
+  .pos-codecanyon .pos-shell-pay-summary-value {
+    font-size: 30px !important;
+  }
+
+  .pos-codecanyon .pos-shell-pay-btn {
+    height: 56px !important;
+    padding: 0 28px !important;
+    border-radius: 18px !important;
+    font-size: 16px !important;
+  }
+}
+
+@media (min-width: 1480px) {
+  .pos-codecanyon .pos-shell-products-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 
