@@ -15,7 +15,6 @@ class TenantApprovedMail extends Mailable
     public string $tenantUrl;
     public string $loginUrl;
     public string $appName;
-    public ?string $locale;
 
     public function __construct(string $companyName, string $tenantUrl, string $loginUrl, string $appName, ?string $locale = null)
     {

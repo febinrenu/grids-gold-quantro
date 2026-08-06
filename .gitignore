@@ -4,8 +4,16 @@
 /node_modules/
 
 /bootstrap/cache/*.php
+/public/storage
+/public/hot
 
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .env
+error_log
+*.stackdump
+/cgi-bin/
+.idea/
+.vscode/
+Thumbs.db
