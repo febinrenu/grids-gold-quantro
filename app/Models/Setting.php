@@ -28,6 +28,8 @@ class Setting extends Model
         'google_calendar_client_id', 'google_calendar_client_secret', 'google_calendar_redirect_uri',
         'offline_sync_enabled', 'enable_3_decimal_pricing', 'show_product_gtin', 'show_serial_tracking',
         'enable_kitchen_display', 'enable_multi_pack_selling',
+        // Live metal price sync (jewelry mode)
+        'metal_price_sync_enabled', 'metal_price_provider', 'metal_price_api_key',
     ];
 
     protected $casts = [
@@ -57,6 +59,8 @@ class Setting extends Model
         'enable_multi_pack_selling' => 'boolean',
         'google_calendar_client_secret' => 'encrypted',
         'google_calendar_refresh_token' => 'encrypted',
+        'metal_price_sync_enabled' => 'boolean',
+        'metal_price_api_key' => 'encrypted',
     ];
 
     public function Currency()

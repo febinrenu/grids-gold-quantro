@@ -46,4 +46,9 @@ return [
         'redirect_url' => env('FLUTTERWAVE_REDIRECT_URL'),
     ],
 
+    // Live precious metal spot prices (goldapi.io). Free tier: 100 req/day.
+    'goldapi' => [
+        'key' => env('GOLDAPI_KEY'),
+    ],
+
 ];

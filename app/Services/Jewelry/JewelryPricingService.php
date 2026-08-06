@@ -106,6 +106,12 @@ class JewelryPricingService
      */
     protected function calculate(Product $product, ?int $warehouseId, array $params = []): array
     {
+        // Report which metal this preview actually priced, so the UI never
+        // mislabels a silver/platinum rate as "gold" — it always used to
+        // say "Gold Rate" regardless of the selected metal.
+        $metalType = $product->metalType;
+        $karat = $product->karat;
+
         // 1. Resolve Metal weight and Gold rate (Metal Value)
         $metalWeight = (float)($params['metal_weight'] ?? $product->jewelry_metal_weight ?? 0.0);
         
@@ -211,6 +217,11 @@ class JewelryPricingService
         return [
             'product_id'             => $product->id,
             'warehouse_id'           => $warehouseId,
+            'metal_type_id'          => $product->metal_type_id,
+            'metal_type_name'        => $metalType->name ?? null,
+            'metal_type_code'        => $metalType->code ?? null,
+            'karat_id'               => $product->karat_id,
+            'karat_name'             => $karat->name ?? null,
             'gold_rate_id'           => $goldRateId,
             'gold_rate'              => $goldRate,
             'gold_rate_effective_at' => $goldRateEffectiveAt,

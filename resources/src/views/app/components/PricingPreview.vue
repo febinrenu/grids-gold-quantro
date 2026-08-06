@@ -22,7 +22,7 @@
       </b-alert>
 
       <b-alert v-if="rateMissingWarning" show variant="warning" class="mb-3 pricing-preview-card__alert">
-        No active gold rate was found for the selected metal and karat. The preview is using a 0.00 rate until one is configured.
+        No active {{ metalRateLabel.toLowerCase() }} was found for the selected metal and karat. The preview is using a 0.00 rate until one is configured.
       </b-alert>
 
       <div v-if="!preview && loading" class="pricing-preview-card__loading text-center py-4">
@@ -33,7 +33,7 @@
       <div v-else-if="preview" class="pricing-preview-card__body">
         <div class="pricing-preview-grid">
           <div class="pricing-preview-row">
-            <span class="pricing-preview-row__label">Gold Rate</span>
+            <span class="pricing-preview-row__label">{{ metalRateLabel }}</span>
             <span class="pricing-preview-row__value">{{ formatMoney(preview.gold_rate) }}</span>
           </div>
           <div class="pricing-preview-row">
@@ -231,6 +231,12 @@ export default {
       const rateId = this.preview.gold_rate_id;
       const rateValue = Number(this.preview.gold_rate || 0);
       return !rateId && rateValue <= 0 && !!this.normalizedProductPayload.metal_type_id && !!this.normalizedProductPayload.karat_id;
+    },
+    // The backend reports which metal it actually priced (metal_type_name),
+    // so this always matches the selected metal — never hardcoded to gold.
+    metalRateLabel() {
+      const name = this.preview && this.preview.metal_type_name;
+      return name ? `${name} Rate` : "Metal Rate";
     }
   },
   watch: {

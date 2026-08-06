@@ -3,9 +3,14 @@
 namespace Tests\Unit;
 
 use Tests\TestCase;
+use App\Models\Currency;
 use App\Models\GoldRate;
+use App\Models\Karat;
+use App\Models\MetalType;
 use App\Services\Jewelry\GoldRateService;
+use App\Services\Jewelry\MetalPriceService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Carbon\Carbon;
 
 class GoldRateServiceTest extends TestCase
@@ -635,6 +640,103 @@ class GoldRateServiceTest extends TestCase
 
         $current = $this->service->getCurrentRate($metalTypeId, $karatId);
         $this->assertNull($current);
+    }
+
+    /**
+     * Test 15: syncFromApi computes a purity-adjusted rate from the metal's
+     * spot price per gram and always stores it in USD.
+     */
+    public function test_sync_from_api_computes_purity_adjusted_rate_and_stores_in_usd(): void
+    {
+        $metalType = MetalType::create(['name' => 'Gold', 'code' => 'GOLD', 'is_active' => true]);
+        $karat = Karat::create([
+            'metal_type_id' => $metalType->id,
+            'name' => '18K',
+            'purity_percentage' => 75.00,
+            'is_active' => true,
+        ]);
+
+        $priceService = \Mockery::mock(MetalPriceService::class);
+        $priceService->shouldReceive('getSpotPricePerGramUsd')->with('GOLD')->andReturn(80.00);
+
+        $rate = $this->service->syncFromApi($metalType, $karat, $priceService);
+
+        $this->assertEquals('api', $rate->rate_source);
+        $this->assertEquals(60.00, (float) $rate->rate_per_weight_unit); // 80 * 0.75
+        $this->assertEquals('USD', Currency::find($rate->currency_id)->code);
+    }
+
+    /**
+     * Test 16: when no manual rate matches the requested currency, an
+     * api-sourced rate (stored in USD) is converted on the fly instead.
+     */
+    public function test_get_current_rate_converts_api_sourced_rate_to_requested_currency(): void
+    {
+        $usd = Currency::create(['code' => 'USD', 'name' => 'US Dollar', 'symbol' => '$']);
+        $egp = Currency::create(['code' => 'EGP', 'name' => 'Egyptian Pound', 'symbol' => 'E£']);
+
+        Http::fake([
+            'https://open.er-api.com/*' => Http::response(['rates' => ['EGP' => 50.0]], 200),
+        ]);
+
+        GoldRate::create([
+            'metal_type_id'        => 1,
+            'karat_id'             => 1,
+            'rate_per_weight_unit' => 60.00,
+            'currency_id'          => $usd->id,
+            'warehouse_id'         => null,
+            'effective_at'         => Carbon::now(),
+            'status'               => 'active',
+            'rate_source'          => 'api',
+            'weight_uom'           => 'g',
+        ]);
+
+        $current = $this->service->getCurrentRate(1, 1, null, $egp->id);
+
+        $this->assertNotNull($current);
+        $this->assertEquals($egp->id, $current->currency_id);
+        $this->assertEquals(3000.00, (float) $current->rate_per_weight_unit); // 60 * 50
+    }
+
+    /**
+     * Test 17: a manual rate in the requested currency always wins over an
+     * api-sourced rate, even if the api rate is newer — manual entries are
+     * currency-specific by design and must never be reinterpreted.
+     */
+    public function test_get_current_rate_prefers_exact_currency_manual_rate_over_api_fallback(): void
+    {
+        $usd = Currency::create(['code' => 'USD', 'name' => 'US Dollar', 'symbol' => '$']);
+        $egp = Currency::create(['code' => 'EGP', 'name' => 'Egyptian Pound', 'symbol' => 'E£']);
+
+        $manualRate = GoldRate::create([
+            'metal_type_id'        => 1,
+            'karat_id'             => 1,
+            'rate_per_weight_unit' => 2500.00,
+            'currency_id'          => $egp->id,
+            'warehouse_id'         => null,
+            'effective_at'         => Carbon::now()->subMinute(),
+            'status'               => 'active',
+            'rate_source'          => 'manual',
+            'weight_uom'           => 'g',
+        ]);
+
+        GoldRate::create([
+            'metal_type_id'        => 1,
+            'karat_id'             => 1,
+            'rate_per_weight_unit' => 60.00,
+            'currency_id'          => $usd->id,
+            'warehouse_id'         => null,
+            'effective_at'         => Carbon::now(),
+            'status'               => 'active',
+            'rate_source'          => 'api',
+            'weight_uom'           => 'g',
+        ]);
+
+        // No Http::fake — proves conversion is never attempted here.
+        $current = $this->service->getCurrentRate(1, 1, null, $egp->id);
+
+        $this->assertEquals($manualRate->id, $current->id);
+        $this->assertEquals(2500.00, (float) $current->rate_per_weight_unit);
     }
 }
 
