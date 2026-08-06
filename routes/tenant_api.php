@@ -1329,3 +1329,152 @@ Route::middleware(['auth:api', 'Is_Active', 'request.safety', 'tenant.subscribed
     Route::get('settings', 'MarketingController@settings_show');
     Route::post('settings', 'MarketingController@settings_update');
 });
+
+// ======================== JEWELRY SRS DOMAINS (3.1-3.10) ========================
+// Generic CRUD endpoints for the new SRS-schema tables (database/jewelrydatabase.sql).
+// Not yet wired into the Roles/Permissions policy system.
+Route::middleware(['auth:api', 'Is_Active', 'request.safety', 'tenant.subscribed'])->group(function () {
+    // ======== SRS Domains 3.1-3.7 ========
+    Route::apiResource('branches', 'Jewelry\\BranchController');
+    Route::apiResource('vaults', 'Jewelry\\VaultController');
+    Route::apiResource('display-cabinets', 'Jewelry\\DisplayCabinetController');
+    Route::apiResource('shelves', 'Jewelry\\ShelfController');
+    Route::apiResource('trays', 'Jewelry\\TrayController');
+    Route::apiResource('countries', 'Jewelry\\CountryController');
+    Route::apiResource('states', 'Jewelry\\StateController');
+    Route::apiResource('cities', 'Jewelry\\CityController');
+    Route::apiResource('manufacturers', 'Jewelry\\ManufacturerController');
+    Route::apiResource('jewelry-collections', 'Jewelry\\JewelryCollectionController');
+    Route::apiResource('product-designs', 'Jewelry\\ProductDesignController');
+    Route::apiResource('product-templates', 'Jewelry\\ProductTemplateController');
+    Route::apiResource('hallmarks', 'Jewelry\\HallmarkController');
+    Route::apiResource('item-hallmarks', 'Jewelry\\ItemHallmarkController');
+    Route::apiResource('certificates', 'Jewelry\\CertificateController');
+    Route::apiResource('item-certificates', 'Jewelry\\ItemCertificateController');
+    Route::apiResource('item-images', 'Jewelry\\ItemImageController');
+    Route::apiResource('rfid-tags', 'Jewelry\\RfidTagController');
+    Route::apiResource('barcode-registry', 'Jewelry\\BarcodeRegistryController');
+    Route::apiResource('qr-registry', 'Jewelry\\QrRegistryController');
+    Route::apiResource('ownership-types', 'Jewelry\\OwnershipTypeController');
+    Route::apiResource('inventory-statuses', 'Jewelry\\InventoryStatusController');
+    Route::apiResource('item-location-history', 'Jewelry\\ItemLocationHistoryController');
+    Route::apiResource('item-weight-history', 'Jewelry\\ItemWeightHistoryController');
+    Route::apiResource('item-cost-history', 'Jewelry\\ItemCostHistoryController');
+    Route::apiResource('item-attachments', 'Jewelry\\ItemAttachmentController');
+    Route::apiResource('movement-types', 'Jewelry\\MovementTypeController');
+    Route::apiResource('movement-reasons', 'Jewelry\\MovementReasonController');
+    Route::apiResource('stock-adjustments', 'Jewelry\\StockAdjustmentController');
+    Route::apiResource('stock-reservations', 'Jewelry\\StockReservationController');
+    Route::apiResource('inventory-counts', 'Jewelry\\InventoryCountController');
+    Route::apiResource('inventory-count-items', 'Jewelry\\InventoryCountItemController');
+    Route::apiResource('transfer-items', 'Jewelry\\TransferItemController');
+    Route::apiResource('inventory-freezes', 'Jewelry\\InventoryFreezeController');
+    Route::apiResource('inventory-variances', 'Jewelry\\InventoryVarianceController');
+    Route::apiResource('warehouse-receipts', 'Jewelry\\WarehouseReceiptController');
+    Route::apiResource('warehouse-dispatches', 'Jewelry\\WarehouseDispatchController');
+    Route::apiResource('inventory-batches', 'Jewelry\\InventoryBatchController');
+    Route::apiResource('rfid-inventory-sessions', 'Jewelry\\RfidInventorySessionController');
+    Route::apiResource('rfid-session-items', 'Jewelry\\RfidSessionItemController');
+    Route::apiResource('inventory-reconciliations', 'Jewelry\\InventoryReconciliationController');
+    Route::apiResource('stock-holds', 'Jewelry\\StockHoldController');
+    Route::apiResource('inventory-labels', 'Jewelry\\InventoryLabelController');
+    Route::apiResource('supplier-contacts', 'Jewelry\\SupplierContactController');
+    Route::apiResource('supplier-payment-terms', 'Jewelry\\SupplierPaymentTermController');
+    Route::apiResource('purchase-requests', 'Jewelry\\PurchaseRequestController');
+    Route::apiResource('purchase-request-items', 'Jewelry\\PurchaseRequestItemController');
+    Route::apiResource('goods-receipts', 'Jewelry\\GoodsReceiptController');
+    Route::apiResource('goods-receipt-items', 'Jewelry\\GoodsReceiptItemController');
+    Route::apiResource('quality-inspections', 'Jewelry\\QualityInspectionController');
+    Route::apiResource('supplier-invoices', 'Jewelry\\SupplierInvoiceController');
+    Route::apiResource('supplier-invoice-items', 'Jewelry\\SupplierInvoiceItemController');
+    Route::apiResource('purchase-return-items', 'Jewelry\\PurchaseReturnItemController');
+    Route::apiResource('supplier-credit-notes', 'Jewelry\\SupplierCreditNoteController');
+    Route::apiResource('landed-cost-allocations', 'Jewelry\\LandedCostAllocationController');
+    Route::apiResource('purchase-approvals', 'Jewelry\\PurchaseApprovalController');
+    Route::apiResource('supplier-performance', 'Jewelry\\SupplierPerformanceController');
+    Route::apiResource('customer-addresses', 'Jewelry\\CustomerAddressController');
+    Route::apiResource('customer-loyalty-transactions', 'Jewelry\\CustomerLoyaltyTransactionController');
+    Route::apiResource('quotation-items', 'Jewelry\\QuotationItemController');
+    Route::apiResource('sales-orders', 'Jewelry\\SalesOrderController');
+    Route::apiResource('sales-order-items', 'Jewelry\\SalesOrderItemController');
+    Route::apiResource('customer-receipts', 'Jewelry\\CustomerReceiptController');
+    Route::apiResource('sales-returns', 'Jewelry\\SalesReturnController');
+    Route::apiResource('sales-return-items', 'Jewelry\\SalesReturnItemController');
+    Route::apiResource('customer-credit-notes', 'Jewelry\\CustomerCreditNoteController');
+    Route::apiResource('exchanges', 'Jewelry\\ExchangeController');
+    Route::apiResource('installment-plans', 'Jewelry\\InstallmentPlanController');
+    Route::apiResource('installment-payments', 'Jewelry\\InstallmentPaymentController');
+    Route::apiResource('customer-deposits', 'Jewelry\\CustomerDepositController');
+    Route::apiResource('gift-vouchers', 'Jewelry\\GiftVoucherController');
+    Route::apiResource('reservations', 'Jewelry\\ReservationController');
+    Route::apiResource('sales-approvals', 'Jewelry\\SalesApprovalController');
+    Route::apiResource('workshops', 'Jewelry\\WorkshopController');
+    Route::apiResource('manufacturing-orders', 'Jewelry\\ManufacturingOrderController');
+    Route::apiResource('manufacturing-material-issues', 'Jewelry\\ManufacturingMaterialIssueController');
+    Route::apiResource('manufacturing-stone-issues', 'Jewelry\\ManufacturingStoneIssueController');
+    Route::apiResource('manufacturing-receipts', 'Jewelry\\ManufacturingReceiptController');
+    Route::apiResource('manufacturing-receipt-items', 'Jewelry\\ManufacturingReceiptItemController');
+    Route::apiResource('manufacturing-scrap', 'Jewelry\\ManufacturingScrapController');
+    Route::apiResource('manufacturing-dust', 'Jewelry\\ManufacturingDustController');
+    Route::apiResource('manufacturing-losses', 'Jewelry\\ManufacturingLossController');
+    Route::apiResource('manufacturing-qc', 'Jewelry\\ManufacturingQcController');
+    Route::apiResource('workshop-settlements', 'Jewelry\\WorkshopSettlementController');
+    Route::apiResource('repair-orders', 'Jewelry\\RepairOrderController');
+    Route::apiResource('repair-items', 'Jewelry\\RepairItemController');
+    Route::apiResource('repair-tracking', 'Jewelry\\RepairTrackingController');
+    Route::apiResource('repair-parts', 'Jewelry\\RepairPartController');
+    Route::apiResource('repair-payments', 'Jewelry\\RepairPaymentController');
+    Route::apiResource('repair-qc', 'Jewelry\\RepairQcController');
+    Route::apiResource('used-gold-purchases', 'Jewelry\\UsedGoldPurchaseController');
+    Route::apiResource('used-gold-purchase-items', 'Jewelry\\UsedGoldPurchaseItemController');
+    Route::apiResource('gold-tests', 'Jewelry\\GoldTestController');
+    Route::apiResource('melting-batches', 'Jewelry\\MeltingBatchController');
+    Route::apiResource('refining-batches', 'Jewelry\\RefiningBatchController');
+    Route::apiResource('karat-conversions', 'Jewelry\\KaratConversionController');
+    Route::apiResource('gold-exchange-transactions', 'Jewelry\\GoldExchangeTransactionController');
+    // ======== SRS Domains 3.8-3.10 ========
+    // chart_of_accounts / journal_entries / journal_entry_lines / general_ledger
+    // intentionally NOT duplicated here -- AccountingV2 (routes/tenant_api.php
+    // "accounting/v2" group, app/Http/Controllers/AccountingV2/*) already
+    // provides this exact functionality (acc_chart_of_accounts,
+    // acc_journal_entries, acc_journal_entry_lines) live and wired. Only the
+    // genuinely new SRS domains (gold ledger, AR/AP, cash/bank, tax, FX,
+    // period-close/reconciliation) are added below.
+    Route::apiResource('financial-periods', 'Jewelry\\FinancialPeriodController');
+    Route::apiResource('accounts-receivable', 'Jewelry\\AccountsReceivableController');
+    Route::apiResource('accounts-payable', 'Jewelry\\AccountsPayableController');
+    Route::apiResource('cash-accounts', 'Jewelry\\CashAccountController');
+    Route::apiResource('bank-accounts', 'Jewelry\\BankAccountController');
+    Route::apiResource('bank-transactions', 'Jewelry\\BankTransactionController');
+    Route::apiResource('payment-allocations', 'Jewelry\\PaymentAllocationController');
+    Route::apiResource('tax-codes', 'Jewelry\\TaxCodeController');
+    Route::apiResource('tax-transactions', 'Jewelry\\TaxTransactionController');
+    Route::apiResource('exchange-rates', 'Jewelry\\ExchangeRateController');
+    Route::apiResource('gold-ledger-accounts', 'Jewelry\\GoldLedgerAccountController');
+    Route::apiResource('gold-ledger-entries', 'Jewelry\\GoldLedgerEntryController');
+    Route::apiResource('gold-balances', 'Jewelry\\GoldBalanceController');
+    Route::apiResource('gold-balance-history', 'Jewelry\\GoldBalanceHistoryController');
+    Route::apiResource('gold-price-history', 'Jewelry\\GoldPriceHistoryController');
+    Route::apiResource('financial-closings', 'Jewelry\\FinancialClosingController');
+    Route::apiResource('reconciliation-sessions', 'Jewelry\\ReconciliationSessionController');
+    Route::apiResource('reconciliation-items', 'Jewelry\\ReconciliationItemController');
+    Route::apiResource('activity-logs', 'Jewelry\\ActivityLogController');
+    Route::apiResource('approval-workflows', 'Jewelry\\ApprovalWorkflowController');
+    Route::apiResource('approval-requests', 'Jewelry\\ApprovalRequestController');
+    Route::apiResource('approval-actions', 'Jewelry\\ApprovalActionController');
+    Route::apiResource('notification-templates', 'Jewelry\\NotificationTemplateController');
+    Route::apiResource('workflow-notifications', 'Jewelry\\WorkflowNotificationController');
+    Route::apiResource('attachments', 'Jewelry\\AttachmentController');
+    Route::apiResource('comments', 'Jewelry\\CommentController');
+    Route::apiResource('integration-endpoints', 'Jewelry\\IntegrationEndpointController');
+    Route::apiResource('integration-logs', 'Jewelry\\IntegrationLogController');
+    Route::apiResource('scheduled-jobs', 'Jewelry\\ScheduledJobController');
+    Route::apiResource('queue-jobs', 'Jewelry\\QueueJobController');
+    Route::apiResource('queue-failures', 'Jewelry\\QueueFailureController');
+    Route::apiResource('report-definitions', 'Jewelry\\ReportDefinitionController');
+    Route::apiResource('saved-report-filters', 'Jewelry\\SavedReportFilterController');
+    Route::apiResource('dashboards', 'Jewelry\\DashboardController');
+    Route::apiResource('dashboard-widgets', 'Jewelry\\DashboardWidgetController');
+    Route::apiResource('system-health', 'Jewelry\\SystemHealthController');
+    Route::apiResource('api-tokens', 'Jewelry\\ApiTokenController');
+});
