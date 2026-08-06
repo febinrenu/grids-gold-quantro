@@ -3090,12 +3090,49 @@ Router.prototype.push = function push(location, onResolve, onReject) {
   return originalPush.call(this, location).catch(err => err);
 };
 
+function isJewelryTenantHost() {
+  if (typeof window === 'undefined' || !window.location) return false;
+  const host = String(window.location.hostname || '').toLowerCase();
+  return host.split('.')[0] === 'jewelry';
+}
+
+function isJewelryHiddenRoute(path) {
+  const normalized = String(path || '').toLowerCase();
+  return [
+    '/app/kitchen-display',
+    '/app/customer-display/setup',
+    '/app/sales/shipment',
+    '/app/real-time-sales-counter',
+    '/app/products/batches',
+    '/app/hrm',
+    '/app/recruit',
+    '/app/meeting',
+    '/app/marketing',
+    '/app/subscription_product',
+    '/app/service',
+    '/app/assets',
+    '/app/projects',
+    '/app/contracts',
+    '/app/tasks',
+    '/app/bookings',
+    '/app/commissions',
+    '/app/woocommerce',
+    '/app/knowledge-base',
+    '/app/reports/ai_reports',
+    '/app/realestate',
+  ].some((blocked) => normalized === blocked || normalized.startsWith(blocked + '/'));
+}
+
 // ✅ Export function to set up navigation guards
 export function setupRouterGuards(i18n) {
   router.beforeEach(async (to, from, next) => {
     if (to.path) {
       NProgress.start();
       NProgress.set(0.1);
+    }
+
+    if (isJewelryTenantHost() && isJewelryHiddenRoute(to.path)) {
+      return next('/app/dashboard');
     }
 
     // Ensure we read the actual language string from the language module

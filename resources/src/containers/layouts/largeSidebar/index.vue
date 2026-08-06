@@ -1,8 +1,5 @@
 <template>
-  <div class="app-admin-wrap layout-sidebar-large clearfix" :class="{ 
-    'vertical-layout': getSidebarLayout === 'vertical',
-    'vertical-collapsed': getSidebarLayout === 'vertical' && getVerticalSidebarCollapsed
-  }">
+  <div class="app-admin-wrap layout-sidebar-large clearfix" :class="appShellClasses">
     <!-- Conditional Top Navigation -->
     <vertical-top-nav v-if="getSidebarLayout === 'vertical'" />
     <top-nav v-else />
@@ -51,6 +48,17 @@ export default {
   },
   computed: {
     ...mapGetters(["getSideBarToggleProperties", "getSidebarLayout", "getVerticalSidebarCollapsed"]),
+    appShellClasses() {
+      const isVertical = this.getSidebarLayout === 'vertical';
+      const sidebar = this.getSideBarToggleProperties || {};
+      return {
+        'vertical-layout': isVertical,
+        'vertical-collapsed': isVertical && this.getVerticalSidebarCollapsed,
+        'sidebar-rail-open': !isVertical && !!sidebar.isSideNavOpen,
+        'sidebar-rail-closed': !isVertical && !sidebar.isSideNavOpen,
+        'sidebar-secondary-open': !isVertical && !!sidebar.isSecondarySideNavOpen,
+      };
+    },
   },
   methods: {},
 };

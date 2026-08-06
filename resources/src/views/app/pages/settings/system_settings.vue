@@ -619,7 +619,7 @@
                       </b-col>
 
                       <!-- Kitchen Display -->
-                      <b-col lg="6" md="6" sm="12" class="mb-3">
+                      <b-col lg="6" md="6" sm="12" class="mb-3" v-if="showKitchenDisplaySettings">
                         <b-form-group :label="$t('EnableKitchenDisplay') || 'Enable Kitchen Display'">
                           <label class="switch switch-primary mr-3">
                             {{ $t('EnableKitchenDisplay') || 'Enable Kitchen Display' }}
@@ -3322,7 +3322,7 @@
                   </div>
 
                   <!-- Pharmacy Settings Tab -->
-                  <div v-show="activeTab === 'pharmacy'" class="tab-content">
+                  <div v-show="activeTab === 'pharmacy' && showPharmacySettings" class="tab-content">
                     <b-alert show variant="warning" v-if="setting.pharmacy_mode_supported === false">
                       {{ $t('Pharmacy_Settings_Migration_Missing') || 'Pharmacy mode columns not found on the settings table. Run the pharmacy migration to enable these options.' }}
                     </b-alert>
@@ -4244,6 +4244,20 @@ export default {
    ...mapGetters("config", ["getThemeMode"]),
    ...mapGetters(["currentUser", "getSidebarLayout", "getSideBarToggleProperties"]),
 
+    isJewelryTenant() {
+      if (typeof window === 'undefined' || !window.location) return false;
+      const host = String(window.location.hostname || '').toLowerCase();
+      return host.split('.')[0] === 'jewelry';
+    },
+
+    showKitchenDisplaySettings() {
+      return !this.isJewelryTenant;
+    },
+
+    showPharmacySettings() {
+      return !this.isJewelryTenant;
+    },
+
     // List of POS keyboard shortcuts shown in the help modal
     posShortcutsList() {
       return POS_SHORTCUTS;
@@ -4408,7 +4422,8 @@ export default {
       ];
 
       // Hide the legacy "Tax & Pricing" tab now that its fields live under "Defaults"
-      return baseTabs.filter(t => t.id !== 'tax');
+      // and suppress pharmacy-only settings in the Jewelry tenant workspace.
+      return baseTabs.filter(t => t.id !== 'tax' && (this.showPharmacySettings || t.id !== 'pharmacy'));
     },
     
     customFieldsColumns() {
@@ -7086,5 +7101,397 @@ export default {
   font-weight: 500;
   color: #212529;
   font-size: 0.9375rem;
+}
+
+/* ============================================================
+   Luxury settings refresh
+   ============================================================ */
+.settings-container {
+  border-radius: 28px !important;
+  overflow: hidden;
+  border: 1px solid var(--lux-border) !important;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, var(--lux-panel) 100%);
+  box-shadow: var(--lux-shadow-md) !important;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.settings-sidebar {
+  background: linear-gradient(180deg, var(--lux-panel-muted) 0%, rgba(255, 255, 255, 0.02) 100%) !important;
+  border-right: 1px solid var(--lux-border) !important;
+}
+
+.settings-tabs-nav {
+  position: sticky;
+  top: 0;
+}
+
+.settings-header {
+  padding: 1.4rem 1.35rem !important;
+  background:
+    radial-gradient(circle at top right, rgba(214, 177, 122, 0.26), transparent 45%),
+    linear-gradient(135deg, rgba(30, 23, 16, 0.92) 0%, rgba(91, 63, 33, 0.92) 100%) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.settings-header h5 {
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-size: 1.35rem;
+  letter-spacing: -0.03em;
+}
+
+.settings-nav {
+  padding: 1rem;
+  gap: 0.45rem;
+  max-height: calc(100vh - 250px);
+  overflow: auto;
+}
+
+.settings-nav-item {
+  margin: 0;
+  padding: 0.9rem 1rem;
+  border: 1px solid transparent;
+  border-radius: 18px;
+  background: transparent;
+  color: var(--lux-muted-strong);
+}
+
+.settings-nav-item svg,
+.settings-nav-item i {
+  width: 1.1rem;
+  height: 1.1rem;
+  color: var(--lux-accent-strong);
+  flex-shrink: 0;
+}
+
+.settings-nav-item:hover {
+  background: linear-gradient(135deg, var(--lux-accent-soft), rgba(255, 255, 255, 0.02));
+  color: var(--lux-heading);
+  border-color: rgba(180, 136, 82, 0.18);
+  box-shadow: 0 10px 20px rgba(58, 36, 16, 0.12);
+  transform: translateX(3px);
+}
+
+.settings-nav-item.active {
+  background: linear-gradient(135deg, rgba(214, 177, 122, 0.18), rgba(255, 255, 255, 0.02));
+  color: var(--lux-heading);
+  border-left-color: transparent;
+  border-color: rgba(180, 136, 82, 0.24);
+  box-shadow: 0 14px 26px rgba(58, 36, 16, 0.14);
+}
+
+.settings-nav-item.active::before {
+  display: none;
+}
+
+.settings-content {
+  background: transparent !important;
+}
+
+.settings-content-wrapper {
+  padding: 1.5rem !important;
+  min-height: 680px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.01) 0%, rgba(0, 0, 0, 0) 100%);
+}
+
+.settings-content-header {
+  margin-bottom: 1.5rem;
+  padding: 1.35rem 1.4rem;
+  border: 1px solid var(--lux-border);
+  border-radius: 24px;
+  background: linear-gradient(135deg, var(--lux-panel-strong), var(--lux-panel-muted));
+  box-shadow: var(--lux-shadow-sm);
+}
+
+.settings-content-header h4 {
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-size: 1.8rem;
+  color: var(--lux-heading);
+}
+
+.settings-content-header p {
+  color: var(--lux-muted) !important;
+  font-size: 0.93rem;
+}
+
+.settings-content-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.tab-content {
+  padding: 1.35rem 1.4rem;
+  border-radius: 24px;
+  border: 1px solid var(--lux-border);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), var(--lux-panel));
+  box-shadow: var(--lux-shadow-xs);
+}
+
+.tab-content h5 {
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-size: 1.2rem;
+  color: var(--lux-heading);
+}
+
+.tab-content hr {
+  border-color: var(--lux-border) !important;
+  opacity: 1;
+}
+
+.tab-content label {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--lux-muted-strong);
+}
+
+.tab-content .form-control,
+.tab-content textarea,
+.tab-content .custom-select,
+.mobile-tab-select,
+::v-deep(.vs__dropdown-toggle) {
+  background: var(--lux-panel-strong) !important;
+  border: 1px solid var(--lux-border) !important;
+  border-radius: 16px !important;
+  color: var(--lux-text) !important;
+  min-height: 48px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.tab-content textarea.form-control {
+  min-height: 110px;
+  padding-top: 0.85rem;
+}
+
+.tab-content .form-control::placeholder,
+.mobile-tab-select {
+  color: var(--lux-muted) !important;
+}
+
+.tab-content .form-control:focus,
+.mobile-tab-select:focus,
+::v-deep(.vs__dropdown-toggle:focus-within) {
+  border-color: rgba(180, 136, 82, 0.34) !important;
+  box-shadow: var(--lux-ring) !important;
+}
+
+::v-deep(.vs__dropdown-menu) {
+  background: var(--lux-panel) !important;
+  border: 1px solid var(--lux-border) !important;
+  border-radius: 16px !important;
+  box-shadow: var(--lux-shadow-md) !important;
+}
+
+::v-deep(.vs__selected),
+::v-deep(.vs__search),
+::v-deep(.vs__dropdown-option) {
+  color: var(--lux-text) !important;
+}
+
+::v-deep(.vs__open-indicator),
+::v-deep(.vs__clear) {
+  fill: var(--lux-muted-strong) !important;
+}
+
+::v-deep(.vs__dropdown-option--highlight),
+::v-deep(.vs__dropdown-option--selected) {
+  background: var(--lux-accent-soft) !important;
+  color: var(--lux-heading) !important;
+}
+
+.customize-toggle-row,
+.system-actions-card,
+.backup-table-wrapper,
+.dashboard-settings-tab .dashboard-settings-card {
+  border-radius: 20px !important;
+  border: 1px solid var(--lux-border) !important;
+  background: linear-gradient(180deg, var(--lux-panel-strong), var(--lux-panel-muted)) !important;
+  box-shadow: var(--lux-shadow-xs);
+}
+
+.customize-toggle-title {
+  color: var(--lux-heading) !important;
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-size: 1.04rem;
+}
+
+.customize-toggle-hint {
+  color: var(--lux-muted) !important;
+  font-size: 0.84rem;
+  line-height: 1.7;
+}
+
+.customize-toggle-row .slider {
+  background: var(--lux-panel-contrast) !important;
+}
+
+.customize-toggle-row input:checked + .slider {
+  background: linear-gradient(135deg, var(--lux-accent) 0%, var(--lux-accent-strong) 100%) !important;
+}
+
+.tab-content .btn-primary,
+.submit-btn,
+.btn-generate-backup {
+  background: linear-gradient(135deg, var(--lux-accent) 0%, var(--lux-accent-strong) 100%) !important;
+  border: 0 !important;
+  color: var(--lux-accent-contrast) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 16px 28px rgba(139, 98, 47, 0.24) !important;
+  font-weight: 700 !important;
+}
+
+.tab-content .btn-primary:hover,
+.submit-btn:hover,
+.btn-generate-backup:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.03);
+}
+
+.tab-content .btn-outline-secondary,
+.tab-content .btn-outline-primary,
+.tab-content .btn-outline-danger,
+.btn-delete-backup {
+  border-radius: 14px !important;
+  border-color: var(--lux-border-strong) !important;
+  background: transparent !important;
+  color: var(--lux-text) !important;
+}
+
+.mobile-tab-selector {
+  padding: 1rem !important;
+  background: transparent !important;
+  border-bottom: 0 !important;
+}
+
+.mobile-tab-select {
+  background: linear-gradient(180deg, var(--lux-panel-strong), var(--lux-panel)) !important;
+}
+
+.dashboard-widget-order-item {
+  background: var(--lux-panel-strong) !important;
+  border: 1px solid var(--lux-border) !important;
+  border-radius: 18px !important;
+  box-shadow: var(--lux-shadow-xs);
+}
+
+.dashboard-widget-order-item:hover {
+  border-color: var(--lux-border-strong) !important;
+  box-shadow: var(--lux-shadow-sm);
+  transform: translateY(-1px);
+}
+
+.dashboard-widget-order-ghost {
+  background: var(--lux-panel-muted) !important;
+  border: 2px dashed rgba(180, 136, 82, 0.28) !important;
+}
+
+.dashboard-widget-order-chosen {
+  background: var(--lux-accent-soft) !important;
+  border-color: rgba(180, 136, 82, 0.3) !important;
+}
+
+.dashboard-widget-order-drag {
+  background: var(--lux-panel-strong) !important;
+  border: 2px solid var(--lux-accent) !important;
+  box-shadow: var(--lux-shadow-md) !important;
+}
+
+.drag-handle {
+  background: var(--lux-accent-faint);
+  color: var(--lux-accent-strong);
+  border-radius: 12px;
+}
+
+.drag-handle:hover {
+  background: var(--lux-accent-soft);
+  color: var(--lux-heading);
+}
+
+.widget-order-number {
+  background: var(--lux-panel-contrast);
+  color: var(--lux-muted-strong);
+}
+
+.dashboard-widget-order-chosen .widget-order-number,
+.dashboard-widget-order-drag .widget-order-number {
+  background: linear-gradient(135deg, var(--lux-accent) 0%, var(--lux-accent-strong) 100%);
+  color: var(--lux-accent-contrast);
+}
+
+.widget-order-label {
+  color: var(--lux-text);
+}
+
+.invoice-logo-preview-box {
+  background: linear-gradient(180deg, var(--lux-panel-strong), var(--lux-panel));
+  border: 1px dashed var(--lux-border-strong);
+  border-radius: 18px;
+}
+
+.tab-content .invalid-feedback,
+.text-muted,
+small.text-muted {
+  color: var(--lux-muted) !important;
+}
+
+@media (max-width: 991.98px) {
+  .settings-nav {
+    max-height: none;
+  }
+
+  .settings-content-wrapper {
+    padding: 1.1rem !important;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .settings-container {
+    border-radius: 22px !important;
+  }
+
+  .settings-content-header h4 {
+    font-size: 1.35rem;
+  }
+
+  .tab-content {
+    padding: 1rem;
+  }
+
+  .settings-nav-item {
+    padding: 0.8rem 0.9rem;
+  }
+}
+
+.settings-container.settings-container,
+.settings-sidebar.settings-sidebar {
+  border-color: var(--lux-border) !important;
+}
+
+.settings-sidebar.settings-sidebar {
+  background-color: var(--lux-panel-muted) !important;
+  background-image: linear-gradient(180deg, var(--lux-panel-muted) 0%, rgba(255, 255, 255, 0.02) 100%) !important;
+}
+
+.settings-sidebar .settings-header {
+  background-color: rgba(36, 27, 17, 0.96) !important;
+  background-image:
+    radial-gradient(circle at top right, rgba(214, 177, 122, 0.26), transparent 45%),
+    linear-gradient(135deg, rgba(36, 27, 17, 0.96) 0%, rgba(112, 79, 43, 0.96) 100%) !important;
+}
+
+.settings-sidebar .settings-nav-item:hover,
+.settings-sidebar .settings-nav-item.active {
+  background-color: rgba(214, 177, 122, 0.12) !important;
+  background-image: linear-gradient(135deg, rgba(214, 177, 122, 0.16), rgba(255, 255, 255, 0.01)) !important;
+  color: var(--lux-heading) !important;
+}
+
+.settings-sidebar .settings-nav-item.active svg,
+.settings-sidebar .settings-nav-item.active i,
+.settings-sidebar .settings-nav-item:hover svg,
+.settings-sidebar .settings-nav-item:hover i {
+  color: var(--lux-accent-strong) !important;
 }
 </style>

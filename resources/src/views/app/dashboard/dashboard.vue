@@ -501,6 +501,7 @@ export default {
   },
   computed: {
     ...mapGetters(["currentUserPermissions", "currentUser"]),
+    ...mapGetters("config", ["getThemeMode"]),
     // Monetary precision (2 or 3) driven by the "Enable 3 Decimal Pricing" setting.
     priceDecimals() {
       return getPriceDecimals({ store: this.$store });
@@ -578,7 +579,85 @@ export default {
       return s;
     }
   },
+  watch: {
+    'getThemeMode.dark'() {
+      this.$nextTick(() => {
+        this.refreshChartTheme();
+      });
+    },
+  },
   methods: {
+    themeVar(name, fallback) {
+      try {
+        const value = getComputedStyle(document.body).getPropertyValue(name).trim();
+        return value || fallback;
+      } catch (e) {
+        return fallback;
+      }
+    },
+
+    chartPalette() {
+      return {
+        sales: [
+          this.themeVar('--chart-accent-1', '#b48852'),
+          this.themeVar('--chart-accent-5', '#c5a67a'),
+        ],
+        products: [
+          this.themeVar('--chart-accent-1', '#b48852'),
+          this.themeVar('--chart-accent-2', '#6b7a66'),
+          this.themeVar('--chart-accent-3', '#8f6b58'),
+          this.themeVar('--chart-accent-4', '#8e8071'),
+          this.themeVar('--chart-accent-6', '#4a5a62'),
+        ],
+        customers: [
+          this.themeVar('--chart-accent-1', '#b48852'),
+          this.themeVar('--chart-accent-5', '#c5a67a'),
+          this.themeVar('--chart-accent-4', '#8e8071'),
+          this.themeVar('--chart-accent-2', '#6b7a66'),
+          this.themeVar('--chart-accent-3', '#8f6b58'),
+        ],
+        payments: [
+          this.themeVar('--chart-accent-3', '#8f6b58'),
+          this.themeVar('--chart-accent-2', '#6b7a66'),
+        ],
+        grid: this.themeVar('--chart-grid', 'rgba(96, 74, 48, 0.12)'),
+      };
+    },
+
+    refreshChartTheme() {
+      const theme = this.chartPalette();
+
+      if (this.chartSalesOptions && Object.keys(this.chartSalesOptions).length) {
+        this.chartSalesOptions = {
+          ...this.chartSalesOptions,
+          colors: theme.sales,
+          grid: { ...(this.chartSalesOptions.grid || {}), borderColor: theme.grid },
+        };
+      }
+
+      if (this.chartProductOptions && Object.keys(this.chartProductOptions).length) {
+        this.chartProductOptions = {
+          ...this.chartProductOptions,
+          colors: theme.products,
+        };
+      }
+
+      if (this.chartCustomerOptions && Object.keys(this.chartCustomerOptions).length) {
+        this.chartCustomerOptions = {
+          ...this.chartCustomerOptions,
+          colors: theme.customers,
+        };
+      }
+
+      if (this.chartPaymentOptions && Object.keys(this.chartPaymentOptions).length) {
+        this.chartPaymentOptions = {
+          ...this.chartPaymentOptions,
+          colors: theme.payments,
+          grid: { ...(this.chartPaymentOptions.grid || {}), borderColor: theme.grid },
+        };
+      }
+    },
+
     fmt(d) {
       return moment(d).format("YYYY-MM-DD");
     },
@@ -649,6 +728,7 @@ export default {
           const salesLabel = this.$t('Sales');
           const paymentSentName = this.$t('Payment_Sent');
           const paymentReceivedName = this.$t('Payment_Received');
+          const chartTheme = this.chartPalette();
 
           // Ensure numeric values are properly converted (backend now returns raw numbers)
           const reportData = response.data.report_dashboard.original.report;
@@ -707,7 +787,7 @@ export default {
               toolbar: { show: true },
               fontFamily: "inherit"
             },
-            colors: ["#8B5CF6", "#DDD6FE"],
+            colors: chartTheme.sales,
             plotOptions: {
               bar: {
                 horizontal: false,
@@ -785,7 +865,7 @@ export default {
               }
             },
             grid: {
-              borderColor: "#e0e6ed",
+              borderColor: chartTheme.grid,
               strokeDashArray: 5,
               xaxis: {
                 lines: {
@@ -815,8 +895,7 @@ export default {
               fontFamily: "inherit"
             },
             labels: productData.map(item => item.name),
-            // Use a vibrant, highÔÇæcontrast palette so each top product is clearly distinct
-            colors: ["#6366F1", "#10B981", "#F59E0B", "#EF4444", "#EC4899"],
+            colors: chartTheme.products,
             legend: {
               position: "bottom",
               fontSize: "12px"
@@ -862,7 +941,7 @@ export default {
               fontFamily: "inherit"
             },
             labels: customerData.map(item => item.name),
-            colors: ["#8B5CF6", "#A78BFA", "#C4B5FD", "#DDD6FE", "#EDE9FE"],
+            colors: chartTheme.customers,
             legend: {
               position: "bottom",
               fontSize: "12px"
@@ -899,7 +978,7 @@ export default {
               toolbar: { show: true },
               fontFamily: "inherit"
             },
-            colors: ["#EF4444", "#10B981"],
+            colors: chartTheme.payments,
             dataLabels: {
               enabled: false
             },
@@ -972,7 +1051,7 @@ export default {
               }
             },
             grid: {
-              borderColor: "#e0e6ed",
+              borderColor: chartTheme.grid,
               strokeDashArray: 5,
               xaxis: {
                 lines: {
@@ -988,6 +1067,7 @@ export default {
           };
 
           // Hide loading only after all dashboard data and chart configs are ready
+          this.refreshChartTheme();
           this.loading = false;
         })
         .catch(() => {
@@ -1299,28 +1379,46 @@ onBeforeUnmount(() => {
 
 /* Dashboard Header */
 .dashboard-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(180deg, rgba(255, 253, 249, 0.94) 0%, rgba(247, 239, 228, 0.9) 100%);
   padding: 2rem;
-  border-radius: 12px;
-  color: white;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 24px;
+  color: var(--lux-text, #2f261d);
+  border: 1px solid var(--lux-border, rgba(96, 74, 48, 0.14));
+  box-shadow: 0 18px 36px rgba(58, 36, 16, 0.08);
+}
+
+.dashboard-header::after {
+  content: "";
+  position: absolute;
+  inset: auto -90px -90px auto;
+  width: 240px;
+  height: 240px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(180, 136, 82, 0.14) 0%, rgba(180, 136, 82, 0) 70%);
+  pointer-events: none;
 }
 
 .dashboard-header h2 {
-  color: white !important;
+  color: var(--lux-heading, #1e170f) !important;
   font-weight: 600;
+  letter-spacing: -0.04em;
+  font-size: clamp(1.85rem, 2.4vw, 2.45rem);
 }
 
 .welcome-text {
-  color: #FFFFFF !important;
+  color: var(--lux-muted, #746555) !important;
   font-size: 1rem;
+  line-height: 1.7;
   font-weight: 500;
+  max-width: 40rem;
 }
 
 .dashboard-header-filters {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.9rem;
   flex-wrap: nowrap;
 }
 
@@ -1345,37 +1443,40 @@ onBeforeUnmount(() => {
 }
 
 .date-picker-header-btn {
-  background: rgba(255, 255, 255, 0.2) !important;
-  border: none !important;
-  border-radius: 8px !important;
-  padding: 0.5rem 1rem !important;
-  font-weight: 600 !important;
-  color: white !important;
-  transition: all 0.3s ease !important;
+  background: var(--lux-panel-strong, #fffdf8) !important;
+  border: 1px solid var(--lux-border, rgba(96, 74, 48, 0.14)) !important;
+  border-radius: 16px !important;
+  padding: 0.78rem 1rem !important;
+  min-height: 54px;
+  font-weight: 700 !important;
+  color: var(--lux-text, #2f261d) !important;
+  transition: all 0.24s ease !important;
   width: 100%;
   text-align: left;
   display: flex;
   align-items: center;
   cursor: pointer;
   font-size: 0.95rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.26);
 }
 
 .date-picker-header-btn:hover {
-  background: rgba(255, 255, 255, 0.3) !important;
-  color: white !important;
+  background: rgba(180, 136, 82, 0.08) !important;
+  border-color: rgba(180, 136, 82, 0.28) !important;
+  color: var(--lux-heading, #1e170f) !important;
 }
 
 .date-picker-header-btn:focus,
 .date-picker-header-btn:active {
-  background: rgba(255, 255, 255, 0.3) !important;
-  color: white !important;
+  background: rgba(180, 136, 82, 0.08) !important;
+  color: var(--lux-heading, #1e170f) !important;
   outline: none;
-  box-shadow: none !important;
+  box-shadow: var(--lux-ring, 0 0 0 3px rgba(180, 136, 82, 0.14)) !important;
 }
 
 .date-picker-header-btn i {
-  color: white;
-  margin-right: 0.5rem;
+  color: var(--lux-muted-strong, #5f5144);
+  margin-right: 0.55rem;
 }
 
 .date-picker-header-btn span {
@@ -1392,17 +1493,18 @@ onBeforeUnmount(() => {
 }
 
 .warehouse-filter >>> .v-select .vs__dropdown-toggle {
-  background: rgba(255, 255, 255, 0.2) !important;
-  background-color: rgba(255, 255, 255, 0.2) !important;
-  border: none !important;
-  border-radius: 8px !important;
-  padding: 0.5rem 1rem !important;
-  min-height: auto !important;
+  background: var(--lux-panel-strong, #fffdf8) !important;
+  background-color: var(--lux-panel-strong, #fffdf8) !important;
+  border: 1px solid var(--lux-border, rgba(96, 74, 48, 0.14)) !important;
+  border-radius: 16px !important;
+  padding: 0.78rem 1rem !important;
+  min-height: 54px !important;
   height: auto !important;
   cursor: pointer;
-  transition: all 0.3s ease !important;
+  transition: all 0.24s ease !important;
   display: flex !important;
   align-items: center !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.26);
 }
 
 .warehouse-filter >>> .v-select .vs__dropdown-toggle * {
@@ -1411,30 +1513,29 @@ onBeforeUnmount(() => {
 }
 
 .warehouse-filter >>> .v-select .vs__dropdown-toggle:hover {
-  background: rgba(255, 255, 255, 0.3) !important;
+  background: rgba(180, 136, 82, 0.08) !important;
+  border-color: rgba(180, 136, 82, 0.28) !important;
 }
 
+.warehouse-filter >>> .v-select.vs--open .vs__dropdown-toggle,
 .warehouse-filter >>> .v-select .vs__dropdown-toggle:focus,
 .warehouse-filter >>> .v-select .vs__dropdown-toggle:active {
-  background: rgba(255, 255, 255, 0.3) !important;
+  background: rgba(180, 136, 82, 0.08) !important;
   outline: none;
-  box-shadow: none !important;
+  box-shadow: var(--lux-ring, 0 0 0 3px rgba(180, 136, 82, 0.14)) !important;
 }
 
 .warehouse-filter >>> .v-select .vs__selected-options {
   padding: 0 !important;
   margin: 0 !important;
-}
-
-.warehouse-filter >>> .v-select .vs__selected-options {
   display: flex;
   align-items: center;
   flex: 1;
 }
 
 .warehouse-filter >>> .v-select .vs__selected-options .vs__selected {
-  color: white !important;
-  font-weight: 600 !important;
+  color: var(--lux-text, #2f261d) !important;
+  font-weight: 700 !important;
   font-size: 0.95rem !important;
   margin: 0 !important;
   padding: 0 !important;
@@ -1448,15 +1549,15 @@ onBeforeUnmount(() => {
 }
 
 .warehouse-filter >>> .v-select .vs__selected-options .vs__selected i {
-  color: white;
-  margin-right: 0.5rem;
+  color: var(--lux-muted-strong, #5f5144);
+  margin-right: 0.55rem;
   flex-shrink: 0;
 }
 
 .warehouse-filter >>> .v-select .vs__search,
 .warehouse-filter >>> .v-select .vs__search:focus {
-  color: white !important;
-  font-weight: 600 !important;
+  color: var(--lux-text, #2f261d) !important;
+  font-weight: 700 !important;
   font-size: 0.95rem !important;
   padding: 0 !important;
   margin: 0 !important;
@@ -1467,7 +1568,7 @@ onBeforeUnmount(() => {
 }
 
 .warehouse-filter >>> .v-select .vs__search::placeholder {
-  color: rgba(255, 255, 255, 0.7) !important;
+  color: var(--lux-muted, #746555) !important;
   font-weight: 600 !important;
 }
 
@@ -1477,37 +1578,37 @@ onBeforeUnmount(() => {
 }
 
 .warehouse-filter >>> .v-select .vs__clear {
-  fill: white !important;
+  fill: var(--lux-muted-strong, #5f5144) !important;
   margin-right: 0.5rem;
 }
 
 .warehouse-filter >>> .v-select .vs__open-indicator {
-  fill: white !important;
+  fill: var(--lux-muted-strong, #5f5144) !important;
 }
 
 .warehouse-filter >>> .v-select .vs__dropdown-menu {
   z-index: 2056 !important;
-  border-radius: 8px !important;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
-  border: 1px solid #e0e6ed !important;
+  border-radius: 16px !important;
+  box-shadow: 0 18px 36px rgba(58, 36, 16, 0.12) !important;
+  border: 1px solid var(--lux-border, rgba(96, 74, 48, 0.14)) !important;
   margin-top: 0.5rem !important;
 }
 
 .warehouse-filter >>> .v-select .vs__dropdown-option {
   padding: 0.75rem 1rem !important;
-  color: #1f2937 !important;
+  color: var(--lux-text, #2f261d) !important;
   font-size: 0.875rem !important;
   display: flex;
   align-items: center;
 }
 
 .warehouse-filter >>> .v-select .vs__dropdown-option--highlight {
-  background: #8B5CF6 !important;
-  color: white !important;
+  background: var(--lux-accent, #b48852) !important;
+  color: var(--lux-accent-contrast, #fff9ef) !important;
 }
 
 .warehouse-filter >>> .v-select .vs__dropdown-option--highlight i {
-  color: white !important;
+  color: var(--lux-accent-contrast, #fff9ef) !important;
 }
 
 /* Filter Card */
@@ -1980,22 +2081,22 @@ html[dir="rtl"] .stat-card-icon {
 .table-card-title {
   font-size: 1.125rem;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--lux-heading, #1e170f);
   margin: 0;
 }
 
 .table-card-link {
-  color: #8B5CF6;
+  color: var(--lux-accent-strong, #8b622f);
   font-size: 0.875rem;
   text-decoration: none;
-  font-weight: 500;
+  font-weight: 600;
   display: inline-flex;
   align-items: center;
   transition: all 0.3s ease;
 }
 
 .table-card-link:hover {
-  color: #6D28D9;
+  color: var(--lux-accent, #b48852);
   text-decoration: none;
 }
 
@@ -2186,8 +2287,8 @@ html[dir="rtl"] .stat-card-icon {
 
 /* Date Range Picker - Style form-control */
 .date-range-filter >>> .form-control.reportrange-text {
-  background: #764ba200 !important;
-  color: white !important;
+  background: transparent !important;
+  color: var(--lux-text, #2f261d) !important;
   border: none !important;
   padding: 0 !important;
 }
@@ -2195,7 +2296,7 @@ html[dir="rtl"] .stat-card-icon {
 /* Date Range Picker Dropdown (ensure it appears above header and text is readable) */
 .date-range-filter >>> .daterangepicker {
   z-index: 2055 !important;
-  color: #111827 !important; /* dark text for good contrast on white background */
+  color: var(--lux-text, #2f261d) !important;
 }
 
 /* Responsive - Tablet */
@@ -2593,7 +2694,7 @@ html[dir="rtl"] .stat-card-icon {
     border-radius: 0 0 22px 22px;
     padding: 1.2rem 1rem 1rem;
     margin-bottom: 0.75rem !important;
-    box-shadow: 0 8px 32px rgba(102, 126, 234, 0.35);
+    box-shadow: 0 16px 36px rgba(58, 36, 16, 0.1);
   }
 
   .dashboard-page-root .dashboard-header-titles h2 {

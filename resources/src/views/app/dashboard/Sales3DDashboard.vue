@@ -1278,6 +1278,91 @@ export default {
   color: var(--s3d-muted);
 }
 
+body.dark-theme .sales-3d-dashboard,
+body.theme-luxury.dark-theme .sales-3d-dashboard {
+  --s3d-bg: #120f0d;
+  --s3d-surface: rgba(27, 23, 19, 0.94);
+  --s3d-surface-2: rgba(36, 30, 24, 0.82);
+  --s3d-text: #efe5d6;
+  --s3d-muted: #bcae9a;
+  --s3d-line: rgba(230, 214, 185, 0.12);
+  --s3d-shadow: 0 18px 40px rgba(0, 0, 0, 0.24);
+  background:
+    radial-gradient(1200px 600px at -10% -20%, rgba(214, 177, 122, 0.08), transparent 60%),
+    radial-gradient(900px 500px at 110% 10%, rgba(93, 122, 158, 0.10), transparent 55%),
+    linear-gradient(180deg, #16110e 0%, #0f0c0a 100%);
+}
+
+body.dark-theme .sales-3d-dashboard .s3d-hero,
+body.theme-luxury.dark-theme .sales-3d-dashboard .s3d-hero {
+  background:
+    radial-gradient(circle at top left, rgba(214, 177, 122, 0.22), transparent 34%),
+    linear-gradient(135deg, rgba(88, 63, 37, 0.98) 0%, rgba(121, 90, 55, 0.94) 48%, rgba(69, 101, 138, 0.84) 100%);
+  border: 1px solid rgba(214, 177, 122, 0.16);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.24);
+}
+
+body.dark-theme .sales-3d-dashboard .s3d-eyebrow,
+body.theme-luxury.dark-theme .sales-3d-dashboard .s3d-eyebrow {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+body.dark-theme .sales-3d-dashboard .s3d-kpi,
+body.dark-theme .sales-3d-dashboard .s3d-card,
+body.theme-luxury.dark-theme .sales-3d-dashboard .s3d-kpi,
+body.theme-luxury.dark-theme .sales-3d-dashboard .s3d-card {
+  background: linear-gradient(180deg, rgba(29, 24, 20, 0.96) 0%, rgba(21, 17, 14, 0.98) 100%);
+  border: 1px solid rgba(214, 177, 122, 0.12);
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.2);
+}
+
+body.dark-theme .sales-3d-dashboard .s3d-kpi::before,
+body.theme-luxury.dark-theme .sales-3d-dashboard .s3d-kpi::before {
+  background: linear-gradient(135deg, rgba(214, 177, 122, 0.18), rgba(255, 255, 255, 0.04));
+}
+
+body.dark-theme .sales-3d-dashboard .s3d-kpi-label,
+body.dark-theme .sales-3d-dashboard .s3d-card-sub,
+body.theme-luxury.dark-theme .sales-3d-dashboard .s3d-kpi-label,
+body.theme-luxury.dark-theme .sales-3d-dashboard .s3d-card-sub {
+  color: var(--s3d-muted);
+}
+
+body.dark-theme .sales-3d-dashboard .s3d-kpi-value,
+body.dark-theme .sales-3d-dashboard .s3d-card-title,
+body.theme-luxury.dark-theme .sales-3d-dashboard .s3d-kpi-value,
+body.theme-luxury.dark-theme .sales-3d-dashboard .s3d-card-title {
+  color: var(--s3d-text);
+}
+
+body.dark-theme .sales-3d-dashboard .s3d-card-head,
+body.theme-luxury.dark-theme .sales-3d-dashboard .s3d-card-head {
+  border-bottom: 1px solid rgba(214, 177, 122, 0.08);
+}
+
+body.dark-theme .sales-3d-dashboard .warehouse-filter ::v-deep(.v-select .vs__dropdown-menu),
+body.theme-luxury.dark-theme .sales-3d-dashboard .warehouse-filter ::v-deep(.v-select .vs__dropdown-menu) {
+  background: rgba(27, 23, 19, 0.98) !important;
+  border-color: rgba(214, 177, 122, 0.16) !important;
+}
+
+body.dark-theme .sales-3d-dashboard .warehouse-filter ::v-deep(.v-select .vs__dropdown-menu .vs__dropdown-option),
+body.dark-theme .sales-3d-dashboard .warehouse-filter ::v-deep(.v-select .vs__dropdown-menu li),
+body.theme-luxury.dark-theme .sales-3d-dashboard .warehouse-filter ::v-deep(.v-select .vs__dropdown-menu .vs__dropdown-option),
+body.theme-luxury.dark-theme .sales-3d-dashboard .warehouse-filter ::v-deep(.v-select .vs__dropdown-menu li) {
+  background: transparent !important;
+  color: #efe5d6 !important;
+}
+
+body.dark-theme .sales-3d-dashboard .warehouse-filter ::v-deep(.v-select .vs__dropdown-menu .vs__dropdown-option--highlight),
+body.dark-theme .sales-3d-dashboard .warehouse-filter ::v-deep(.v-select .vs__dropdown-menu .vs__dropdown-option--highlight *),
+body.theme-luxury.dark-theme .sales-3d-dashboard .warehouse-filter ::v-deep(.v-select .vs__dropdown-menu .vs__dropdown-option--highlight),
+body.theme-luxury.dark-theme .sales-3d-dashboard .warehouse-filter ::v-deep(.v-select .vs__dropdown-menu .vs__dropdown-option--highlight *) {
+  background: rgba(214, 177, 122, 0.18) !important;
+  color: #f8f3ea !important;
+}
+
 /* ===== Responsive ===== */
 @media (max-width: 1100px) {
   .s3d-kpis { grid-template-columns: repeat(2, 1fr); }

@@ -9,6 +9,13 @@
     <link rel="stylesheet" href="{{ global_asset('css/auth.css') }}">
     <link rel="icon" href="{{ global_asset(upload_path('settings') . '/' . ($app_settings->favicon ?? 'favicon.ico')) }}">
     <title>{{ $app_settings->app_name ?? 'Stocky | Ultimate Inventory With POS' }}</title>
+    <script>
+      try {
+        const dark = localStorage.getItem('darkMode');
+        if (dark === 'true') document.documentElement.classList.add('auth-theme-dark');
+        if (dark === 'false') document.documentElement.classList.add('auth-theme-light');
+      } catch (e) {}
+    </script>
   </head>
 
   <body class="auth-login">

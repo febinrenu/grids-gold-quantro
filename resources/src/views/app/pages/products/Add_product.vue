@@ -1882,7 +1882,7 @@
             </div>
 
             <!-- ========== SECTION: PHARMACY (BATCH & EXPIRY) ========== -->
-            <div class="form-section" id="section-pharmacy">
+            <div class="form-section" id="section-pharmacy" v-if="showPharmacySection">
               <div class="section-header">
                 <lucide-icon class="section-icon" name="heart-pulse" />
                 <h4 class="section-title">{{ $t('Pharmacy_Settings') || 'Pharmacy' }}</h4>
@@ -2010,7 +2010,7 @@
                   <li v-if="product.type == 'is_single'"><a href="#section-opening-stock"><lucide-icon name="shopping-bag" /><span>{{ $t('OpeningStock') }}</span></a></li>
                   <li><a href="#section-location"><lucide-icon name="map-pin" /><span>{{ $t('Internal_Location_Rack_Shelf') }}</span></a></li>
                   <li><a href="#section-options"><lucide-icon name="database-zap" /><span>{{ $t('Options') }}</span></a></li>
-                  <li><a href="#section-pharmacy"><lucide-icon name="heart-pulse" /><span>{{ $t('Pharmacy_Settings') || 'Pharmacy' }}</span></a></li>
+                  <li v-if="showPharmacySection"><a href="#section-pharmacy"><lucide-icon name="heart-pulse" /><span>{{ $t('Pharmacy_Settings') || 'Pharmacy' }}</span></a></li>
                 </ul>
               </nav>
 
@@ -2456,6 +2456,14 @@ export default {
 
   computed: {
     ...mapGetters(["currentUserPermissions","currentUser"]),
+    isJewelryTenant() {
+      if (typeof window === 'undefined' || !window.location) return false;
+      const host = String(window.location.hostname || '').toLowerCase();
+      return host.split('.')[0] === 'jewelry';
+    },
+    showPharmacySection() {
+      return !this.isJewelryTenant;
+    },
     // Monetary precision (2 or 3) driven by the "Enable 3 Decimal Pricing" setting.
     priceDecimals() {
       return getPriceDecimals({ store: this.$store });
@@ -5427,7 +5435,21 @@ export default {
   }
   body.dark-theme .product-create-page .v-select .vs__selected,
   body.dark-theme .product-create-page .v-select .vs__search,
-  body.dark-theme .product-create-page .v-select .vs__search::placeholder {
+  body.dark-theme .product-create-page .v-select .vs__search::placeholder,
+  body.dark-theme .product-create-page .v-select .vs__open-indicator,
+  body.dark-theme .product-create-page .v-select .vs__deselect {
     color: #d8d8d8;
+    fill: #d8d8d8;
+  }
+  body.dark-theme .product-create-page .v-select.vs--multiple .vs__selected {
+    background: rgba(214, 177, 122, 0.14);
+    border: 1px solid rgba(214, 177, 122, 0.24);
+    color: #f0d5a4;
+    border-radius: 10px;
+    padding: 0 0.45rem;
+  }
+  body.dark-theme .product-create-page .v-select.vs--multiple .vs__selected .vs__deselect {
+    fill: currentColor;
+    opacity: 0.78;
   }
 </style>
