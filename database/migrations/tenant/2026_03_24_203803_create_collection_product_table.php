@@ -17,7 +17,7 @@ return new class extends Migration
 
             $table->bigIncrements('id');
             $table->unsignedBigInteger('collection_id')->index('collection_product_collection_id_foreign');
-            $table->integer('product_id')->index('product_id');
+            $table->integer('product_id')->index('collection_product_product_id');
             $table->integer('sort_order')->default(0);
             $table->boolean('pinned')->default(false);
             $table->timestamps();

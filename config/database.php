@@ -37,7 +37,7 @@ return [
 
         /* Central DB: SaaS management (tenants, domains, plans, subscriptions). Same as mysql for Step 1. */
         'central' => [
-            'driver' => 'mysql',
+            'driver' => env('DB_CONNECTION', 'mysql') === 'sqlite' ? 'sqlite' : 'mysql',
             'url' => env('DATABASE_URL'),
             'host' => env('DB_HOST', '127.0.0.1'),
             'port' => env('DB_PORT', '3306'),

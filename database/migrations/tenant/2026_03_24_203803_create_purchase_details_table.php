@@ -23,7 +23,7 @@ return new class extends Migration
             $table->decimal('discount', 15)->nullable()->default(0);
             $table->string('discount_method', 192)->nullable()->default('1');
             $table->integer('purchase_id')->index('purchase_id');
-            $table->integer('product_id')->index('product_id');
+            $table->integer('product_id')->index('purchase_details_product_id');
             $table->integer('product_variant_id')->nullable()->index('purchase_product_variant_id');
             $table->text('imei_number')->nullable();
             $table->decimal('total', 15);

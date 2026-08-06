@@ -346,6 +346,22 @@ body label {
   color: var(--auth-muted);
 }
 
+.auth-input:-webkit-autofill,
+.input-shell input:-webkit-autofill,
+.auth-input:-webkit-autofill:hover,
+.input-shell input:-webkit-autofill:hover,
+.auth-input:-webkit-autofill:focus,
+.input-shell input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--auth-text);
+  caret-color: var(--auth-text);
+  transition: background-color 9999s ease-in-out 0s;
+  box-shadow: 0 0 0 1000px var(--auth-panel-strong) inset, inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+
+.input-shell input:-webkit-autofill {
+  box-shadow: 0 0 0 1000px var(--auth-panel-strong) inset;
+}
+
 .auth-input:focus,
 .input-shell input:focus,
 .toggle-password:focus,

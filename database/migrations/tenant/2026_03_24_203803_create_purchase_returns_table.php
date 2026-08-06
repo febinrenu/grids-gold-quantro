@@ -16,7 +16,7 @@ return new class extends Migration
             $table->charset = 'utf8mb4';
 
             $table->integer('id', true);
-            $table->integer('user_id')->index('user_id_returns');
+            $table->integer('user_id')->index('purchase_returns_user_id');
             $table->date('date');
             $table->time('time')->nullable();
             $table->string('Ref', 192);
