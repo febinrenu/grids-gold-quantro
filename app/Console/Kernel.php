@@ -37,6 +37,10 @@ class Kernel extends ConsoleKernel
 
         $schedule->command('assets:check-validation-due')->daily();
 
+        // 4 metals/day worth of hourly requests stays well under goldapi.io's
+        // free-tier cap of 100 requests/day (1 request per metal per run).
+        $schedule->command('jewelry:refresh-metal-rates')->hourly()->withoutOverlapping();
+
         $schedule->command('meetings:send-reminders')->everyMinute()->withoutOverlapping();
 
         $schedule->command('marketing:process-scheduled')->everyMinute()->withoutOverlapping();

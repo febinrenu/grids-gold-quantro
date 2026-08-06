@@ -2,8 +2,12 @@
 
 namespace App\Services\Jewelry;
 
+use App\Models\Currency;
 use App\Models\GoldRate;
+use App\Models\Karat;
+use App\Models\MetalType;
 use App\Models\Setting;
+use App\Services\CurrencyConversionService;
 use Illuminate\Database\Eloquent\Collection;
 use Carbon\Carbon;
 
@@ -47,16 +51,9 @@ class GoldRateService
         // 1. If warehouse ID is provided AND branch overrides are enabled, try
         // to find a warehouse-specific active rate first.
         if ($warehouseId !== null && $branchOverrideEnabled) {
-            $rate = GoldRate::where('status', 'active')
-                ->where('metal_type_id', $metalTypeId)
-                ->where('karat_id', $karatId)
+            $rate = $this->activeRateQuery($metalTypeId, $karatId, $now)
                 ->where('warehouse_id', $warehouseId)
                 ->when($currencyId !== null, fn ($query) => $query->where('currency_id', $currencyId))
-                ->where('effective_at', '<=', $now)
-                ->where(function ($query) use ($now) {
-                    $query->whereNull('expires_at')
-                          ->orWhere('expires_at', '>', $now);
-                })
                 ->orderBy('effective_at', 'desc')
                 ->orderBy('id', 'desc')
                 ->first();
@@ -64,22 +61,127 @@ class GoldRateService
             if ($rate) {
                 return $rate;
             }
+
+            $rate = $this->apiSourcedFallback($metalTypeId, $karatId, $warehouseId, $currencyId, $now);
+            if ($rate) {
+                return $rate;
+            }
         }
 
         // 2. Fall back to company-wide rate (where warehouse_id is null).
+        $rate = $this->activeRateQuery($metalTypeId, $karatId, $now)
+            ->whereNull('warehouse_id')
+            ->when($currencyId !== null, fn ($query) => $query->where('currency_id', $currencyId))
+            ->orderBy('effective_at', 'desc')
+            ->orderBy('id', 'desc')
+            ->first();
+
+        if ($rate) {
+            return $rate;
+        }
+
+        return $this->apiSourcedFallback($metalTypeId, $karatId, null, $currencyId, $now);
+    }
+
+    /**
+     * Base query shared by every "current rate" lookup: active status,
+     * matching metal/karat, already effective, not yet expired.
+     */
+    protected function activeRateQuery(int $metalTypeId, int $karatId, Carbon $now)
+    {
         return GoldRate::where('status', 'active')
             ->where('metal_type_id', $metalTypeId)
             ->where('karat_id', $karatId)
-            ->whereNull('warehouse_id')
-            ->when($currencyId !== null, fn ($query) => $query->where('currency_id', $currencyId))
             ->where('effective_at', '<=', $now)
             ->where(function ($query) use ($now) {
                 $query->whereNull('expires_at')
                       ->orWhere('expires_at', '>', $now);
-            })
+            });
+    }
+
+    /**
+     * Live-synced ('api') rates are stored once, in a canonical currency
+     * (USD), and are convertible on demand — unlike manual rates, which are
+     * currency-specific by design and must never be silently reinterpreted
+     * in a different currency. This is only consulted when no exact
+     * currency match was found above, so it never overrides a manual rate.
+     */
+    protected function apiSourcedFallback(
+        int $metalTypeId,
+        int $karatId,
+        ?int $warehouseId,
+        ?int $currencyId,
+        Carbon $now
+    ): ?GoldRate {
+        $rate = $this->activeRateQuery($metalTypeId, $karatId, $now)
+            ->where('warehouse_id', $warehouseId)
+            ->where('rate_source', 'api')
             ->orderBy('effective_at', 'desc')
             ->orderBy('id', 'desc')
             ->first();
+
+        if (! $rate) {
+            return null;
+        }
+
+        if ($currencyId === null || $rate->currency_id === $currencyId) {
+            return $rate;
+        }
+
+        $targetCurrency = Currency::find($currencyId);
+        $storedCurrency = Currency::find($rate->currency_id);
+
+        if (! $targetCurrency || ! $storedCurrency) {
+            return $rate;
+        }
+
+        $exchangeRate = CurrencyConversionService::getExchangeRate($storedCurrency->code, $targetCurrency->code);
+
+        // Non-persisted conversion: mutate an in-memory copy only.
+        $converted = $rate->replicate();
+        $converted->exists = true;
+        $converted->id = $rate->id;
+        $converted->currency_id = $targetCurrency->id;
+        $converted->rate_per_weight_unit = round($rate->rate_per_weight_unit * $exchangeRate, 2);
+
+        return $converted;
+    }
+
+    /**
+     * Store a live rate fetched from a metals price API. Purity math is
+     * done locally (karat's purity_percentage against the metal's spot
+     * price per gram) so one API call per metal covers every karat.
+     * Always stored in USD — getCurrentRate() converts to the requested
+     * currency on read, so a tenant's currency change takes effect
+     * immediately without waiting for the next sync.
+     */
+    public function syncFromApi(
+        MetalType $metalType,
+        Karat $karat,
+        MetalPriceService $priceService,
+        ?int $warehouseId = null,
+        ?int $userId = null
+    ): GoldRate {
+        $pricePerGramUsd = $priceService->getSpotPricePerGramUsd($metalType->code);
+        $purityFraction = ((float) $karat->purity_percentage) / 100;
+
+        $usdCurrency = Currency::firstOrCreate(
+            ['code' => 'USD'],
+            ['name' => 'US Dollar', 'symbol' => '$']
+        );
+
+        return GoldRate::create([
+            'metal_type_id'        => $metalType->id,
+            'karat_id'             => $karat->id,
+            'rate_per_weight_unit' => round($pricePerGramUsd * $purityFraction, 2),
+            'currency_id'          => $usdCurrency->id,
+            'warehouse_id'         => $warehouseId,
+            'created_by'           => $userId,
+            'effective_at'         => Carbon::now(),
+            'status'               => 'active',
+            'rate_source'          => 'api',
+            'weight_uom'           => 'g',
+        ]);
     }
 
     /**

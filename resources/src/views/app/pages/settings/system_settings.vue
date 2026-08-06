@@ -3492,6 +3492,46 @@
                         </div>
                       </b-col>
 
+                      <b-col lg="12" md="12" sm="12" class="mb-3" v-if="setting.metal_price_provider_supported !== false">
+                        <div class="system-actions-card">
+                          <h5 class="mb-2">Live Metal Price Sync</h5>
+                          <p class="text-muted small">Automatically fetch live gold/silver/platinum spot prices and keep every karat's rate up to date, hourly. Runs entirely per-tenant — bring your own free API key below.</p>
+
+                          <label class="switch switch-primary mr-3">
+                            Enable Live Metal Price Sync
+                            <input type="checkbox" v-model="setting.metal_price_sync_enabled" :disabled="!setting.jewelry_mode">
+                            <span class="slider"></span>
+                          </label>
+
+                          <b-row class="mt-3">
+                            <b-col lg="6" md="6" sm="12" class="mb-3">
+                              <b-form-group label="Price Provider">
+                                <b-form-select
+                                  v-model="setting.metal_price_provider"
+                                  :options="metalPriceProviderOptions"
+                                  :disabled="!setting.jewelry_mode || !setting.metal_price_sync_enabled"
+                                ></b-form-select>
+                              </b-form-group>
+                            </b-col>
+
+                            <b-col lg="6" md="6" sm="12" class="mb-3">
+                              <b-form-group label="API Key">
+                                <b-form-input
+                                  type="password"
+                                  v-model="setting.metal_price_api_key"
+                                  :placeholder="setting.metal_price_api_key_set ? 'Saved — leave blank to keep it' : 'Paste your API key'"
+                                  :disabled="!setting.jewelry_mode || !setting.metal_price_sync_enabled"
+                                  autocomplete="new-password"
+                                ></b-form-input>
+                                <small class="text-muted" v-if="setting.metal_price_provider === 'goldapi'">
+                                  Free tier at <a href="https://www.goldapi.io" target="_blank" rel="noopener">goldapi.io</a> (100 requests/day).
+                                </small>
+                              </b-form-group>
+                            </b-col>
+                          </b-row>
+                        </div>
+                      </b-col>
+
                       <b-col lg="12" md="12" sm="12" class="mt-2">
                         <b-button variant="primary" @click="Update_Settings()">
                           <lucide-icon class="me-2" name="check" /> {{ $t('submit') }}
@@ -4063,6 +4103,14 @@ export default {
         default_wastage_value: "",
         gold_rate_requires_approval: false,
         gold_rate_branch_override_enabled: true,
+
+        // Live metal price sync
+        metal_price_provider_supported: true,
+        metal_price_sync_enabled: false,
+        metal_price_provider: "goldapi",
+        metal_price_available_providers: ["goldapi"],
+        metal_price_api_key_set: false,
+        metal_price_api_key: "",
       },
       // Custom Fields data
       customFieldsActiveTab: 0,
@@ -4293,6 +4341,15 @@ export default {
         { value: 'percentage_of_value', text: 'Percentage of Value' },
         { value: 'fixed_value', text: 'Fixed Value' },
       ];
+    },
+
+    // Populated from the backend's MetalPriceService::availableProviders(),
+    // so a new provider shows up here the moment it's registered server-side
+    // — no frontend rebuild required for the option to appear.
+    metalPriceProviderOptions() {
+      const labels = { goldapi: 'GoldAPI.io' };
+      const providers = (this.setting && this.setting.metal_price_available_providers) || ['goldapi'];
+      return providers.map((value) => ({ value, text: labels[value] || value }));
     },
 
     backupDestination: {
@@ -4955,6 +5012,15 @@ export default {
       self.data.append("default_wastage_value", self.setting.default_wastage_value != null && self.setting.default_wastage_value !== "" ? self.setting.default_wastage_value : "");
       self.data.append("gold_rate_requires_approval", self.setting.gold_rate_requires_approval ? 1 : 0);
       self.data.append("gold_rate_branch_override_enabled", self.setting.gold_rate_branch_override_enabled ? 1 : 0);
+
+      // Live metal price sync. The API key field is left blank when a key is
+      // already saved (never round-tripped to the browser) — only send it
+      // when the user actually types a new one; blank means "keep it".
+      self.data.append("metal_price_sync_enabled", self.setting.metal_price_sync_enabled ? 1 : 0);
+      self.data.append("metal_price_provider", self.setting.metal_price_provider || "goldapi");
+      if (self.setting.metal_price_api_key) {
+        self.data.append("metal_price_api_key", self.setting.metal_price_api_key);
+      }
 
       self.data.append("_method", "put");
 
@@ -5856,25 +5922,15 @@ export default {
             }
           } catch (e) {}
           
-          // Sync dark_mode and rtl with Vuex store if they exist in settings
-          // If not in settings, use current Vuex store values
-          if (this.setting.dark_mode !== undefined && this.setting.dark_mode !== null) {
-            // Sync Vuex store with backend setting by directly setting the value
-            if (this.getThemeMode.dark !== this.setting.dark_mode) {
-              this.$store.state.config.themeMode.dark = this.setting.dark_mode;
-            }
-          } else {
-            // If not in backend, initialize from Vuex store
+          // Just show the saved preference in the form — don't push it into
+          // the live theme. Opening Settings should never flip the theme
+          // out from under you; a theme change only takes effect when you
+          // actually save (see Update_Settings()'s success handler).
+          if (this.setting.dark_mode === undefined || this.setting.dark_mode === null) {
             this.setting.dark_mode = this.getThemeMode.dark || false;
           }
-          
-          if (this.setting.rtl !== undefined && this.setting.rtl !== null) {
-            // Sync Vuex store with backend setting by directly setting the value
-            if (this.getThemeMode.rtl !== this.setting.rtl) {
-              this.$store.state.config.themeMode.rtl = this.setting.rtl;
-            }
-          } else {
-            // If not in backend, initialize from Vuex store
+
+          if (this.setting.rtl === undefined || this.setting.rtl === null) {
             this.setting.rtl = this.getThemeMode.rtl || false;
           }
           

@@ -13,8 +13,10 @@ use App\Models\sms_gateway;
 use App\Models\User;
 use App\Models\UserWarehouse;
 use App\Models\Warehouse;
+use App\Services\Jewelry\MetalPriceService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Crypt;
 use Intervention\Image\ImageManagerStatic as Image;
 
 class SettingsController extends Controller
@@ -763,6 +765,17 @@ class SettingsController extends Controller
             $item['gold_rate_requires_approval'] = (bool) ($settings->gold_rate_requires_approval ?? false);
             $item['gold_rate_branch_override_enabled'] = (bool) ($settings->gold_rate_branch_override_enabled ?? true);
 
+            // Live metal price provider — the key is never sent to the browser as
+            // plaintext; only whether one is already saved (metal_price_api_key_set).
+            $item['metal_price_provider_supported'] = \Schema::hasColumn('settings', 'metal_price_provider');
+            $item['metal_price_sync_enabled'] = (bool) ($settings->metal_price_sync_enabled ?? false);
+            $item['metal_price_provider'] = $settings->metal_price_provider ?? 'goldapi';
+            $item['metal_price_available_providers'] = \App\Services\Jewelry\MetalPriceService::availableProviders();
+            $item['metal_price_api_key_set'] = ! empty($settings->metal_price_api_key);
+            if ($includeSecrets) {
+                $item['metal_price_api_key'] = $settings->metal_price_api_key ?? null;
+            }
+
             $zones_array = [];
             $timestamp = time();
             foreach (timezone_identifiers_list() as $key => $zone) {
@@ -990,6 +1003,17 @@ class SettingsController extends Controller
             $item['default_wastage_value'] = $settings->default_wastage_value ?? null;
             $item['gold_rate_requires_approval'] = (bool) ($settings->gold_rate_requires_approval ?? false);
             $item['gold_rate_branch_override_enabled'] = (bool) ($settings->gold_rate_branch_override_enabled ?? true);
+
+            // Live metal price provider — the key is never sent to the browser as
+            // plaintext; only whether one is already saved (metal_price_api_key_set).
+            $item['metal_price_provider_supported'] = \Schema::hasColumn('settings', 'metal_price_provider');
+            $item['metal_price_sync_enabled'] = (bool) ($settings->metal_price_sync_enabled ?? false);
+            $item['metal_price_provider'] = $settings->metal_price_provider ?? 'goldapi';
+            $item['metal_price_available_providers'] = \App\Services\Jewelry\MetalPriceService::availableProviders();
+            $item['metal_price_api_key_set'] = ! empty($settings->metal_price_api_key);
+            if ($includeSecrets) {
+                $item['metal_price_api_key'] = $settings->metal_price_api_key ?? null;
+            }
 
             $zones_array = [];
             $timestamp = time();
@@ -1381,6 +1405,40 @@ class SettingsController extends Controller
             'default_wastage_value' => $nullableNumber($request->input('default_wastage_value', $setting->default_wastage_value ?? null)),
             'gold_rate_requires_approval' => $request->has('gold_rate_requires_approval') ? $bool($request->input('gold_rate_requires_approval')) : (int) ($setting->gold_rate_requires_approval ?? 0),
             'gold_rate_branch_override_enabled' => $request->has('gold_rate_branch_override_enabled') ? $bool($request->input('gold_rate_branch_override_enabled')) : (int) ($setting->gold_rate_branch_override_enabled ?? 1),
+        ] + $this->metalPriceSettingsPayload($request, $setting, $sanitizeEnum, $bool);
+    }
+
+    /**
+     * Live metal price provider settings. Split out from
+     * jewelrySettingsPayload() because it needs its own column guard (this
+     * migration ships slightly after the base jewelry_mode one) and because
+     * the API key must be encrypted by hand: this whole payload is written
+     * via Setting::whereId($id)->update(...), a query-builder mass update
+     * that bypasses Eloquent's 'encrypted' cast entirely. Encrypting here
+     * with the same Crypt facade the cast uses means a normal model read
+     * ($setting->metal_price_api_key) still decrypts it correctly later.
+     */
+    protected function metalPriceSettingsPayload(Request $request, $setting, callable $sanitizeEnum, callable $bool): array
+    {
+        if (! \Schema::hasColumn('settings', 'metal_price_provider')) {
+            return [];
+        }
+
+        $payload = [
+            'metal_price_sync_enabled' => $request->has('metal_price_sync_enabled')
+                ? $bool($request->input('metal_price_sync_enabled'))
+                : (int) ($setting->metal_price_sync_enabled ?? 0),
+            'metal_price_provider' => $sanitizeEnum(
+                $request->input('metal_price_provider', $setting->metal_price_provider ?? 'goldapi'),
+                MetalPriceService::availableProviders()
+            ) ?? 'goldapi',
         ];
+
+        $newKey = $request->input('metal_price_api_key');
+        if ($request->has('metal_price_api_key') && $newKey !== '' && $newKey !== null) {
+            $payload['metal_price_api_key'] = Crypt::encryptString($newKey);
+        }
+
+        return $payload;
     }
 }
