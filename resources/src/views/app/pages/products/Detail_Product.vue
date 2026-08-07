@@ -85,7 +85,8 @@
                 width: '140px',
                 height: '140px',
                 borderRadius: '14px',
-                background: '#fff',
+                background: pdTheme.galleryFrameBg,
+                border: `1px solid ${pdTheme.galleryFrameBorder}`,
                 flexShrink: 0,
                 display: 'flex',
                 alignItems: 'center',
@@ -95,6 +96,7 @@
               }"
             >
               <img
+                class="pd-hero-img__el"
                 :src="$imgUrl('products', productImages[0] || product.image || 'no-image.png')"
                 :alt="product.name"
                 :style="{ width: '100%', height: '100%', objectFit: 'contain' }"
@@ -557,6 +559,7 @@
               </div>
               <div :style="{ padding: '20px' }">
                 <div
+                  class="pd-gallery-stage"
                   :style="{
                     width: '100%',
                     height: '320px',
@@ -571,6 +574,7 @@
                   }"
                 >
                   <img
+                    class="pd-gallery-stage__img"
                     :src="$imgUrl('products', activeImage)"
                     :alt="product.name"
                     :style="{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }"
@@ -589,6 +593,7 @@
                   <div
                     v-for="(img, idx) in productImages"
                     :key="idx"
+                    class="pd-gallery-thumb"
                     @click="activeImageIndex = idx"
                     :style="{
                       width: '100%',
@@ -603,12 +608,13 @@
                     }"
                   >
                     <img
+                      class="pd-gallery-thumb__img"
                       :src="$imgUrl('products', img)"
                       :style="{
                         position: 'absolute',
                         top: 0, left: 0,
                         width: '100%', height: '100%',
-                        objectFit: 'cover',
+                        objectFit: 'contain',
                         background: pdTheme.thumbInnerBg
                       }"
                       @error="onImgError"
@@ -1568,6 +1574,48 @@ export default {
     width: 100% !important;
     justify-content: flex-start !important;
   }
+}
+
+.pd-hero-img,
+.pd-gallery-stage,
+.pd-gallery-thumb {
+  position: relative;
+  isolation: isolate;
+}
+
+.pd-hero-img::after,
+.pd-gallery-stage::after,
+.pd-gallery-thumb::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 24% 20%, rgba(255, 255, 255, 0.34), transparent 28%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0));
+}
+
+.pd-hero-img__el,
+.pd-gallery-stage__img,
+.pd-gallery-thumb__img {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+}
+
+.pd-hero-img__el {
+  padding: 14px;
+}
+
+.pd-gallery-stage__img {
+  padding: 22px;
+}
+
+.pd-gallery-thumb__img {
+  padding: 7px;
 }
 
 /* Extra-small phones */

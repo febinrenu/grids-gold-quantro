@@ -50,14 +50,12 @@
             </a>
           </span>
           <span v-else-if="props.column.field == 'image'">
-            <b-img
-              thumbnail
-              height="50"
-              width="50"
-              fluid
-              :src="$imgUrl('brands', props.row.image)"
-              alt="image"
-            ></b-img>
+            <div class="lux-table-thumb lux-table-thumb--brand">
+              <img
+                :src="$imgUrl('brands', props.row.image || 'no-image.png')"
+                :alt="props.row.name || 'brand image'"
+              >
+            </div>
           </span>
         </template>
       </vue-good-table>
@@ -511,3 +509,36 @@ export default {
   }
 };
 </script>
+
+<style>
+.lux-table-thumb {
+  width: 56px;
+  height: 56px;
+  padding: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  overflow: hidden;
+  background: linear-gradient(180deg, rgba(255, 251, 245, 0.98) 0%, rgba(244, 233, 214, 0.94) 100%);
+  border: 1px solid rgba(194, 158, 104, 0.28);
+  box-shadow:
+    0 10px 22px rgba(70, 46, 17, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+
+.lux-table-thumb img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+}
+
+body.dark-theme .lux-table-thumb {
+  background: linear-gradient(180deg, rgba(38, 31, 25, 0.98) 0%, rgba(25, 20, 16, 0.94) 100%);
+  border-color: rgba(214, 177, 122, 0.18);
+  box-shadow:
+    0 12px 24px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+</style>
