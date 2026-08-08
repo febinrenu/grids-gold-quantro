@@ -3893,8 +3893,10 @@ export default {
   .gallery-item-thumb {
     width: 80px;
     height: 80px;
-    object-fit: cover;
+    padding: 7px;
+    object-fit: contain;
     border-radius: 12px;
+    background: linear-gradient(180deg, rgba(255, 250, 244, 0.98) 0%, rgba(245, 235, 220, 0.92) 100%);
     box-shadow:
       0 2px 8px rgba(15, 23, 42, 0.08),
       inset 0 1px 0 rgba(255, 255, 255, 0.6);
@@ -3902,6 +3904,7 @@ export default {
 
   .gallery-item-card .gallery-thumb-select {
     border-radius: 12px;
+    background: linear-gradient(180deg, rgba(255, 251, 245, 0.96) 0%, rgba(244, 233, 214, 0.9) 100%);
     box-shadow: 0 2px 10px rgba(15, 23, 42, 0.07);
   }
 
@@ -4676,6 +4679,15 @@ export default {
   .dark-theme .gallery-item-card:hover .gallery-drag-handle {
     background: rgba(255, 255, 255, 0.08);
     color: #d8d8d8;
+  }
+  .dark-theme .gallery-item-thumb {
+    background: linear-gradient(180deg, rgba(41, 33, 27, 0.98) 0%, rgba(25, 20, 16, 0.96) 100%);
+    box-shadow:
+      0 4px 12px rgba(0, 0, 0, 0.28),
+      inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+  .dark-theme .gallery-thumb-select {
+    background: linear-gradient(180deg, rgba(38, 31, 25, 0.98) 0%, rgba(24, 19, 15, 0.94) 100%);
   }
 
   /* Gallery dropzone */

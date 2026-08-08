@@ -510,6 +510,22 @@ body.theme-luxury .user-avatar img {
   box-shadow: none !important;
 }
 
+body.theme-luxury .pos-codecanyon .pos-shell-card-media,
+body.theme-luxury .pos-codecanyon .pos-shell-cart-thumb {
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+  background-size: contain !important;
+  background-origin: content-box !important;
+}
+
+body.theme-luxury .pos-codecanyon .pos-shell-card-media {
+  padding: 10px !important;
+}
+
+body.theme-luxury .pos-codecanyon .pos-shell-cart-thumb {
+  padding: 4px !important;
+}
+
 body.theme-luxury .badge {
   border-radius: var(--lux-radius-pill);
   font-weight: 700;

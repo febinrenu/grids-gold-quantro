@@ -1,0 +1,722 @@
+[
+  {
+    "sku": "JWL-RNG-001",
+    "kind": "ring",
+    "meta": {
+      "title": "Diamond Bezel Engagement Ring",
+      "creator": "estatediamondjewelry",
+      "license": "by",
+      "license_version": "2.0",
+      "license_url": null,
+      "provider": "flickr",
+      "source_json": "tmp/openverse-previews/ring.json",
+      "pick": 8,
+      "foreign_landing_url": "https://www.flickr.com/photos/147178302@N06/49588262411",
+      "detail_url": null,
+      "image_url": "https://live.staticflickr.com/65535/49588262411_928f902bbe_b.jpg",
+      "thumbnail": "https://api.openverse.org/v1/images/ccccbda8-63c8-40cc-ab73-5611fbfcbfce/thumb/"
+    }
+  },
+  {
+    "sku": "JWL-RNG-002",
+    "kind": "ring",
+    "meta": {
+      "title": "Rings",
+      "creator": "Elsie esq.",
+      "license": "by",
+      "license_version": "2.0",
+      "license_url": null,
+      "provider": "flickr",
+      "source_json": "tmp/openverse-previews/wedding_band.json",
+      "pick": 4,
+      "foreign_landing_url": "https://www.flickr.com/photos/61132483@N00/2944787081",
+      "detail_url": null,
+      "image_url": "https://live.staticflickr.com/3194/2944787081_67f8a09f6a_b.jpg",
+      "thumbnail": "https://api.openverse.org/v1/images/6c16a1f1-3093-4298-81b0-a08a271818f9/thumb/"
+    }
+  },
+  {
+    "sku": "JWL-RNG-003",
+    "kind": "ring",
+    "meta": {
+      "title": "5-carat Ruby Engagement/Wedding Ring",
+      "creator": "3BL Media",
+      "license": "by",
+      "license_version": "2.0",
+      "license_url": null,
+      "provider": "flickr",
+      "source_json": "tmp/openverse-previews/ruby_ring.json",
+      "pick": 2,
+      "foreign_landing_url": "https://www.flickr.com/photos/37743612@N05/4557492329",
+      "detail_url": null,
+      "image_url": "https://live.staticflickr.com/2007/4557492329_3d905a8b51_b.jpg",
+      "thumbnail": "https://api.openverse.org/v1/images/5479d174-39ca-4dad-a6d1-dfb68ed9173e/thumb/"
+    }
+  },
+  {
+    "sku": "JWL-RNG-004",
+    "kind": "ring",
+    "meta": {
+      "title": "Emerald and diamond ring",
+      "creator": "gemteck1",
+      "license": "by",
+      "license_version": "2.0",
+      "license_url": null,
+      "provider": "flickr",
+      "source_json": "tmp/openverse-previews/emerald_ring.json",
+      "pick": 3,
+      "foreign_landing_url": "https://www.flickr.com/photos/65303620@N00/407418285",
+      "detail_url": null,
+      "image_url": "https://live.staticflickr.com/141/407418285_e3ea4ba19c_b.jpg",
+      "thumbnail": "https://api.openverse.org/v1/images/8cafa76c-1f6a-4b54-93c7-14ced7124b49/thumb/"
+    }
+  },
+  {
+    "sku": "JWL-RNG-005",
+    "kind": "ring",
+    "meta": {
+      "title": "Ceylon Sapphire",
+      "creator": "gemteck1",
+      "license": "by",
+      "license_version": "2.0",
+      "license_url": null,
+      "provider": "flickr",
+      "source_json": "tmp/openverse-previews/sapphire_ring.json",
+      "pick": 4,
+      "foreign_landing_url": "https://www.flickr.com/photos/65303620@N00/374123816",
+      "detail_url": null,
+      "image_url": "https://live.staticflickr.com/135/374123816_02c5b4b091_b.jpg",
+      "thumbnail": "https://api.openverse.org/v1/images/8d576a0d-08fd-4adb-b93e-58bdda307c55/thumb/"
+    }
+  },
+  {
+    "sku": "JWL-RNG-006",
+    "kind": "ring",
+    "meta": {
+      "title": "Jewelry",
+      "creator": "Gnilenkov Aleksey",
+      "license": "by",
+      "license_version": "2.0",
+      "license_url": null,
+      "provider": "flickr",
+      "source_json": "tmp/openverse-previews/silver_ring.json",
+      "pick": 7,
+      "foreign_landing_url": "https://www.flickr.com/photos/39415470@N02/7634848162",
+      "detail_url": null,
+      "image_url": "https://live.staticflickr.com/8164/7634848162_00d699115f_b.jpg",
+      "thumbnail": "https://api.openverse.org/v1/images/0f4c9767-31d7-4c9a-86b6-e1e6c37c885f/thumb/"
+    }
+  },
+  {
+    "sku": "JWL-NCK-001",
+    "kind": "necklace",
+    "meta": {
+      "title": "graff-diamonds",
+      "creator": "bbaunach",
+      "license": "by",
+      "license_version": "2.0",
+      "license_url": null,
+      "provider": "flickr",
+      "source_json": "tmp/openverse-previews/diamond_necklace.json",
+      "pick": 3,
+      "foreign_landing_url": "https://www.flickr.com/photos/93734858@N00/1055570021",
+      "detail_url": null,
+      "image_url": "https://live.staticflickr.com/1002/1055570021_1d99d4da5c_m.jpg",
+      "thumbnail": "https://api.openverse.org/v1/images/747af6b4-9d0d-403c-a2a5-5f30651d9b84/thumb/"
+    }
+  },
+  {
+    "sku": "JWL-NCK-002",
+    "kind": "necklace",
+    "meta": {
+      "title": "Jewellrry. Free public domain CC0",
+      "creator": null,
+      "license": "cc0",
+      "license_version": "1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "provider": "rawpixel",
+      "source_json": "tmp/rawpixel-previews/ruby_gemstone.json",
+      "pick": 1,
+      "foreign_landing_url": "https://www.rawpixel.com/image/5914253/jewellrry-free-public-domain-cc0-photo",
+      "detail_url": "https://api.openverse.org/v1/images/e7509620-df6c-48af-8811-0ec90841cacf/",
+      "image_url": "https://images.rawpixel.com/editor_1024/czNmcy1wcml2YXRlL3Jhd3BpeGVsX2ltYWdlcy93ZWJzaXRlX2NvbnRlbnQvbHIvcHgxMDgzNjcxLWltYWdlLWt3dndjamdjLmpwZw.jpg",
+      "thumbnail": "https://api.openverse.org/v1/images/e7509620-df6c-48af-8811-0ec90841cacf/thumb/"
+    }
+  },
+  {
+    "sku": "JWL-NCK-003",
+    "kind": "necklace",
+    "meta": {
+      "title": "Pearls",
+      "creator": "Milica Sekulic",
+      "license": "by",
+      "license_version": "2.0",
+      "license_url": null,
+      "provider": "flickr",
+      "source_json": "tmp/openverse-previews/pearl_necklace.json",
+      "pick": 4,
+      "foreign_landing_url": "https://www.flickr.com/photos/84059604@N00/310678628",
+      "detail_url": null,
+      "image_url": "https://live.staticflickr.com/112/310678628_a5af469054.jpg",
+      "thumbnail": "https://api.openverse.org/v1/images/cb0d6956-a7d0-4b7f-a159-916a18377a4e/thumb/"
+    }
+  },
+  {
+    "sku": "JWL-NCK-004",
+    "kind": "necklace",
+    "meta": {
+      "title": "Diamond and Emerald necklace",
+      "creator": "Kim Alaniz",
+      "license": "by",
+      "license_version": "2.0",
+      "license_url": null,
+      "provider": "flickr",
+      "source_json": "tmp/openverse-previews/emerald_necklace.json",
+      "pick": 4,
+      "foreign_landing_url": "https://www.flickr.com/photos/55159948@N00/6648151515",
+      "detail_url": null,
+      "image_url": "https://live.staticflickr.com/7163/6648151515_13a01d89ce_b.jpg",
+      "thumbnail": "https://api.openverse.org/v1/images/73ba2852-f21d-4184-afce-f4b199d8ce72/thumb/"
+    }
+  },
+  {
+    "sku": "JWL-NCK-005",
+    "kind": "necklace",
+    "meta": {
+      "title": "Serpentine Fire Opal Pendant",
+      "creator": "Different Seasons Jewelry",
+      "license": "by",
+      "license_version": "2.0",
+      "license_url": "https://creativecommons.org/licenses/by/2.0/",
+      "provider": "flickr",
+      "source_json": "tmp/openverse-previews-custom/opal_pendant.json",
+      "pick": 1,
+      "foreign_landing_url": "https://www.flickr.com/photos/58902192@N00/3795140717",
+      "detail_url": "https://api.openverse.org/v1/images/f269c707-6ae4-41aa-9a60-b4df9046e2e3/",
+      "image_url": "https://live.staticflickr.com/3548/3795140717_611658561d_b.jpg",
+      "thumbnail": "https://api.openverse.org/v1/images/f269c707-6ae4-41aa-9a60-b4df9046e2e3/thumb/"
+    }
+  },
+  {
+    "sku": "JWL-BRC-001",
+    "kind": "bracelet",
+    "meta": {
+      "title": "braclet",
+      "creator": "paparutzi",
+      "license": "by",
+      "license_version": "2.0",
+      "license_url": "https://creativecommons.org/licenses/by/2.0/",
+      "provider": "flickr",
+      "source_json": "tmp/openverse-previews-custom/platinum_jewelry_bangle.json",
+      "pick": 10,
+      "foreign_landing_url": "https://www.flickr.com/photos/28396605@N00/227437484",
+      "detail_url": "https://api.openverse.org/v1/images/779ed8b8-8bb0-4142-a5b7-3af57bcd47aa/",
+      "image_url": "https://live.staticflickr.com/97/227437484_026569561a_b.jpg",
+      "thumbnail": "https://api.openverse.org/v1/images/779ed8b8-8bb0-4142-a5b7-3af57bcd47aa/thumb/"
+    }
+  },
+  {
+    "sku": "JWL-BRC-002",
+    "kind": "bracelet",
+    "meta": {
+      "title": "Wonderful Early Victorian Hand Motif Bracelet",
+      "creator": "perfectjewels",
+      "license": "by",
+      "license_version": "2.0",
+      "license_url": "https://creativecommons.org/licenses/by/2.0/",
+      "provider": "flickr",
+      "source_json": "tmp/openverse-previews-custom/gold_curb_bracelet.json",
+      "pick": 2,
+      "foreign_landing_url": "https://www.flickr.com/photos/22002293@N04/2130677387",
+      "detail_url": "https://api.openverse.org/v1/images/a31890bb-1093-4c71-b2a6-66b9584a8d56/",
+      "image_url": "https://live.staticflickr.com/2216/2130677387_b7a18f4c8e_m.jpg",
+      "thumbnail": "https://api.openverse.org/v1/images/a31890bb-1093-4c71-b2a6-66b9584a8d56/thumb/"
+    }
+  },
+  {
+    "sku": "JWL-BRC-003",
+    "kind": "bracelet",
+    "meta": {
+      "title": "Project52 - Week Nine: Pandora",
+      "creator": "Jessica M. Cross",
+      "license": "by",
+      "license_version": "2.0",
+      "license_url": "https://creativecommons.org/licenses/by/2.0/",
+      "provider": "flickr",
+      "source_json": "tmp/openverse-previews-custom/silver_charm_bracelet.json",
+      "pick": 4,
+      "foreign_landing_url": "https://www.flickr.com/photos/76682361@N00/4421256991",
+      "detail_url": "https://api.openverse.org/v1/images/4f0c15c8-5522-446b-8be3-ed0d4805cea3/",
+      "image_url": "https://live.staticflickr.com/4005/4421256991_eee50266c2_b.jpg",
+      "thumbnail": "https://api.openverse.org/v1/images/4f0c15c8-5522-446b-8be3-ed0d4805cea3/thumb/"
+    }
+  },
+  {
+    "sku": "JWL-BRC-004",
+    "kind": "bracelet",
+    "meta": {
+      "title": "Spine Of The Centiped Chain Maille Bracelet In Sterling Silver",
+      "creator": "The ChainMaille Lady",
+      "license": "by",
+      "license_version": "2.0",
+      "license_url": "https://creativecommons.org/licenses/by/2.0/",
+      "provider": "flickr",
+      "source_json": "tmp/openverse-previews-custom/blue_bracelet_jewelry.json",
+      "pick": 4,
+      "foreign_landing_url": "https://www.flickr.com/photos/26800041@N04/3812990373",
+      "detail_url": "https://api.openverse.org/v1/images/8cf21e48-3f7e-4205-bc88-7581fe0ef357/",
+      "image_url": "https://live.staticflickr.com/2439/3812990373_6a6ce29c56_b.jpg",
+      "thumbnail": "https://api.openverse.org/v1/images/8cf21e48-3f7e-4205-bc88-7581fe0ef357/thumb/"
+    }
+  },
+  {
+    "sku": "JWL-BNG-001",
+    "kind": "bangle",
+    "meta": {
+      "title": "Bangles",
+      "creator": "TheVinamra",
+      "license": "by",
+      "license_version": "2.0",
+      "license_url": "https://creativecommons.org/licenses/by/2.0/",
+      "provider": "flickr",
+      "source_json": "tmp/openverse-previews-custom/platinum_jewelry_bangle.json",
+      "pick": 5,
+      "foreign_landing_url": "https://www.flickr.com/photos/13810514@N07/13885726026",
+      "detail_url": "https://api.openverse.org/v1/images/6cb9d5a2-55e3-41b6-a6f6-93ee075a6445/",
+      "image_url": "https://live.staticflickr.com/3754/13885726026_25bde31c63_b.jpg",
+      "thumbnail": "https://api.openverse.org/v1/images/6cb9d5a2-55e3-41b6-a6f6-93ee075a6445/thumb/"
+    }
+  },
+  {
+    "sku": "JWL-BNG-002",
+    "kind": "bangle",
+    "meta": {
+      "title": "A collection of silver bangles and bracelets displayed elegantly in a jewelry store.",
+      "creator": "Manjil Aryal",
+      "license": "cc0",
+      "license_version": "1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "provider": "wordpress",
+      "source_json": "tmp/openverse-previews-custom/silver_bangle.json",
+      "pick": 2,
+      "foreign_landing_url": "https://wordpress.org/photos/photo/19069bd166/",
+      "detail_url": "https://api.openverse.org/v1/images/ea15937b-c53e-462d-a275-c5aa7a87015b/",
+      "image_url": "https://pd.w.org/2026/03/19069bd166ec63d52.61132398-1536x2048.jpeg",
+      "thumbnail": "https://api.openverse.org/v1/images/ea15937b-c53e-462d-a275-c5aa7a87015b/thumb/"
+    }
+  },
+  {
+    "sku": "JWL-BNG-003",
+    "kind": "bangle",
+    "meta": {
+      "title": "Bangle",
+      "creator": "TheVinamra",
+      "license": "by",
+      "license_version": "2.0",
+      "license_url": "https://creativecommons.org/licenses/by/2.0/",
+      "provider": "flickr",
+      "source_json": "tmp/openverse-previews-custom/platinum_jewelry_bangle.json",
+      "pick": 8,
+      "foreign_landing_url": "https://www.flickr.com/photos/13810514@N07/13885664252",
+      "detail_url": "https://api.openverse.org/v1/images/dbde4585-3820-461e-85c8-71184ca2a383/",
+      "image_url": "https://live.staticflickr.com/3814/13885664252_ce7993c632_b.jpg",
+      "thumbnail": "https://api.openverse.org/v1/images/dbde4585-3820-461e-85c8-71184ca2a383/thumb/"
+    }
+  },
+  {
+    "sku": "JWL-ERR-001",
+    "kind": "earrings",
+    "meta": {
+      "title": "White gold and diamond earrings",
+      "creator": "Mauro Cateb",
+      "license": "by",
+      "license_version": "2.0",
+      "license_url": "https://creativecommons.org/licenses/by/2.0/",
+      "provider": "flickr",
+      "source_json": "tmp/openverse-previews-custom/mauro_cateb_earrings.json",
+      "pick": 6,
+      "foreign_landing_url": "https://www.flickr.com/photos/69102917@N06/6351854262",
+      "detail_url": "https://api.openverse.org/v1/images/db3c4e18-7067-4724-8b9f-76a1c1358a7d/",
+      "image_url": "https://live.staticflickr.com/6226/6351854262_a269080e44_b.jpg",
+      "thumbnail": "https://api.openverse.org/v1/images/db3c4e18-7067-4724-8b9f-76a1c1358a7d/thumb/"
+    }
+  },
+  {
+    "sku": "JWL-ERR-002",
+    "kind": "earrings",
+    "meta": {
+      "title": "Pair Drop Earrings Rubies",
+      "creator": "themet",
+      "license": "cc0",
+      "license_version": "1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "provider": "rawpixel",
+      "source_json": "tmp/openverse-previews-custom/ruby_drop_earrings.json",
+      "pick": 10,
+      "foreign_landing_url": "https://www.rawpixel.com/image/8343638/pair-drop-earrings-with-rubies",
+      "detail_url": "https://api.openverse.org/v1/images/b0ca589e-ce96-40de-85d5-3b3b9223a3af/",
+      "image_url": "https://images.rawpixel.com/editor_1024/cHJpdmF0ZS9zdGF0aWMvZmlsZXMvd2Vic2l0ZS8yMDIyLTEwL21ldDY0MjU5LWltYWdlLmpwZw.jpg",
+      "thumbnail": "https://api.openverse.org/v1/images/b0ca589e-ce96-40de-85d5-3b3b9223a3af/thumb/"
+    }
+  },
+  {
+    "sku": "JWL-ERR-003",
+    "kind": "earrings",
+    "meta": {
+      "title": "Gold and pearl earrings",
+      "creator": "Mauro Cateb",
+      "license": "by",
+      "license_version": "2.0",
+      "license_url": "https://creativecommons.org/licenses/by/2.0/",
+      "provider": "flickr",
+      "source_json": "tmp/openverse-previews-custom/mauro_cateb_pearl_earrings.json",
+      "pick": 4,
+      "foreign_landing_url": "https://www.flickr.com/photos/69102917@N06/6684302201",
+      "detail_url": "https://api.openverse.org/v1/images/0370307c-96f8-44d1-b34c-846bf0b422f9/",
+      "image_url": "https://live.staticflickr.com/7150/6684302201_bd628e7e2f_b.jpg",
+      "thumbnail": "https://api.openverse.org/v1/images/0370307c-96f8-44d1-b34c-846bf0b422f9/thumb/"
+    }
+  },
+  {
+    "sku": "JWL-ERR-004",
+    "kind": "earrings",
+    "meta": {
+      "title": "Emerald earrings",
+      "creator": "Mauro Cateb",
+      "license": "by",
+      "license_version": "2.0",
+      "license_url": "https://creativecommons.org/licenses/by/2.0/",
+      "provider": "flickr",
+      "source_json": "tmp/openverse-previews-custom/emerald_earrings.json",
+      "pick": 2,
+      "foreign_landing_url": "https://www.flickr.com/photos/69102917@N06/16307598723",
+      "detail_url": "https://api.openverse.org/v1/images/89297a3e-818e-4123-9484-1830368c1487/",
+      "image_url": "https://live.staticflickr.com/65535/16307598723_f6a18f6794.jpg",
+      "thumbnail": "https://api.openverse.org/v1/images/89297a3e-818e-4123-9484-1830368c1487/thumb/"
+    }
+  },
+  {
+    "sku": "JWL-ERR-005",
+    "kind": "earrings",
+    "meta": {
+      "title": "Ocean Blue Earrings",
+      "creator": "shinycatcreations",
+      "license": "by",
+      "license_version": "2.0",
+      "license_url": "https://creativecommons.org/licenses/by/2.0/",
+      "provider": "flickr",
+      "source_json": "tmp/openverse-previews-custom/blue_stone_earrings_jewelry.json",
+      "pick": 3,
+      "foreign_landing_url": "https://www.flickr.com/photos/47723969@N03/14398499740",
+      "detail_url": "https://api.openverse.org/v1/images/b6173a35-fc95-4ad8-9b74-54ca7db317da/",
+      "image_url": "https://live.staticflickr.com/5573/14398499740_e68acd5347.jpg",
+      "thumbnail": "https://api.openverse.org/v1/images/b6173a35-fc95-4ad8-9b74-54ca7db317da/thumb/"
+    }
+  },
+  {
+    "sku": "JWL-CHN-001",
+    "kind": "chain",
+    "meta": {
+      "title": "Fearless",
+      "creator": "Saucy Salad",
+      "license": "by",
+      "license_version": "2.0",
+      "license_url": null,
+      "provider": "flickr",
+      "source_json": "tmp/openverse-previews/gold_chain.json",
+      "pick": 1,
+      "foreign_landing_url": "https://www.flickr.com/photos/34048699@N07/4236752095",
+      "detail_url": null,
+      "image_url": "https://live.staticflickr.com/4057/4236752095_4d850a052e_b.jpg",
+      "thumbnail": "https://api.openverse.org/v1/images/88382c6a-0974-43d7-8908-dda835a44313/thumb/"
+    }
+  },
+  {
+    "sku": "JWL-CHN-002",
+    "kind": "chain",
+    "meta": {
+      "title": "Gold chain",
+      "creator": "themet",
+      "license": "cc0",
+      "license_version": "1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "provider": "rawpixel",
+      "source_json": "tmp/rawpixel-previews/gold_chain.json",
+      "pick": 5,
+      "foreign_landing_url": "https://www.rawpixel.com/image/8432501/gold-chain",
+      "detail_url": "https://api.openverse.org/v1/images/00c78125-7776-4b8b-a127-4b965628362b/",
+      "image_url": "https://images.rawpixel.com/editor_1024/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIyLTEwL21ldDI0OTIxMy1pbWFnZS5qcGc.jpg",
+      "thumbnail": "https://api.openverse.org/v1/images/00c78125-7776-4b8b-a127-4b965628362b/thumb/"
+    }
+  },
+  {
+    "sku": "JWL-CHN-003",
+    "kind": "chain",
+    "meta": {
+      "title": "ID #1152",
+      "creator": "The ChainMaille Lady",
+      "license": "by",
+      "license_version": "2.0",
+      "license_url": "https://creativecommons.org/licenses/by/2.0/",
+      "provider": "flickr",
+      "source_json": "tmp/openverse-previews-custom/silver_box_chain_necklace.json",
+      "pick": 4,
+      "foreign_landing_url": "https://www.flickr.com/photos/26800041@N04/3598560495",
+      "detail_url": "https://api.openverse.org/v1/images/e36a56b5-3d21-41f0-8f7f-d2f0ec1210a0/",
+      "image_url": "https://live.staticflickr.com/3297/3598560495_d3d83e30ac_b.jpg",
+      "thumbnail": "https://api.openverse.org/v1/images/e36a56b5-3d21-41f0-8f7f-d2f0ec1210a0/thumb/"
+    }
+  },
+  {
+    "sku": "JWL-PND-001",
+    "kind": "pendant",
+    "meta": {
+      "title": "diamond solitaire pendant",
+      "creator": "paparutzi",
+      "license": "by",
+      "license_version": "2.0",
+      "license_url": null,
+      "provider": "flickr",
+      "source_json": "tmp/openverse-previews/diamond_pendant.json",
+      "pick": 1,
+      "foreign_landing_url": "https://www.flickr.com/photos/28396605@N00/285865099",
+      "detail_url": null,
+      "image_url": "https://live.staticflickr.com/118/285865099_7174d51a8d_b.jpg",
+      "thumbnail": "https://api.openverse.org/v1/images/bdbecdea-05ce-4809-ad59-797b64a735f0/thumb/"
+    }
+  },
+  {
+    "sku": "JWL-PND-002",
+    "kind": "pendant",
+    "meta": {
+      "title": "emerald pendant",
+      "creator": "topzhang",
+      "license": "by",
+      "license_version": "2.0",
+      "license_url": "https://creativecommons.org/licenses/by/2.0/",
+      "provider": "flickr",
+      "source_json": "tmp/openverse-previews-custom/emerald_pendant.json",
+      "pick": 2,
+      "foreign_landing_url": "https://www.flickr.com/photos/95943652@N04/10102578133",
+      "detail_url": "https://api.openverse.org/v1/images/45ddbe40-4c66-4543-a035-9963171d5419/",
+      "image_url": "https://live.staticflickr.com/3708/10102578133_537167fa83.jpg",
+      "thumbnail": "https://api.openverse.org/v1/images/45ddbe40-4c66-4543-a035-9963171d5419/thumb/"
+    }
+  },
+  {
+    "sku": "JWL-PND-003",
+    "kind": "pendant",
+    "meta": {
+      "title": "New honey topaz pendant",
+      "creator": "topzhang",
+      "license": "by",
+      "license_version": "2.0",
+      "license_url": "https://creativecommons.org/licenses/by/2.0/",
+      "provider": "flickr",
+      "source_json": "tmp/openverse-previews-custom/topaz_pendant.json",
+      "pick": 8,
+      "foreign_landing_url": "https://www.flickr.com/photos/95943652@N04/9840087273",
+      "detail_url": "https://api.openverse.org/v1/images/09d35e65-637c-4a39-9b64-3dfd21c5b27b/",
+      "image_url": "https://live.staticflickr.com/7292/9840087273_20b709d785.jpg",
+      "thumbnail": "https://api.openverse.org/v1/images/09d35e65-637c-4a39-9b64-3dfd21c5b27b/thumb/"
+    }
+  },
+  {
+    "sku": "JWL-SET-001",
+    "kind": "set",
+    "meta": {
+      "title": "Ruby Cabochon Necklace and Earrings ~ Accented with Black Spinel ~ Ruby Drop Necklace",
+      "creator": "Naomi King",
+      "license": "by",
+      "license_version": "2.0",
+      "license_url": "https://creativecommons.org/licenses/by/2.0/",
+      "provider": "flickr",
+      "source_json": "tmp/openverse-previews-custom/jewelry_set_necklace_earrings.json",
+      "pick": 6,
+      "foreign_landing_url": "https://www.flickr.com/photos/22141297@N06/7597948588",
+      "detail_url": "https://api.openverse.org/v1/images/2cabdc98-dbaf-4fda-870f-97e14484af49/",
+      "image_url": "https://live.staticflickr.com/8144/7597948588_49d0962a97_b.jpg",
+      "thumbnail": "https://api.openverse.org/v1/images/2cabdc98-dbaf-4fda-870f-97e14484af49/thumb/"
+    }
+  },
+  {
+    "sku": "JWL-SET-002",
+    "kind": "set",
+    "meta": {
+      "title": "Aquamarine, BLue Sapphire, and Diamond Necklace and Earrings",
+      "creator": "euthman",
+      "license": "by",
+      "license_version": "2.0",
+      "license_url": "https://creativecommons.org/licenses/by/2.0/",
+      "provider": "flickr",
+      "source_json": "tmp/openverse-previews-custom/sapphire_jewelry_set.json",
+      "pick": 3,
+      "foreign_landing_url": "https://www.flickr.com/photos/78147607@N00/4739158195",
+      "detail_url": "https://api.openverse.org/v1/images/4544c6b6-6954-403a-91ae-45a823e0113d/",
+      "image_url": "https://live.staticflickr.com/4081/4739158195_61b2f1dc69_b.jpg",
+      "thumbnail": "https://api.openverse.org/v1/images/4544c6b6-6954-403a-91ae-45a823e0113d/thumb/"
+    }
+  },
+  {
+    "sku": "JWL-BUL-001",
+    "kind": "bullion",
+    "meta": {
+      "title": "Gold-and-Silver-Bars",
+      "creator": "digitalmoneyworld",
+      "license": "by",
+      "license_version": "2.0",
+      "license_url": null,
+      "provider": "flickr",
+      "source_json": "tmp/openverse-previews/gold_bar.json",
+      "pick": 1,
+      "foreign_landing_url": "https://www.flickr.com/photos/23195413@N07/2438118193",
+      "detail_url": null,
+      "image_url": "https://live.staticflickr.com/3101/2438118193_211f0eb3ce.jpg",
+      "thumbnail": "https://api.openverse.org/v1/images/d80d0a82-8cce-4bea-91e8-d1aac82274fb/thumb/"
+    }
+  },
+  {
+    "sku": "JWL-BUL-002",
+    "kind": "bullion",
+    "meta": {
+      "title": "Crowne-Bars",
+      "creator": "digitalmoneyworld",
+      "license": "by",
+      "license_version": "2.0",
+      "license_url": null,
+      "provider": "flickr",
+      "source_json": "tmp/openverse-previews/gold_bar.json",
+      "pick": 2,
+      "foreign_landing_url": "https://www.flickr.com/photos/23195413@N07/2438119817",
+      "detail_url": null,
+      "image_url": "https://live.staticflickr.com/2228/2438119817_db1186b68b.jpg",
+      "thumbnail": "https://api.openverse.org/v1/images/5faa22b2-5930-4384-a756-d686db712342/thumb/"
+    }
+  },
+  {
+    "sku": "JWL-BUL-003",
+    "kind": "bullion",
+    "meta": {
+      "title": "Krugerrand",
+      "creator": "austinevan",
+      "license": "by",
+      "license_version": "2.0",
+      "license_url": null,
+      "provider": "flickr",
+      "source_json": "tmp/openverse-previews/gold_coin.json",
+      "pick": 3,
+      "foreign_landing_url": "https://www.flickr.com/photos/19762676@N00/8437358973",
+      "detail_url": null,
+      "image_url": "https://live.staticflickr.com/8219/8437358973_6702b28b38_b.jpg",
+      "thumbnail": "https://api.openverse.org/v1/images/97a35bd2-ea02-4683-82ad-57931f62c537/thumb/"
+    }
+  },
+  {
+    "sku": "JWL-LSE-001",
+    "kind": "stone",
+    "meta": {
+      "title": "Banjarmasin Diamond (c. 1875) anonymous",
+      "creator": "rijksmuseum",
+      "license": "cc0",
+      "license_version": "1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "provider": "rawpixel",
+      "source_json": "tmp/rawpixel-previews/diamond_gemstone.json",
+      "pick": 1,
+      "foreign_landing_url": "https://www.rawpixel.com/image/13731858/the-banjarmasin-diamond-c-1875-anonymous",
+      "detail_url": "https://api.openverse.org/v1/images/0f756e81-7f2d-48b7-899d-6f081ef7d521/",
+      "image_url": "https://images.rawpixel.com/editor_1024/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDI0LTAxL2xyL3JpamtzbmctYy0yMDAwLTMtaW1hZ2UuanBn.jpg",
+      "thumbnail": "https://api.openverse.org/v1/images/0f756e81-7f2d-48b7-899d-6f081ef7d521/thumb/"
+    }
+  },
+  {
+    "sku": "JWL-LSE-002",
+    "kind": "stone",
+    "meta": {
+      "title": "Rubies",
+      "creator": "John-Morgan",
+      "license": "by",
+      "license_version": "2.0",
+      "license_url": "https://creativecommons.org/licenses/by/2.0/",
+      "provider": "flickr",
+      "source_json": "tmp/openverse-previews-custom/ruby_stone.json",
+      "pick": 4,
+      "foreign_landing_url": "https://www.flickr.com/photos/24742305@N00/5702026863",
+      "detail_url": "https://api.openverse.org/v1/images/a0118703-f246-4990-847e-bdb67f27a67e/",
+      "image_url": "https://live.staticflickr.com/3635/5702026863_7b3ceb87fe_b.jpg",
+      "thumbnail": "https://api.openverse.org/v1/images/a0118703-f246-4990-847e-bdb67f27a67e/thumb/"
+    }
+  },
+  {
+    "sku": "JWL-LSE-003",
+    "kind": "stone",
+    "meta": {
+      "title": "Luminescent hyalite opal (Sierra Madre Occidental Volcanic Province, mid-Tertiary; Zacatecas, Mexico) 9",
+      "creator": "James St. John",
+      "license": "by",
+      "license_version": "2.0",
+      "license_url": "https://creativecommons.org/licenses/by/2.0/",
+      "provider": "flickr",
+      "source_json": "tmp/openverse-previews-custom/green_cut_gemstone.json",
+      "pick": 5,
+      "foreign_landing_url": "https://www.flickr.com/photos/47445767@N05/35778426181",
+      "detail_url": "https://api.openverse.org/v1/images/466a2163-f801-4c29-b1ea-a62282e2c492/",
+      "image_url": "https://live.staticflickr.com/4302/35778426181_922784ef94_b.jpg",
+      "thumbnail": "https://api.openverse.org/v1/images/466a2163-f801-4c29-b1ea-a62282e2c492/thumb/"
+    }
+  },
+  {
+    "sku": "JWL-LSE-004",
+    "kind": "stone",
+    "meta": {
+      "title": null,
+      "creator": null,
+      "license": "cc0",
+      "license_version": "1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "provider": "rawpixel",
+      "source_json": "tmp/rawpixel-previews/sapphire_gemstone.json",
+      "pick": 7,
+      "foreign_landing_url": "https://www.rawpixel.com/image/5940700/free-public-domain-cc0-photo",
+      "detail_url": "https://api.openverse.org/v1/images/10d87652-87e8-4cf8-82f5-023a1e7f80cc/",
+      "image_url": "https://images.rawpixel.com/editor_1024/czNmcy1wcml2YXRlL3Jhd3BpeGVsX2ltYWdlcy93ZWJzaXRlX2NvbnRlbnQvcHg5Nzc5ODEtaW1hZ2Uta3d5bnd5bTUuanBn.jpg",
+      "thumbnail": "https://api.openverse.org/v1/images/10d87652-87e8-4cf8-82f5-023a1e7f80cc/thumb/"
+    }
+  },
+  {
+    "sku": "JWL-SVC-001",
+    "kind": "service",
+    "meta": {
+      "title": "Wing pendant 27/40",
+      "creator": "Mauro Cateb",
+      "license": "by",
+      "license_version": "2.0",
+      "license_url": "https://creativecommons.org/licenses/by/2.0/",
+      "provider": "flickr",
+      "source_json": "tmp/openverse-previews-custom/wax_rings_jewelry.json",
+      "pick": 10,
+      "foreign_landing_url": "https://www.flickr.com/photos/69102917@N06/32310390961",
+      "detail_url": "https://api.openverse.org/v1/images/dc36955f-693d-471c-8339-4c62e7cff872/",
+      "image_url": "https://live.staticflickr.com/552/32310390961_dcdcdd9594_b.jpg",
+      "thumbnail": "https://api.openverse.org/v1/images/dc36955f-693d-471c-8339-4c62e7cff872/thumb/"
+    }
+  },
+  {
+    "sku": "JWL-SVC-002",
+    "kind": "service",
+    "meta": {
+      "title": "Gold smith",
+      "creator": "Jos Dielis",
+      "license": "by",
+      "license_version": "2.0",
+      "license_url": "https://creativecommons.org/licenses/by/2.0/",
+      "provider": "flickr",
+      "source_json": "tmp/openverse-previews-custom/goldsmith_workshop.json",
+      "pick": 7,
+      "foreign_landing_url": "https://www.flickr.com/photos/7744067@N03/19245995393",
+      "detail_url": "https://api.openverse.org/v1/images/77ea96b6-b04f-4f75-a906-f95bf4eed119/",
+      "image_url": "https://live.staticflickr.com/467/19245995393_14c43f1a4c_b.jpg",
+      "thumbnail": "https://api.openverse.org/v1/images/77ea96b6-b04f-4f75-a906-f95bf4eed119/thumb/"
+    }
+  }
+]
