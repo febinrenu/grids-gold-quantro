@@ -86,9 +86,46 @@ class EnsureJewelryTenant extends Command
             });
         }
 
+        // Passport's oauth_clients are environment-specific credentials, not
+        // portable data — database/jewelrydatabase.sql never includes them,
+        // so every fresh import/migrate otherwise leaves auth completely
+        // broken (login "succeeds" but every subsequent request bounces
+        // back to /login because no client exists to mint a valid token).
+        if ($wasCreated || $this->option('migrate') || $this->option('seed')) {
+            $tenant->run(function () {
+                $this->ensurePassportPersonalAccessClient();
+            });
+        }
+
         $this->info("Jewelry tenant ready: domain={$domainName}, db={$dbName}, tenant_id={$tenant->id}");
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Idempotent: does nothing if a personal access client already exists.
+     * Requires oauth_clients to already exist as a table, so only call this
+     * after migrations have actually run.
+     */
+    protected function ensurePassportPersonalAccessClient(): void
+    {
+        if (! \Illuminate\Support\Facades\Schema::hasTable('oauth_clients')) {
+            return;
+        }
+
+        $exists = DB::table('oauth_clients')->where('personal_access_client', true)->exists();
+
+        if ($exists) {
+            return;
+        }
+
+        \Illuminate\Support\Facades\Artisan::call('passport:client', [
+            '--personal'      => true,
+            '--name'          => 'Jewelry Personal Access Client',
+            '--no-interaction' => true,
+        ]);
+
+        $this->info('  Created a Passport personal access client (auth would otherwise be broken).');
     }
 
     /**
