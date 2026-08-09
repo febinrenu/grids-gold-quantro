@@ -26,6 +26,43 @@
           </div>
           <div id="qvPrice" class="price price-lg text-accent-500 mb-3">—</div>
           <div id="qvDesc" class="text-sm text-fg-secondary mb-4 max-h-60 overflow-auto">—</div>
+          
+          <!-- Jewelry specifications & pricing breakdown -->
+          <div id="qvJewelryWrap" class="hidden mb-4 border border-line-subtle rounded-md p-3 bg-bg-muted/30">
+            <div class="font-semibold text-xs text-fg-secondary uppercase tracking-wider mb-2">Product Specifications</div>
+            <div class="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs text-fg-muted mb-3 border-b border-line-subtle/50 pb-2.5">
+              <div>Metal Type: <span id="qvJewelryMetal" class="font-medium text-fg-primary">—</span></div>
+              <div>Karat: <span id="qvJewelryKarat" class="font-medium text-fg-primary">—</span></div>
+              <div>Gross Weight: <span id="qvJewelryGrossWeight" class="font-medium text-fg-primary">—</span></div>
+              <div>Net Weight: <span id="qvJewelryNetWeight" class="font-medium text-fg-primary">—</span></div>
+              <div class="col-span-2">Stones: <span id="qvJewelryStones" class="font-medium text-fg-primary">—</span></div>
+            </div>
+            
+            <div class="font-semibold text-xs text-fg-secondary uppercase tracking-wider mb-2">Price Breakdown</div>
+            <div class="space-y-1 text-xs text-fg-muted">
+              <div class="flex justify-between">
+                <span>Metal Value:</span>
+                <span id="qvBdMetal">—</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Wastage Value:</span>
+                <span id="qvBdWastage">—</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Making Charges:</span>
+                <span id="qvBdMaking">—</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Stone Value:</span>
+                <span id="qvBdStone">—</span>
+              </div>
+              <div class="flex justify-between font-semibold text-fg-primary pt-1.5 border-t border-line-subtle/50 mt-1">
+                <span>Base Price:</span>
+                <span id="qvBdBase">—</span>
+              </div>
+            </div>
+          </div>
+
           <div id="qvVariantWrap" class="hidden mb-4">
             <div class="form-label">{{ __('messages.ChooseVariant') }}</div>
             <ul id="qvVariantList" class="divide-y divide-line-subtle border border-line-subtle rounded-md mb-2"></ul>
@@ -171,6 +208,39 @@
       is_preorder: isPreorder
     };
     titleEl.textContent = qvProduct.name || '—';
+
+    // Jewelry specifications & pricing breakdown population
+    const isJewelry = trigger.dataset.isJewelry === '1';
+    const metalType = trigger.dataset.metalType || '';
+    const karat = trigger.dataset.karat || '';
+    const grossWeight = trigger.dataset.grossWeight || '';
+    const netWeight = trigger.dataset.netWeight || '';
+    const stonesSummary = trigger.dataset.stonesSummary || '';
+    const pricingBreakdown = safeParse(trigger.dataset.pricingBreakdown);
+
+    const jWrap = document.getElementById('qvJewelryWrap');
+    if (jWrap) {
+      if (isJewelry) {
+        jWrap.classList.remove('hidden');
+        document.getElementById('qvJewelryMetal').textContent = metalType || '—';
+        document.getElementById('qvJewelryKarat').textContent = karat || '—';
+        document.getElementById('qvJewelryGrossWeight').textContent = grossWeight ? (grossWeight + ' g') : '—';
+        document.getElementById('qvJewelryNetWeight').textContent = netWeight ? (netWeight + ' g') : '—';
+        document.getElementById('qvJewelryStones').textContent = stonesSummary || 'None';
+        
+        if (pricingBreakdown && typeof pricingBreakdown === 'object' && !Array.isArray(pricingBreakdown)) {
+          const sym = qvProduct.currency || CURRENCY;
+          document.getElementById('qvBdMetal').textContent = formatPrice(pricingBreakdown.metal_value, sym);
+          document.getElementById('qvBdWastage').textContent = formatPrice(pricingBreakdown.wastage, sym);
+          document.getElementById('qvBdMaking').textContent = formatPrice(pricingBreakdown.making_charge, sym);
+          document.getElementById('qvBdStone').textContent = formatPrice(pricingBreakdown.stone_value, sym);
+          document.getElementById('qvBdBase').textContent = formatPrice(pricingBreakdown.base_value, sym);
+        }
+      } else {
+        jWrap.classList.add('hidden');
+      }
+    }
+
     descEl.innerHTML = (qvProduct.description || '').split('\n').map(html).join('<br>');
     listEl.innerHTML = '';
     qvSelected = null;

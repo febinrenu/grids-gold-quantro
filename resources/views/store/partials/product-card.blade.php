@@ -63,6 +63,21 @@
     }
     $stockDotClass = $isAvailable ? 'stock-dot-ok' : 'stock-dot-out';
   }
+
+  $isJewelry = (bool) ($p->is_jewelry_item ?? false);
+  $metalTypeName = $isJewelry && $p->metalType ? $p->metalType->name : '';
+  $karatName = $isJewelry && $p->karat ? $p->karat->name : '';
+  $grossWeight = $isJewelry ? (float) ($p->jewelry_gross_weight ?? 0) : '';
+  $netWeight = $isJewelry ? (float) ($p->jewelry_net_weight ?? 0) : '';
+  $metalWeight = $isJewelry ? (float) ($p->jewelry_metal_weight ?? 0) : '';
+  $stonesSummary = '';
+  if ($isJewelry && $p->relationLoaded('stones') && $p->stones) {
+      $stonesSummary = $p->stones->map(fn($st) => $st->quantity . 'x ' . ($st->stoneType->name ?? $st->stone_name ?? ''))->join(', ');
+  }
+  $pricingBreakdown = null;
+  if ($isJewelry) {
+      $pricingBreakdown = app(\App\Services\Jewelry\JewelryPricingService::class)->preview($p->id, $s->default_warehouse_id ?? null);
+  }
 @endphp
 
 <article class="product-card">
@@ -77,6 +92,14 @@
      data-description="{{ e($descShort) }}"
      data-stock="{{ $productStock !== null ? $productStock : '' }}"
      data-variants='@json($variantPayload)'
+     data-is-jewelry="{{ $isJewelry ? '1' : '0' }}"
+     data-metal-type="{{ e($metalTypeName) }}"
+     data-karat="{{ e($karatName) }}"
+     data-gross-weight="{{ $grossWeight }}"
+     data-net-weight="{{ $netWeight }}"
+     data-metal-weight="{{ $metalWeight }}"
+     data-stones-summary="{{ e($stonesSummary) }}"
+     data-pricing-breakdown='@json($pricingBreakdown)'
      aria-label="{{ __('messages.QuickView') }}: {{ $p->name }}"
      @click.prevent>
     <img src="{{ $imgUrl }}" alt="{{ $p->name }}" loading="lazy">
@@ -100,6 +123,14 @@
               data-description="{{ e($descShort) }}"
               data-stock="{{ $productStock !== null ? $productStock : '' }}"
               data-variants='@json($variantPayload)'
+              data-is-jewelry="{{ $isJewelry ? '1' : '0' }}"
+              data-metal-type="{{ e($metalTypeName) }}"
+              data-karat="{{ e($karatName) }}"
+              data-gross-weight="{{ $grossWeight }}"
+              data-net-weight="{{ $netWeight }}"
+              data-metal-weight="{{ $metalWeight }}"
+              data-stones-summary="{{ e($stonesSummary) }}"
+              data-pricing-breakdown='@json($pricingBreakdown)'
               aria-label="{{ __('messages.QuickView') }}">
         <x-store.icon name="eye" class="w-4 h-4" />
       </button>
@@ -138,6 +169,14 @@
               data-product-image="{{ $imgUrl }}"
               data-variants='@json($variantPayload)'
               data-stock="{{ $productStock !== null ? $productStock : '' }}"
+              data-is-jewelry="{{ $isJewelry ? '1' : '0' }}"
+              data-metal-type="{{ e($metalTypeName) }}"
+              data-karat="{{ e($karatName) }}"
+              data-gross-weight="{{ $grossWeight }}"
+              data-net-weight="{{ $netWeight }}"
+              data-metal-weight="{{ $metalWeight }}"
+              data-stones-summary="{{ e($stonesSummary) }}"
+              data-pricing-breakdown='@json($pricingBreakdown)'
               data-added-label="{{ __('messages.Added') }}">
         @if($isPreorderActive)
           <x-store.icon name="clock" class="w-4 h-4" />{{ __('messages.PreOrderNow') }}

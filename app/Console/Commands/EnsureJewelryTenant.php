@@ -27,6 +27,7 @@ class EnsureJewelryTenant extends Command
 
     public function handle(): int
     {
+        @ini_set('memory_limit', '512M');
         $domainName = (string) $this->option('domain');
         $dbName = (string) $this->option('database');
 
@@ -68,7 +69,9 @@ class EnsureJewelryTenant extends Command
         $this->ensureTenantStorageDirectories($tenant);
 
         if ($wasCreated && ! $this->option('no-import')) {
-            $this->importSeedDumpIfPresent($dbName);
+            $tenant->run(function () {
+                $this->importSeedDumpIfPresent();
+            });
         }
 
         if ($this->option('seed') || $this->option('migrate')) {
@@ -186,8 +189,10 @@ class EnsureJewelryTenant extends Command
      * into a database we just created — an existing database (someone's own
      * data) is never touched.
      */
-    protected function importSeedDumpIfPresent(string $dbName): void
+    protected function importSeedDumpIfPresent(): void
     {
+        @ini_set('memory_limit', '512M');
+
         $dumpPath = base_path('database/jewelrydatabase.sql');
 
         if (! is_file($dumpPath)) {
@@ -196,35 +201,27 @@ class EnsureJewelryTenant extends Command
 
         $this->info('Importing seed data from database/jewelrydatabase.sql (this may take a moment)...');
 
-        $mysqli = @new \mysqli(
-            (string) config('database.connections.central.host', '127.0.0.1'),
-            (string) config('database.connections.central.username', 'root'),
-            (string) config('database.connections.central.password', ''),
-            $dbName,
-            (int) config('database.connections.central.port', 3306)
-        );
-
-        if ($mysqli->connect_errno) {
-            $this->warn("  Could not connect to import seed data: {$mysqli->connect_error}");
-            return;
-        }
-
         $sql = file_get_contents($dumpPath);
 
-        if ($mysqli->multi_query($sql)) {
-            do {
-                if ($result = $mysqli->store_result()) {
-                    $result->free();
-                }
-            } while ($mysqli->more_results() && $mysqli->next_result());
+        // Split database/jewelrydatabase.sql into individual SQL statements safely
+        $queries = preg_split('/;[ \t]*[\r\n]+/', $sql);
+
+        $successCount = 0;
+        foreach ($queries as $query) {
+            $query = trim($query);
+            if ($query === '') {
+                continue;
+            }
+
+            try {
+                DB::unprepared($query);
+                $successCount++;
+            } catch (\Exception $e) {
+                $this->error("  Query failed: " . substr($query, 0, 150) . "... Error: " . $e->getMessage());
+                throw $e;
+            }
         }
 
-        if ($mysqli->errno) {
-            $this->warn("  Seed import reported an error: {$mysqli->error}");
-        } else {
-            $this->info('  Seed data imported.');
-        }
-
-        $mysqli->close();
+        $this->info("  Seed data imported successfully ({$successCount} statements).");
     }
 }

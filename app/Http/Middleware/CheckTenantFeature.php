@@ -53,8 +53,13 @@ class CheckTenantFeature
             ], 403);
         }
 
-        return redirect()->back()
-            ->with('error', "The \"{$label}\" feature is not available in your current plan. Please upgrade to access it.");
+        $previous = url()->previous();
+        if ($previous && $previous !== url()->current()) {
+            return redirect()->back()
+                ->with('error', "The \"{$label}\" feature is not available in your current plan. Please upgrade to access it.");
+        }
+
+        abort(403, "The \"{$label}\" feature is not available in your current plan. Please upgrade to access it.");
     }
 
     protected function featureLabel(string $key): string
