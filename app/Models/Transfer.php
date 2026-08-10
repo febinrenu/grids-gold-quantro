@@ -42,6 +42,11 @@ class Transfer extends Model
         return $this->hasMany('App\Models\TransferDetail');
     }
 
+    public function transferItems()
+    {
+        return $this->hasMany('App\Models\TransferItem', 'transfer_id');
+    }
+
     public function from_warehouse()
     {
         return $this->belongsTo('App\Models\Warehouse', 'from_warehouse_id');
