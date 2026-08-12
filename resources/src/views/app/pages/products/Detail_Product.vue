@@ -99,7 +99,7 @@
                 class="pd-hero-img__el"
                 :src="$imgUrl('products', productImages[0] || product.image || 'no-image.png')"
                 :alt="product.name"
-                :style="{ width: '100%', height: '100%', objectFit: 'contain' }"
+                :style="{ width: '100%', height: '100%', objectFit: 'cover' }"
                 @error="onImgError"
               />
             </div>
@@ -577,7 +577,7 @@
                     class="pd-gallery-stage__img"
                     :src="$imgUrl('products', activeImage)"
                     :alt="product.name"
-                    :style="{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }"
+                    :style="{ width: '100%', height: '100%', objectFit: 'cover' }"
                     @error="onImgError"
                   />
                 </div>
@@ -614,7 +614,7 @@
                         position: 'absolute',
                         top: 0, left: 0,
                         width: '100%', height: '100%',
-                        objectFit: 'contain',
+                        objectFit: 'cover',
                         background: pdTheme.thumbInnerBg
                       }"
                       @error="onImgError"
@@ -1603,19 +1603,7 @@ export default {
   width: 100%;
   height: 100%;
   display: block;
-  object-fit: contain;
-}
-
-.pd-hero-img__el {
-  padding: 14px;
-}
-
-.pd-gallery-stage__img {
-  padding: 22px;
-}
-
-.pd-gallery-thumb__img {
-  padding: 7px;
+  object-fit: cover;
 }
 
 /* Extra-small phones */

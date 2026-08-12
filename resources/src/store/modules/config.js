@@ -374,11 +374,11 @@ function readStoredDarkMode() {
       if (v === 'false') return false;
     }
 
-    // Default the app to dark mode unless the user explicitly chose otherwise.
-    localStorage.setItem('darkMode', 'true');
-    return true;
+    // Default the app to light mode unless the user explicitly chose otherwise.
+    localStorage.setItem('darkMode', 'false');
+    return false;
   } catch (e) {}
-  return true;
+  return false;
 }
 
 function persistDarkMode(value) {
