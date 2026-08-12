@@ -45,12 +45,12 @@
         <div
           class="pd-hero"
           :style="{
-            background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
+            background: pdTheme.heroGradient,
             borderRadius: '16px',
             padding: '28px',
             color: '#fff',
             marginBottom: '24px',
-            boxShadow: '0 10px 30px rgba(79,70,229,0.25)',
+            boxShadow: pdTheme.heroShadow,
             position: 'relative',
             overflow: 'hidden'
           }"
@@ -99,7 +99,7 @@
                 class="pd-hero-img__el"
                 :src="$imgUrl('products', productImages[0] || product.image || 'no-image.png')"
                 :alt="product.name"
-                :style="{ width: '100%', height: '100%', objectFit: 'contain' }"
+                :style="{ width: '100%', height: '100%', objectFit: 'cover' }"
                 @error="onImgError"
               />
             </div>
@@ -577,7 +577,7 @@
                     class="pd-gallery-stage__img"
                     :src="$imgUrl('products', activeImage)"
                     :alt="product.name"
-                    :style="{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }"
+                    :style="{ width: '100%', height: '100%', objectFit: 'cover' }"
                     @error="onImgError"
                   />
                 </div>
@@ -614,7 +614,7 @@
                         position: 'absolute',
                         top: 0, left: 0,
                         width: '100%', height: '100%',
-                        objectFit: 'contain',
+                        objectFit: 'cover',
                         background: pdTheme.thumbInnerBg
                       }"
                       @error="onImgError"
@@ -997,7 +997,9 @@ export default {
         backBtnColor:     '#d8d8d8',
         backBtnBorder:    'rgba(216,216,216,0.25)',
         backBtnHoverBg:   'rgba(216,216,216,0.08)',
-        backBtnHoverFg:   '#a78bfa'
+        backBtnHoverFg:   '#a78bfa',
+        heroGradient:     'linear-gradient(135deg, #6b4a24 0%, #3d2a14 100%)',
+        heroShadow:       '0 10px 30px rgba(107,74,36,0.35)'
       } : {
         pageBg:           'linear-gradient(135deg, #f8f9fc 0%, #eef2f7 100%)',
         cardBg:           '#ffffff',
@@ -1031,7 +1033,9 @@ export default {
         backBtnColor:     '#475569',
         backBtnBorder:    '#cbd5e1',
         backBtnHoverBg:   '#fff',
-        backBtnHoverFg:   '#4f46e5'
+        backBtnHoverFg:   '#4f46e5',
+        heroGradient:     'linear-gradient(135deg, #b48852 0%, #8b622f 100%)',
+        heroShadow:       '0 10px 30px rgba(180,136,82,0.35)'
       };
     },
 
@@ -1603,19 +1607,7 @@ export default {
   width: 100%;
   height: 100%;
   display: block;
-  object-fit: contain;
-}
-
-.pd-hero-img__el {
-  padding: 14px;
-}
-
-.pd-gallery-stage__img {
-  padding: 22px;
-}
-
-.pd-gallery-thumb__img {
-  padding: 7px;
+  object-fit: cover;
 }
 
 /* Extra-small phones */

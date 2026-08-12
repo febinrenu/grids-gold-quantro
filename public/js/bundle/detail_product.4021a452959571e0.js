@@ -421,7 +421,9 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
         backBtnColor: '#d8d8d8',
         backBtnBorder: 'rgba(216,216,216,0.25)',
         backBtnHoverBg: 'rgba(216,216,216,0.08)',
-        backBtnHoverFg: '#a78bfa'
+        backBtnHoverFg: '#a78bfa',
+        heroGradient: 'linear-gradient(135deg, #6b4a24 0%, #3d2a14 100%)',
+        heroShadow: '0 10px 30px rgba(107,74,36,0.35)'
       } : {
         pageBg: 'linear-gradient(135deg, #f8f9fc 0%, #eef2f7 100%)',
         cardBg: '#ffffff',
@@ -455,7 +457,9 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
         backBtnColor: '#475569',
         backBtnBorder: '#cbd5e1',
         backBtnHoverBg: '#fff',
-        backBtnHoverFg: '#4f46e5'
+        backBtnHoverFg: '#4f46e5',
+        heroGradient: 'linear-gradient(135deg, #b48852 0%, #8b622f 100%)',
+        heroShadow: '0 10px 30px rgba(180,136,82,0.35)'
       };
     },
     rootStyle: function rootStyle() {
@@ -1187,12 +1191,12 @@ var render = function render() {
   }, [_c("div", {
     staticClass: "pd-hero",
     style: {
-      background: "linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)",
+      background: _vm.pdTheme.heroGradient,
       borderRadius: "16px",
       padding: "28px",
       color: "#fff",
       marginBottom: "24px",
-      boxShadow: "0 10px 30px rgba(79,70,229,0.25)",
+      boxShadow: _vm.pdTheme.heroShadow,
       position: "relative",
       overflow: "hidden"
     }
@@ -1246,7 +1250,7 @@ var render = function render() {
     style: {
       width: "100%",
       height: "100%",
-      objectFit: "contain"
+      objectFit: "cover"
     },
     attrs: {
       src: _vm.$imgUrl("products", _vm.productImages[0] || _vm.product.image || "no-image.png"),
@@ -2021,9 +2025,9 @@ var render = function render() {
   }, [_c("img", {
     staticClass: "pd-gallery-stage__img",
     style: {
-      maxWidth: "100%",
-      maxHeight: "100%",
-      objectFit: "contain"
+      width: "100%",
+      height: "100%",
+      objectFit: "cover"
     },
     attrs: {
       src: _vm.$imgUrl("products", _vm.activeImage),
@@ -2066,7 +2070,7 @@ var render = function render() {
         left: 0,
         width: "100%",
         height: "100%",
-        objectFit: "contain",
+        objectFit: "cover",
         background: _vm.pdTheme.thumbInnerBg
       },
       attrs: {
@@ -2772,7 +2776,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(function(i){return i[1]});
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, "\r\n/* Stack gallery under details on tablet and below */\n@media (max-width: 992px) {\n.pd-main-grid[data-v-97219482] {\r\n    grid-template-columns: 1fr !important;\r\n    gap: 16px !important;\n}\n}\r\n\r\n/* Mobile / phone */\n@media (max-width: 768px) {\n.pd-root[data-v-97219482] {\r\n    padding: 12px !important;\r\n    border-radius: 8px !important;\n}\n.pd-actions[data-v-97219482] {\r\n    flex-wrap: wrap !important;\r\n    justify-content: stretch !important;\r\n    gap: 8px !important;\n}\n.pd-actions > button[data-v-97219482] {\r\n    flex: 1 1 auto !important;\r\n    justify-content: center !important;\r\n    padding: 10px 14px !important;\r\n    font-size: 13px !important;\n}\n.pd-hero[data-v-97219482] {\r\n    padding: 18px !important;\r\n    border-radius: 12px !important;\n}\n.pd-hero-row[data-v-97219482] {\r\n    gap: 14px !important;\n}\n.pd-hero-img[data-v-97219482] {\r\n    width: 96px !important;\r\n    height: 96px !important;\r\n    border-radius: 10px !important;\n}\n.pd-hero-title[data-v-97219482] {\r\n    font-size: 20px !important;\n}\n.pd-hero-price[data-v-97219482] {\r\n    width: 100% !important;\r\n    min-width: 0 !important;\r\n    padding: 12px 16px !important;\n}\r\n\r\n  /* Stack info rows label-above-value on phones */\n.pd-info-grid > div[data-v-97219482] {\r\n    flex-direction: column !important;\r\n    align-items: flex-start !important;\r\n    gap: 4px !important;\r\n    padding: 10px 4px !important;\n}\n.pd-info-grid > div > span[data-v-97219482]:last-child {\r\n    text-align: left !important;\n}\r\n\r\n  /* Card headers with badges should wrap */\n.pd-card-header[data-v-97219482] {\r\n    flex-wrap: wrap !important;\r\n    gap: 6px !important;\r\n    padding: 12px 14px !important;\r\n    font-size: 14px !important;\n}\n.pd-card-header > div[data-v-97219482] {\r\n    margin-left: 0 !important;\r\n    width: 100% !important;\r\n    justify-content: flex-start !important;\n}\n}\n.pd-hero-img[data-v-97219482],\r\n.pd-gallery-stage[data-v-97219482],\r\n.pd-gallery-thumb[data-v-97219482] {\r\n  position: relative;\r\n  isolation: isolate;\n}\n.pd-hero-img[data-v-97219482]::after,\r\n.pd-gallery-stage[data-v-97219482]::after,\r\n.pd-gallery-thumb[data-v-97219482]::after {\r\n  content: '';\r\n  position: absolute;\r\n  inset: 0;\r\n  pointer-events: none;\r\n  background:\r\n    radial-gradient(circle at 24% 20%, rgba(255, 255, 255, 0.34), transparent 28%),\r\n    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0));\n}\n.pd-hero-img__el[data-v-97219482],\r\n.pd-gallery-stage__img[data-v-97219482],\r\n.pd-gallery-thumb__img[data-v-97219482] {\r\n  position: relative;\r\n  z-index: 1;\r\n  width: 100%;\r\n  height: 100%;\r\n  display: block;\r\n  -o-object-fit: contain;\r\n     object-fit: contain;\n}\n.pd-hero-img__el[data-v-97219482] {\r\n  padding: 14px;\n}\n.pd-gallery-stage__img[data-v-97219482] {\r\n  padding: 22px;\n}\n.pd-gallery-thumb__img[data-v-97219482] {\r\n  padding: 7px;\n}\r\n\r\n/* Extra-small phones */\n@media (max-width: 480px) {\n.pd-root[data-v-97219482] {\r\n    padding: 8px !important;\n}\n.pd-hero[data-v-97219482] {\r\n    padding: 14px !important;\n}\n.pd-hero-img[data-v-97219482] {\r\n    width: 80px !important;\r\n    height: 80px !important;\n}\n.pd-hero-title[data-v-97219482] {\r\n    font-size: 18px !important;\n}\n}\r\n", ""]);
+___CSS_LOADER_EXPORT___.push([module.id, "\r\n/* Stack gallery under details on tablet and below */\n@media (max-width: 992px) {\n.pd-main-grid[data-v-97219482] {\r\n    grid-template-columns: 1fr !important;\r\n    gap: 16px !important;\n}\n}\r\n\r\n/* Mobile / phone */\n@media (max-width: 768px) {\n.pd-root[data-v-97219482] {\r\n    padding: 12px !important;\r\n    border-radius: 8px !important;\n}\n.pd-actions[data-v-97219482] {\r\n    flex-wrap: wrap !important;\r\n    justify-content: stretch !important;\r\n    gap: 8px !important;\n}\n.pd-actions > button[data-v-97219482] {\r\n    flex: 1 1 auto !important;\r\n    justify-content: center !important;\r\n    padding: 10px 14px !important;\r\n    font-size: 13px !important;\n}\n.pd-hero[data-v-97219482] {\r\n    padding: 18px !important;\r\n    border-radius: 12px !important;\n}\n.pd-hero-row[data-v-97219482] {\r\n    gap: 14px !important;\n}\n.pd-hero-img[data-v-97219482] {\r\n    width: 96px !important;\r\n    height: 96px !important;\r\n    border-radius: 10px !important;\n}\n.pd-hero-title[data-v-97219482] {\r\n    font-size: 20px !important;\n}\n.pd-hero-price[data-v-97219482] {\r\n    width: 100% !important;\r\n    min-width: 0 !important;\r\n    padding: 12px 16px !important;\n}\r\n\r\n  /* Stack info rows label-above-value on phones */\n.pd-info-grid > div[data-v-97219482] {\r\n    flex-direction: column !important;\r\n    align-items: flex-start !important;\r\n    gap: 4px !important;\r\n    padding: 10px 4px !important;\n}\n.pd-info-grid > div > span[data-v-97219482]:last-child {\r\n    text-align: left !important;\n}\r\n\r\n  /* Card headers with badges should wrap */\n.pd-card-header[data-v-97219482] {\r\n    flex-wrap: wrap !important;\r\n    gap: 6px !important;\r\n    padding: 12px 14px !important;\r\n    font-size: 14px !important;\n}\n.pd-card-header > div[data-v-97219482] {\r\n    margin-left: 0 !important;\r\n    width: 100% !important;\r\n    justify-content: flex-start !important;\n}\n}\n.pd-hero-img[data-v-97219482],\r\n.pd-gallery-stage[data-v-97219482],\r\n.pd-gallery-thumb[data-v-97219482] {\r\n  position: relative;\r\n  isolation: isolate;\n}\n.pd-hero-img[data-v-97219482]::after,\r\n.pd-gallery-stage[data-v-97219482]::after,\r\n.pd-gallery-thumb[data-v-97219482]::after {\r\n  content: '';\r\n  position: absolute;\r\n  inset: 0;\r\n  pointer-events: none;\r\n  background:\r\n    radial-gradient(circle at 24% 20%, rgba(255, 255, 255, 0.34), transparent 28%),\r\n    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0));\n}\n.pd-hero-img__el[data-v-97219482],\r\n.pd-gallery-stage__img[data-v-97219482],\r\n.pd-gallery-thumb__img[data-v-97219482] {\r\n  position: relative;\r\n  z-index: 1;\r\n  width: 100%;\r\n  height: 100%;\r\n  display: block;\r\n  -o-object-fit: cover;\r\n     object-fit: cover;\n}\r\n\r\n/* Extra-small phones */\n@media (max-width: 480px) {\n.pd-root[data-v-97219482] {\r\n    padding: 8px !important;\n}\n.pd-hero[data-v-97219482] {\r\n    padding: 14px !important;\n}\n.pd-hero-img[data-v-97219482] {\r\n    width: 80px !important;\r\n    height: 80px !important;\n}\n.pd-hero-title[data-v-97219482] {\r\n    font-size: 18px !important;\n}\n}\r\n", ""]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 

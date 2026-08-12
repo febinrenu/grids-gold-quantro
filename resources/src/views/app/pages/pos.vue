@@ -297,7 +297,11 @@
     <div v-if="productsReady" class="pos-shell-main" style="flex: 1 1 auto; display: flex; flex-direction: row; align-items: stretch; min-height: 0; overflow: hidden;">
 
       <!-- ============ CART (LEFT) ============ -->
-      <aside class="pos-shell-cart-aside" style="display: grid; grid-template-rows: 1fr auto; border-right: 1px solid #e6e6ec; background: #ffffff; min-height: 0; overflow: hidden;">
+      <aside
+        class="pos-shell-cart-aside"
+        :class="{ 'is-resizing': cartAsideResizing }"
+        :style="{ '--pos-cart-w': cartAsideWidth + 'px' }"
+        style="display: grid; grid-template-rows: 1fr auto; border-right: 1px solid #e6e6ec; background: #ffffff; min-height: 0; overflow: hidden;">
 
         <!-- Mobile-only cart header (visual label, matches mockup) -->
         <div class="pos-shell-mobile-cart-header">
@@ -634,6 +638,18 @@
         </div>
       </aside>
 
+      <!-- ============ RESIZE HANDLE (drag to adjust cart width) ============ -->
+      <div
+        class="pos-shell-cart-resizer"
+        :class="{ 'is-resizing': cartAsideResizing }"
+        role="separator"
+        aria-orientation="vertical"
+        :aria-label="$t('pos.Resize_cart_panel') || 'Resize cart panel'"
+        @mousedown="startCartAsideResize"
+      >
+        <span class="pos-shell-cart-resizer-grip"></span>
+      </div>
+
       <!-- ============ PRODUCTS (RIGHT) ============ -->
       <section class="pos-shell-section" style="flex: 1 1 auto; min-width: 0; display: grid; grid-template-rows: auto 1fr auto; min-height: 0; background: #ffffff; overflow: hidden;">
 
@@ -714,14 +730,14 @@
                     overflow: 'hidden',
                     position: 'relative',
                     background: (pos_settings.show_product_images && product.image)
-                      ? '#ffffff'
+                      ? '#f1efe7'
                       : 'repeating-linear-gradient(135deg, #ece9fb, #ece9fb 8px, #f5f3fd 8px, #f5f3fd 16px)',
                     backgroundImage: (pos_settings.show_product_images && product.image)
                       ? 'url(' + resolveProductImage(product.image) + ')'
                       : null,
                     backgroundRepeat: 'no-repeat',
                     backgroundPosition: 'center',
-                    backgroundSize: 'contain'
+                    backgroundSize: 'cover'
                   }">
                   <span v-if="!(pos_settings.show_product_images && product.image)" style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 16px; color: rgba(31,31,44,0.6); letter-spacing: 0.02em; text-transform: uppercase;">
                     {{ (product.name || 'P').split(/[ ·]/).filter(Boolean).slice(0,2).map(w => w[0]).join('') }}
@@ -3200,6 +3216,12 @@ export default {
   },
   data() {
     return {
+      // Cart panel width (px) — user-adjustable via the drag handle between
+      // the cart aside and the products grid. Persisted so the employer's
+      // preferred layout survives a reload.
+      cartAsideWidth: 600,
+      cartAsideResizing: false,
+
       // ===== Mobile UI state (drives the phone layout) =====
       mobileActiveTab: 'home', // home | cart | hold | recent | more
 
@@ -3931,6 +3953,12 @@ export default {
   mounted() {
     this.changeSidebarProperties();
     this.paginate_products(this.product_perPage, 0);
+    try {
+      const saved = typeof localStorage !== 'undefined' ? parseInt(localStorage.getItem('pos_cart_aside_width'), 10) : NaN;
+      if (!isNaN(saved) && saved >= 360 && saved <= 900) {
+        this.cartAsideWidth = saved;
+      }
+    } catch (e) {}
     // Marker class so the global :fullscreen rules at the bottom of this
     // file only fire while POS is the active page. Without it, clicking
     // the topnav fullscreen button on a non-POS page applies POS-only
@@ -3944,6 +3972,28 @@ export default {
     } catch (e) {}
   },
   methods: {
+    startCartAsideResize(e) {
+      if (window.innerWidth < 1025) return; // resizer is desktop-only; mobile/tablet stack the panels
+      e.preventDefault();
+      this.cartAsideResizing = true;
+      const startX = e.clientX;
+      const startWidth = this.cartAsideWidth;
+      const min = 360;
+      const max = Math.min(900, Math.round(window.innerWidth * 0.65));
+
+      const onMove = (moveEvent) => {
+        const delta = moveEvent.clientX - startX;
+        this.cartAsideWidth = Math.min(max, Math.max(min, startWidth + delta));
+      };
+      const onUp = () => {
+        this.cartAsideResizing = false;
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onUp);
+        try { localStorage.setItem('pos_cart_aside_width', String(this.cartAsideWidth)); } catch (err) {}
+      };
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+    },
     goToMobileTab(tab) {
       if (tab === 'home') {
         if (this.$route && this.$route.path !== '/') {
@@ -16018,6 +16068,12 @@ $transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   width: 50%;
 }
 
+/* Drag handle is desktop-only (>=1025px, see below) — hidden by default so
+   it never appears in the stacked mobile/tablet cart layout. */
+.pos-shell-cart-resizer {
+  display: none;
+}
+
 /* ============================================================
    Cart sticky header (inside .pos-shell-cart-scroll)
    ============================================================ */
@@ -17534,12 +17590,38 @@ $transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .pos-codecanyon .pos-shell-cart-aside {
-    flex: 0 0 clamp(360px, 34vw, 520px);
-    width: clamp(360px, 34vw, 520px);
-    min-width: clamp(360px, 34vw, 520px);
+    flex: 0 0 var(--pos-cart-w, clamp(420px, 40vw, 600px));
+    width: var(--pos-cart-w, clamp(420px, 40vw, 600px));
+    min-width: var(--pos-cart-w, clamp(420px, 40vw, 600px));
     border: 1px solid var(--pos-border) !important;
     border-radius: 28px !important;
     overflow: hidden !important;
+    transition: none;
+  }
+
+  .pos-shell-cart-resizer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 14px;
+    width: 14px;
+    cursor: col-resize;
+    position: relative;
+    z-index: 5;
+    user-select: none;
+    touch-action: none;
+  }
+  .pos-shell-cart-resizer-grip {
+    width: 4px;
+    height: 56px;
+    border-radius: 4px;
+    background: var(--pos-border, #e6e6ec);
+    transition: background 0.15s ease, height 0.15s ease;
+  }
+  .pos-shell-cart-resizer:hover .pos-shell-cart-resizer-grip,
+  .pos-shell-cart-resizer.is-resizing .pos-shell-cart-resizer-grip {
+    background: var(--pos-accent, #6f53d9);
+    height: 96px;
   }
 
   .pos-codecanyon .pos-shell-section {
