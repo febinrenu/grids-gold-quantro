@@ -138,10 +138,13 @@
   </a>
 
   <div class="product-body">
+    @if($isJewelry && ($metalTypeName || $karatName))
+      <div class="product-meta mb-0.5">{{ trim($metalTypeName . ' ' . $karatName) }}</div>
+    @endif
     <h3 class="product-title" title="{{ $p->name }}">{{ $p->name }}</h3>
 
     @if(empty($hidePrices))
-      <div class="price">{{ $currency }}{{ number_format($minPrice, 2, '.', ',') }}</div>
+      <div class="price mt-0.5">{{ $currency }}{{ number_format($minPrice, 2, '.', ',') }}</div>
     @endif
 
     @if($availabilityLabel !== null && ($s->show_stock ?? true))

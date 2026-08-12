@@ -36,39 +36,55 @@
 
     @case('hero')
       @php
+        // A real, licensed photograph elevates this section — but a crude
+        // placeholder graphic is worse than no image at all. Only trust an
+        // explicitly-uploaded file; never fall back to stock/placeholder art.
         $heroImg = $block['image'] ?? $s->hero_image_path;
-        $heroUrl = 'https://picsum.photos/seed/hero-store/960/520';
+        $heroUrl = null;
         if (!empty($heroImg) && is_string($heroImg) && !\Illuminate\Support\Str::startsWith($heroImg, ['http://', 'https://']) && file_exists(public_path($heroImg))) {
             $heroUrl = global_asset($heroImg);
-        } elseif (file_exists(public_path('store_files/hero_image.jpg'))) {
-            $heroUrl = global_asset('store_files/hero_image.jpg');
         }
       @endphp
-      <section class="py-12 lg:py-16 relative overflow-hidden"
+      <section class="relative overflow-hidden border-b border-line-subtle"
                style="background:
-                 radial-gradient(1200px 360px at 15% 50%, rgb(var(--color-accent-500) / .10) 0%, transparent 55%),
-                 radial-gradient(900px 280px at 85% 50%, rgb(var(--color-accent-500) / .06) 0%, transparent 55%);">
-        <div class="container">
-          <div class="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-            <div>
-              <span class="section-kicker">{{ __('messages.Shop') }}</span>
-              <h1 class="mt-3 mb-4 text-4xl lg:text-5xl font-bold tracking-tight text-fg-primary">
-                {{ $block['title'] ?? $s->hero_title }}
-              </h1>
-              <p class="section-subtitle mb-6 max-w-xl">
-                {{ $block['subtitle'] ?? $s->hero_subtitle }}
-              </p>
-              <a href="{{ route('store.shop') }}" class="btn btn-primary btn-lg">
-                <x-store.icon name="lightning" class="w-5 h-5" />{{ __('messages.ShopNow') }}
-              </a>
+                 radial-gradient(900px 480px at 12% 20%, rgb(var(--color-accent-500) / .12) 0%, transparent 60%),
+                 radial-gradient(700px 420px at 90% 80%, rgb(var(--color-accent-500) / .08) 0%, transparent 60%),
+                 rgb(var(--color-bg-surface));">
+        <div class="absolute inset-0 opacity-[0.35] pointer-events-none"
+             style="background-image: radial-gradient(rgb(var(--color-accent-500) / .5) 1px, transparent 1px);
+                    background-size: 22px 22px;
+                    mask-image: radial-gradient(ellipse 60% 90% at 15% 30%, black 0%, transparent 70%);"></div>
+
+        <div class="container relative py-20 lg:py-28">
+          <div class="max-w-2xl {{ $heroUrl ? '' : 'text-center mx-auto' }}">
+            <div class="flex items-center gap-3 mb-5 {{ $heroUrl ? '' : 'justify-center' }}">
+              <span class="h-px w-10" style="background: rgb(var(--color-accent-500));"></span>
+              <span class="section-kicker">{{ __('messages.Shop') ?: 'Fine Jewelry' }}</span>
             </div>
-            <div class="relative">
-              <div class="rounded-xl overflow-hidden shadow-lg border border-line-subtle">
-                <img class="w-full h-auto object-cover max-h-[420px]" src="{{ $heroUrl }}" alt="Hero">
-              </div>
+            <h1 class="mb-5 text-5xl lg:text-6xl text-fg-primary">
+              {{ $block['title'] ?? $s->hero_title ?? 'Crafted for the moments that matter' }}
+            </h1>
+            <p class="section-subtitle mb-8 {{ $heroUrl ? 'max-w-lg' : 'max-w-xl mx-auto' }} text-base lg:text-lg">
+              {{ $block['subtitle'] ?? $s->hero_subtitle ?? 'Ethically sourced gold, hand-finished settings, and a lifetime of care behind every piece.' }}
+            </p>
+            <div class="flex items-center gap-3 flex-wrap {{ $heroUrl ? '' : 'justify-center' }}">
+              <a href="{{ route('store.shop') }}" class="btn btn-primary btn-lg">
+                {{ __('messages.ShopNow') ?: 'Explore the Collection' }}
+                <x-store.icon name="arrow-right" class="w-4 h-4" />
+              </a>
+              <a href="{{ route('store.contact') }}" class="btn btn-outline btn-lg">
+                {{ __('messages.Support') ? __('messages.Support') : 'Book a Private Viewing' }}
+              </a>
             </div>
           </div>
         </div>
+
+        @if($heroUrl)
+          <div class="hidden lg:block absolute top-0 right-0 h-full w-[42%]">
+            <div class="absolute inset-0" style="background: linear-gradient(90deg, rgb(var(--color-bg-surface)) 0%, transparent 18%);"></div>
+            <img class="w-full h-full object-cover" src="{{ $heroUrl }}" alt="{{ $s->store_name ?? 'Featured' }}">
+          </div>
+        @endif
       </section>
 
       {{-- ===== CENTER ===== --}}

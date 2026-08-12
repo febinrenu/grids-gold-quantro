@@ -1380,7 +1380,7 @@ onBeforeUnmount(() => {
 /* Dashboard Header */
 .dashboard-header {
   position: relative;
-  overflow: hidden;
+  overflow: visible; /* allow the warehouse/date dropdown popups to render outside the rounded header box */
   background: linear-gradient(180deg, rgba(255, 253, 249, 0.94) 0%, rgba(247, 239, 228, 0.9) 100%);
   padding: 2rem;
   border-radius: 24px;

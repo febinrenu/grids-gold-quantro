@@ -15,57 +15,64 @@
  * ------------------------------------------------------------------------ */
 @layer base {
   :root {
-    --color-bg-base:     255 255 255;
-    --color-bg-surface:  249 250 251;
-    --color-bg-elevated: 255 255 255;
-    --color-bg-muted:    243 244 246;
+    /* Warm ivory/parchment surfaces — a jewelry-showcase palette, not a SaaS-gray one. */
+    --color-bg-base:     250 247 241;
+    --color-bg-surface:  245 239 229;
+    --color-bg-elevated: 255 253 249;
+    --color-bg-muted:    237 229 213;
 
-    --color-border-subtle: 229 231 235;
-    --color-border-strong: 209 213 219;
+    --color-border-subtle: 227 216 195;
+    --color-border-strong: 203 185 148;
 
-    --color-fg-primary:   17 24 39;
-    --color-fg-secondary: 75 85 99;
-    --color-fg-muted:     107 114 128;
+    --color-fg-primary:   35 27 20;
+    --color-fg-secondary: 96 83 68;
+    --color-fg-muted:     140 125 105;
 
-    --color-accent-400: 96 165 250;
-    --color-accent-500: 59 130 246;
-    --color-accent-600: 37 99 235;
-    --color-accent-glow: rgba(59, 130, 246, 0.35);
+    /* Antique gold accent. */
+    --color-accent-400: 192 138 46;
+    --color-accent-500: 161 98 7;
+    --color-accent-600: 124 76 5;
+    --color-accent-glow: rgba(161, 98, 7, 0.35);
 
-    --color-success: 34 197 94;
-    --color-warning: 234 179 8;
-    --color-danger:  239 68 68;
-    --color-info:    14 165 233;
+    /* Jewel-toned semantics instead of stock traffic-light colors. */
+    --color-success: 46 125 79;
+    --color-warning: 194 96 15;
+    --color-danger:  166 41 31;
+    --color-info:    46 107 138;
 
-    --color-badge-deal:   239 68 68;
-    --color-badge-new:    34 197 94;
-    --color-badge-refurb: 168 85 247;
+    --color-badge-deal:   176 38 28;
+    --color-badge-new:    31 107 74;
+    --color-badge-refurb: 107 63 160;
+
+    --font-display: 'Cormorant', Georgia, 'Times New Roman', serif;
+    --font-body: 'Montserrat', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
 
     color-scheme: light;
   }
 
   .dark {
-    --color-bg-base:     10 14 23;
-    --color-bg-surface:  15 20 32;
-    --color-bg-elevated: 22 28 43;
-    --color-bg-muted:    29 37 55;
+    /* Espresso/near-black warm brown — matches the admin login's dark-luxury theme. */
+    --color-bg-base:     20 16 12;
+    --color-bg-surface:  27 22 17;
+    --color-bg-elevated: 34 28 21;
+    --color-bg-muted:    44 36 26;
 
-    --color-border-subtle: 38 48 71;
-    --color-border-strong: 60 72 100;
+    --color-border-subtle: 58 47 34;
+    --color-border-strong: 79 65 48;
 
-    --color-fg-primary:   237 242 250;
-    --color-fg-secondary: 170 182 203;
-    --color-fg-muted:     120 132 152;
+    --color-fg-primary:   243 233 216;
+    --color-fg-secondary: 201 184 150;
+    --color-fg-muted:     143 128 105;
 
-    --color-accent-400: 96 165 250;
-    --color-accent-500: 59 130 246;
-    --color-accent-600: 37 99 235;
-    --color-accent-glow: rgba(59, 130, 246, 0.45);
+    --color-accent-400: 224 181 99;
+    --color-accent-500: 214 163 74;
+    --color-accent-600: 185 134 46;
+    --color-accent-glow: rgba(214, 163, 74, 0.45);
 
-    --color-success: 34 197 94;
-    --color-warning: 250 204 21;
-    --color-danger:  248 113 113;
-    --color-info:    56 189 248;
+    --color-success: 76 175 110;
+    --color-warning: 224 138 46;
+    --color-danger:  224 104 92;
+    --color-info:    95 168 201;
 
     color-scheme: dark;
   }
@@ -73,7 +80,7 @@
   html { -webkit-text-size-adjust: 100%; }
 
   body {
-    font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    font-family: var(--font-body);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     background: rgb(var(--color-bg-base));
@@ -89,9 +96,13 @@
     border-radius: 4px;
   }
 
-  h1, h2, h3, h4, h5, h6 { font-weight: 600; letter-spacing: -0.01em; }
-  h1 { font-size: 2rem; line-height: 1.15; }
-  h2 { font-size: 1.5rem; line-height: 1.2; }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  h1 { font-size: 2.75rem; line-height: 1.1; }
+  h2 { font-size: 2rem; line-height: 1.15; }
 
   img, svg, video { max-width: 100%; height: auto; display: block; }
 
@@ -274,9 +285,10 @@
                 border-color .18s;
   }
   .card-hover:hover {
-    border-color: rgb(var(--color-border-strong));
-    box-shadow: 0 10px 30px -10px rgb(0 0 0 / 0.25);
-    transform: translateY(-2px);
+    border-color: rgb(var(--color-accent-500) / 0.4);
+    box-shadow: 0 16px 40px -16px rgb(var(--color-fg-primary) / 0.22),
+                0 0 0 1px rgb(var(--color-accent-500) / 0.08);
+    transform: translateY(-3px);
   }
   .card-header {
     @apply px-4 py-3 border-b flex items-center justify-between gap-2;
@@ -318,9 +330,9 @@
   .alert-danger  { color: rgb(var(--color-danger));  border-color: rgb(var(--color-danger)  / 0.4);  background: rgb(var(--color-danger)  / 0.08); }
 
   /* ===== Price ===== */
-  .price     { @apply font-mono font-semibold; color: rgb(var(--color-fg-primary)); font-variant-numeric: tabular-nums; }
-  .price-lg  { @apply text-2xl; }
-  .price-xl  { @apply text-3xl; }
+  .price     { @apply font-semibold; color: rgb(var(--color-fg-primary)); font-variant-numeric: tabular-nums; }
+  .price-lg  { @apply text-2xl; font-family: var(--font-display); font-weight: 600; }
+  .price-xl  { @apply text-3xl; font-family: var(--font-display); font-weight: 600; }
   .price-sm  { @apply text-sm; }
   .price-compare {
     @apply text-sm line-through;
@@ -331,11 +343,13 @@
 
   /* ===== Section labels ===== */
   .section-kicker {
-    @apply inline-block text-xs font-semibold uppercase tracking-widest;
+    @apply inline-block text-xs font-semibold uppercase tracking-[0.2em];
     color: rgb(var(--color-accent-500));
   }
   .section-title {
-    @apply text-2xl md:text-3xl font-bold tracking-tight;
+    @apply text-3xl md:text-4xl tracking-tight;
+    font-family: var(--font-display);
+    font-weight: 600;
     color: rgb(var(--color-fg-primary));
   }
   .section-subtitle {

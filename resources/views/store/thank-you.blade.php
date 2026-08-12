@@ -48,7 +48,7 @@
 
           <div id="ty-payment-info" class="hidden mb-4">
             <div class="flex items-center gap-3 p-3 rounded-lg" style="background: rgb(var(--color-bg-muted));">
-              <span id="ty-payment-icon" class="text-xl"></span>
+              <span id="ty-payment-icon" class="text-accent-500"></span>
               <div>
                 <div class="font-semibold text-sm" id="ty-payment-label"></div>
                 <div class="text-xs" id="ty-payment-status"></div>
@@ -148,13 +148,14 @@
 
   if (rec.payment_method && paymentInfo) {
     paymentInfo.classList.remove('hidden');
+    const svgIcon = (paths) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 shrink-0" aria-hidden="true">${paths}</svg>`;
     const methodMap = {
-      credit_card:  { icon: '💳', label: @json(__('messages.CreditCard')) },
-      mobile_money: { icon: '📱', label: @json(__('messages.MobileMoney')) },
-      cod:          { icon: '💵', label: @json(__('messages.CashOnDelivery')) }
+      credit_card:  { icon: svgIcon('<rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>'), label: @json(__('messages.CreditCard')) },
+      mobile_money: { icon: svgIcon('<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.37 1.9.72 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.35 1.85.59 2.81.72A2 2 0 0 1 22 16.92Z"/>'), label: @json(__('messages.MobileMoney')) },
+      cod:          { icon: svgIcon('<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/>'), label: @json(__('messages.CashOnDelivery')) }
     };
-    const pm = methodMap[rec.payment_method] || { icon: '💰', label: rec.payment_method };
-    paymentIcon.textContent  = pm.icon;
+    const pm = methodMap[rec.payment_method] || { icon: svgIcon('<rect x="2" y="6" width="20" height="12" rx="2"/>'), label: rec.payment_method };
+    paymentIcon.innerHTML     = pm.icon;
     paymentLabel.textContent = pm.label;
 
     const statusMap = {

@@ -47,6 +47,7 @@ if ($installed === true) {
 
             Route::get('/', [StoreFrontController::class, 'index'])->name('store.index');
             Route::get('/shop', [StoreFrontController::class, 'shop'])->name('store.shop');
+            Route::view('/cart', 'store.cart')->name('store.cart');
             Route::get('/search/suggestions', [StoreFrontController::class, 'searchSuggestions'])->name('store.search.suggestions');
             Route::get('/contact', [StoreFrontController::class, 'contact'])->name('store.contact');
             Route::post('/contact', [StoreFrontController::class, 'sendContact'])->name('store.contact.send');

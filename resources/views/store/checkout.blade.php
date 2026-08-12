@@ -212,9 +212,9 @@
     color: #fff;
     flex-shrink: 0;
   }
-  .pay-icon-card   { background: linear-gradient(135deg, #667eea, #764ba2); }
-  .pay-icon-mobile { background: linear-gradient(135deg, #f093fb, #f5576c); }
-  .pay-icon-cod    { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+  .pay-icon-card   { background: linear-gradient(135deg, rgb(var(--color-accent-400)), rgb(var(--color-accent-600))); }
+  .pay-icon-mobile { background: linear-gradient(135deg, rgb(var(--color-info)), rgb(var(--color-fg-primary))); }
+  .pay-icon-cod    { background: linear-gradient(135deg, rgb(var(--color-fg-secondary)), rgb(var(--color-fg-primary))); }
 
   .pay-check { color: rgb(var(--color-border-subtle)); transition: color .2s; }
   .pay-option .pay-radio:checked ~ .pay-inner .pay-check { color: rgb(var(--color-accent-500)); }
@@ -313,11 +313,11 @@
       style: {
         base: {
           fontSize: '15px',
-          color: isDark ? '#e6e7eb' : '#111827',
-          fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-          '::placeholder': { color: isDark ? '#6b7280' : '#9ca3af' }
+          color: isDark ? '#f3e9d8' : '#231b14',
+          fontFamily: '"Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+          '::placeholder': { color: isDark ? '#8c7d69' : '#8c7d69' }
         },
-        invalid: { color: '#ef4444' }
+        invalid: { color: '#a6291f' }
       }
     });
     cardElement.mount('#stripe-card-element');
