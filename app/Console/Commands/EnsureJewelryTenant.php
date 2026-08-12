@@ -69,9 +69,7 @@ class EnsureJewelryTenant extends Command
         $this->ensureTenantStorageDirectories($tenant);
 
         if ($wasCreated && ! $this->option('no-import')) {
-            $tenant->run(function () {
-                $this->importSeedDumpIfPresent();
-            });
+            $this->importSeedDumpIfPresent($dbName);
         }
 
         if ($this->option('seed') || $this->option('migrate')) {
@@ -189,7 +187,7 @@ class EnsureJewelryTenant extends Command
      * into a database we just created — an existing database (someone's own
      * data) is never touched.
      */
-    protected function importSeedDumpIfPresent(): void
+    protected function importSeedDumpIfPresent(string $dbName): void
     {
         @ini_set('memory_limit', '512M');
 
@@ -201,27 +199,43 @@ class EnsureJewelryTenant extends Command
 
         $this->info('Importing seed data from database/jewelrydatabase.sql (this may take a moment)...');
 
-        $sql = file_get_contents($dumpPath);
+        // Deliberately NOT a naive preg_split-on-semicolons + one statement
+        // at a time via DB::unprepared(): that silently mis-splits multi-line
+        // CREATE TABLE/INSERT statements, and since PDO's mysql driver
+        // doesn't execute multiple statements passed in one call, the
+        // "extra" half of a merged chunk is just silently dropped — no
+        // exception, no warning, just missing tables. Bit us for real: 329
+        // tables became 195 with a clean "success" logged. mysqli's native
+        // multi_query() runs the whole file as MySQL itself parses it.
+        $mysqli = @new \mysqli(
+            (string) config('database.connections.central.host', '127.0.0.1'),
+            (string) config('database.connections.central.username', 'root'),
+            (string) config('database.connections.central.password', ''),
+            $dbName,
+            (int) config('database.connections.central.port', 3306)
+        );
 
-        // Split database/jewelrydatabase.sql into individual SQL statements safely
-        $queries = preg_split('/;[ \t]*[\r\n]+/', $sql);
-
-        $successCount = 0;
-        foreach ($queries as $query) {
-            $query = trim($query);
-            if ($query === '') {
-                continue;
-            }
-
-            try {
-                DB::unprepared($query);
-                $successCount++;
-            } catch (\Exception $e) {
-                $this->error("  Query failed: " . substr($query, 0, 150) . "... Error: " . $e->getMessage());
-                throw $e;
-            }
+        if ($mysqli->connect_errno) {
+            $this->warn("  Could not connect to import seed data: {$mysqli->connect_error}");
+            return;
         }
 
-        $this->info("  Seed data imported successfully ({$successCount} statements).");
+        $sql = file_get_contents($dumpPath);
+
+        if ($mysqli->multi_query($sql)) {
+            do {
+                if ($result = $mysqli->store_result()) {
+                    $result->free();
+                }
+            } while ($mysqli->more_results() && $mysqli->next_result());
+        }
+
+        if ($mysqli->errno) {
+            $this->warn("  Seed import reported an error: {$mysqli->error}");
+        } else {
+            $this->info('  Seed data imported.');
+        }
+
+        $mysqli->close();
     }
 }
