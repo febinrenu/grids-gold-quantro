@@ -20,9 +20,9 @@ return new class extends Migration
             $table->string('store_name')->default('StoreX');
             $table->string('logo_path')->nullable();
             $table->string('favicon_path')->nullable();
-            $table->string('primary_color')->default('#6c5ce7');
-            $table->string('secondary_color')->default('#00c2ff');
-            $table->string('font_family')->default('Poppins, system-ui, Segoe UI, Roboto, Arial, sans-serif');
+            $table->string('primary_color')->default('#A16207');
+            $table->string('secondary_color')->default('#2F6B4F');
+            $table->string('font_family')->default("'Montserrat', system-ui, Segoe UI, Roboto, Arial, sans-serif");
             $table->string('hero_title')->nullable();
             $table->text('hero_subtitle')->nullable();
             $table->string('hero_image_path')->nullable();

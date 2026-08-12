@@ -4,8 +4,8 @@
   use Illuminate\Support\Str;
 
   $categories = $categories ?? collect();
-  $primary   = $s->primary_color   ?? '#3B82F6';
-  $secondary = $s->secondary_color ?? '#22D3EE';
+  $primary   = $s->primary_color   ?? '#A16207';
+  $secondary = $s->secondary_color ?? '#2F6B4F';
   $title     = $s->seo_meta_title  ?? ($s->store_name ?? __('messages.Store'));
   $desc      = $s->seo_meta_description ?? '';
 
@@ -50,7 +50,7 @@
   $hexToRgbTriplet = function ($hex) {
       $hex = ltrim((string) $hex, '#');
       if (strlen($hex) === 3) $hex = $hex[0].$hex[0].$hex[1].$hex[1].$hex[2].$hex[2];
-      if (strlen($hex) !== 6 || !ctype_xdigit($hex)) return '59 130 246';
+      if (strlen($hex) !== 6 || !ctype_xdigit($hex)) return '161 98 7';
       return hexdec(substr($hex,0,2)) . ' ' . hexdec(substr($hex,2,2)) . ' ' . hexdec(substr($hex,4,2));
   };
   $accent500Rgb = $hexToRgbTriplet($primary);
@@ -102,11 +102,11 @@
   <meta name="apple-mobile-web-app-title" content="{{ $s->store_name ?? 'Store' }}">
   <link rel="apple-touch-icon" href="{{ pwa_icon_url(192) }}">
 
-  {{-- Fonts — Inter (body) + JetBrains Mono (specs/prices) --}}
+  {{-- Fonts — Cormorant (display/headings) + Montserrat (body/UI) --}}
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+        href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,500;0,600;0,700;1,500&family=Montserrat:wght@400;500;600;700&display=swap">
 
   {{-- Storefront bundle --}}
   <link rel="stylesheet" href="{{ $cssStore }}">
@@ -118,7 +118,7 @@
     }
     .dark { --color-accent-glow: rgba({{ $accent500Rgb }}, 0.45); }
 
-    body { font-family: {{ $s->font_family ?? 'Inter, system-ui, sans-serif' }}; }
+    body { font-family: {{ $s->font_family ?? "'Montserrat', system-ui, sans-serif" }}; }
 
     .mega-panel { box-shadow: 0 24px 48px -12px rgba(0,0,0,0.5); }
 
@@ -640,7 +640,10 @@
               <span class="font-semibold">{{ __('messages.GrandTotal') }}</span>
               <strong id="mc-grand" class="font-mono text-lg text-fg-primary" x-text="money(grand)">$0.00</strong>
             </div>
-            <div class="flex gap-2 mt-4">
+            <a href="{{ route('store.cart') }}" class="btn btn-outline btn-block mt-4">
+              <x-store.icon name="bag" class="w-4 h-4" />{{ __('messages.YourCart') }}
+            </a>
+            <div class="flex gap-2 mt-2">
               <button id="mc-clear" type="button" class="btn btn-secondary flex-1" @click="clear">{{ __('messages.Clear') }}</button>
               <button id="mc-checkout" type="button" class="btn btn-primary flex-1"
                       @click="checkout('{{ route('checkout') }}')">

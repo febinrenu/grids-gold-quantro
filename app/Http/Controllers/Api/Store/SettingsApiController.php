@@ -32,9 +32,9 @@ class SettingsApiController extends Controller
             $s = StoreSetting::create([
                 'enabled' => 1,
                 'store_name' => 'StoreX',
-                'primary_color' => '#6c5ce7',
-                'secondary_color' => '#00c2ff',
-                'font_family' => 'Arial, sans-serif',
+                'primary_color' => '#A16207',
+                'secondary_color' => '#2F6B4F',
+                'font_family' => "'Montserrat', system-ui, sans-serif",
                 'favicon_path' => 'images/store/favicon.ico',
                 'hero_image_path' => 'images/store/hero_image.jpg',
                 'language' => 'en',

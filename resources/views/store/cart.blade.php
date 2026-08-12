@@ -1,6 +1,12 @@
 @extends('layouts.store')
 
 @section('content')
+@php
+  use App\Models\StoreSetting;
+
+  $s = $s ?? StoreSetting::first();
+@endphp
+
 <section class="border-b border-line-subtle"
          style="background: linear-gradient(135deg, rgb(var(--color-accent-500) / .04), rgb(var(--color-bg-surface)));">
   <div class="container py-6">
@@ -210,7 +216,7 @@
     } else if (window.StoreUI) {
       window.StoreUI.open('authModal');
     } else {
-      window.location.href = @json(route('store.login.page', [], false));
+      window.location.href = @json(route('store.login.show', [], false));
     }
   });
 
