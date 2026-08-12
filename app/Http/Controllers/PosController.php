@@ -1810,7 +1810,7 @@ class PosController extends BaseController
         $data = [];
 
         $product_warehouse_query = product_warehouse::where('warehouse_id', $request->warehouse_id)
-            ->with('product', 'product.unitSale')
+            ->with('product', 'product.unitSale', 'product.images')
             ->where('deleted_at', '=', null)
             ->where(function ($query) use ($request) {
                 return $query->whereHas('product', function ($q) {
@@ -1979,8 +1979,10 @@ class PosController extends BaseController
             }
 
             $item['id'] = $product_warehouse->product_id;
-            $firstimage = explode(',', $product_warehouse['product']->image);
-            $item['image'] = $firstimage[0];
+            // Same source of truth as the online store (product_images gallery,
+            // falling back to the legacy comma-separated products.image column)
+            // so POS and the storefront always show the same photo.
+            $item['image'] = $product_warehouse['product']->primaryProductImageFilename();
 
             // Common product flags & meta
             $item['product_type'] = $product_warehouse['product']->type;
