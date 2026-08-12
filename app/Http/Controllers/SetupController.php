@@ -228,7 +228,7 @@ class SetupController extends Controller
         preg_match('/^APP_SUPER_ADMIN_EMAIL=(.*)$/m', $envContent, $emailMatch);
         preg_match('/^APP_SUPER_ADMIN_PASSWORD=(.*)$/m', $envContent, $passwordMatch);
         $superAdminEmail = isset($emailMatch[1]) ? trim($emailMatch[1], " \t\"'") : 'superadmin@stockysaas.site';
-        $superAdminPassword = isset($passwordMatch[1]) ? trim($passwordMatch[1], " \t\"'") : '123456';
+        $superAdminPassword = isset($passwordMatch[1]) ? trim($passwordMatch[1], " \t\"'") : 'password';
 
         $appUrl = rtrim(session('env.APP_URL') ?: $request->getSchemeAndHttpHost(), '/');
         $superAdminLoginUrl = $appUrl . '/super/login';

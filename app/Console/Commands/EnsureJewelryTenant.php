@@ -2,10 +2,13 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Central\Plan;
+use App\Models\Central\TenantSubscription;
 use App\Tenant;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
 use Stancl\Tenancy\Database\Models\Domain;
 
 /**
@@ -67,6 +70,8 @@ class EnsureJewelryTenant extends Command
 
         $wasCreated = $this->createDatabaseIfMissing($dbName);
         $this->ensureTenantStorageDirectories($tenant);
+        $this->ensurePlatformInstalledMarker();
+        $this->ensureActiveSubscription($tenant);
 
         if ($wasCreated && ! $this->option('no-import')) {
             $this->importSeedDumpIfPresent($dbName);
@@ -149,6 +154,73 @@ class EnsureJewelryTenant extends Command
         ] as $dir) {
             File::ensureDirectoryExists($dir, 0755, true);
         }
+    }
+
+    /**
+     * The whole tenant SPA (dashboard, POS, online store, portal) 503s with
+     * "Platform not ready" until this marker exists (routes/tenant_web.php).
+     * Normally created by the /setup wizard (SetupController::lastStep()),
+     * which also seeds the super admin, plans, and Passport keys — none of
+     * which this command can substitute for. This is just a defensive
+     * belt-and-suspenders so running this command doesn't produce a
+     * confusing 503 if it happens to run before or without /setup.
+     */
+    protected function ensurePlatformInstalledMarker(): void
+    {
+        if (Storage::disk('public')->exists('installed')) {
+            return;
+        }
+
+        Storage::disk('public')->put('installed', 'OK');
+        $this->info('  Created the platform "installed" marker.');
+    }
+
+    /**
+     * A tenant created directly via Tenant::create() (as this command does)
+     * never goes through any of the flows that normally create a
+     * TenantSubscription (self-service signup, checkout, webhook, or a
+     * super admin manually assigning a plan) — so without this, every
+     * dashboard/API request for this tenant redirects to /billing/plans
+     * with "Your subscription is inactive or expired."
+     *
+     * Picks a plan with the `online_orders` feature (needed for the online
+     * store to be reachable at all), falling back to the "professional"
+     * slug, falling back to whatever plan exists. If no plans exist yet
+     * (i.e. the /setup wizard, which seeds them, hasn't run), warns and
+     * skips cleanly — safe to just re-run this command after /setup.
+     */
+    protected function ensureActiveSubscription(Tenant $tenant): void
+    {
+        if (! \Illuminate\Support\Facades\Schema::connection('central')->hasTable('tenant_subscriptions')) {
+            return;
+        }
+
+        $existing = TenantSubscription::where('tenant_id', $tenant->id)->get();
+        if ($existing->contains(fn ($sub) => $sub->isActive())) {
+            return;
+        }
+
+        $plan = Plan::whereJsonContains('features', 'online_orders')->first()
+            ?? Plan::where('slug', 'professional')->first()
+            ?? Plan::first();
+
+        if (! $plan) {
+            $this->warn('  No subscription plans found yet — run the /setup wizard first (it seeds plans), then re-run this command.');
+            return;
+        }
+
+        TenantSubscription::create([
+            'tenant_id'     => $tenant->id,
+            'plan_id'       => $plan->id,
+            'billing_cycle' => 'yearly',
+            'amount'        => 0,
+            'currency'      => 'USD',
+            'status'        => TenantSubscription::STATUS_ACTIVE,
+            'starts_at'     => now(),
+            'ends_at'       => now()->addYears(10),
+        ]);
+
+        $this->info("  Activated subscription on plan '{$plan->name}' (has online_orders: " . ($plan->hasFeature('online_orders') ? 'yes' : 'no') . ').');
     }
 
     /**
