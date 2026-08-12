@@ -310,7 +310,23 @@ class OnlineOrdersApiController extends Controller
                     $unitPrice = (float) $it->price;
                     $qty = (float) $it->qty;
 
-                    SaleDetail::create([
+                    $jewelrySnapshot = [];
+                    if ($product->is_jewelry_item) {
+                        $calc = app(\App\Services\Jewelry\JewelryPricingService::class)->priceForSale((int) $it->product_id, $warehouseId);
+                        $jewelrySnapshot = [
+                            'gold_rate_id'            => $calc['gold_rate_id'] ?? null,
+                            'gold_rate_value'         => $calc['gold_rate'] ?? null,
+                            'gold_rate_effective_at'  => $calc['gold_rate_effective_at'] ?? null,
+                            'karat_id'                => $calc['karat_id'] ?? null,
+                            'metal_weight_used'       => $calc['metal_weight'] ?? null,
+                            'making_charge_amount'    => $calc['making_charge'] ?? null,
+                            'wastage_amount'          => $calc['wastage'] ?? null,
+                            'stone_value_amount'      => $calc['stone_value'] ?? null,
+                            'price_breakdown'         => $calc,
+                        ];
+                    }
+
+                    SaleDetail::create(array_merge([
                         'date' => $sale->date,
                         'sale_id' => $sale->id,
                         'sale_unit_id' => $unit ? $unit->id : null,
@@ -323,7 +339,7 @@ class OnlineOrdersApiController extends Controller
                         'product_id' => (int) $it->product_id,
                         'product_variant_id' => $it->product_variant_id ?: null,
                         'total' => round($unitPrice * $qty, 2),
-                    ]);
+                    ], $jewelrySnapshot));
 
                     // Pre-order items: no stock to decrement
                     if ($it->is_preorder) {

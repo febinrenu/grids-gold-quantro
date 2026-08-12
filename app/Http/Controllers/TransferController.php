@@ -318,6 +318,14 @@ class TransferController extends BaseController
                 }
             }
 
+            // Save jewelry-specific transfer items
+            $this->saveJewelryTransferItems($order);
+
+            // Re-apply jewelry serial movements if approved
+            if ($shouldAffectStock) {
+                $this->applyJewelrySerialMovement($order);
+            }
+
         }, 10);
 
         return response()->json(['success' => true]);
@@ -356,6 +364,11 @@ class TransferController extends BaseController
             // Only already-approved transfers affect stock at update time.
             // Pending or rejected transfers never touch stock here.
             $isApproved = $current_Transfer->isApproved();
+
+            // Reverse old jewelry serial movements
+            if ($isApproved) {
+                $this->reverseJewelrySerialMovement($current_Transfer);
+            }
 
             // Get Ids details
             $new_products_id = [];
@@ -669,6 +682,14 @@ class TransferController extends BaseController
                 );
             }
 
+            // Save jewelry-specific transfer items
+            $this->saveJewelryTransferItems($current_Transfer);
+
+            // Re-apply jewelry serial movements if approved
+            if ($isApproved) {
+                $this->applyJewelrySerialMovement($current_Transfer);
+            }
+
         }, 10);
 
         return response()->json(['success' => true]);
@@ -813,6 +834,13 @@ class TransferController extends BaseController
                 }
 
             }
+
+            // Revert jewelry serials if approved and completed
+            if ($isApproved) {
+                $this->reverseJewelrySerialMovement($current_Transfer);
+            }
+            // Delete jewelry-specific transfer items
+            \App\Models\TransferItem::where('transfer_id', $current_Transfer->id)->delete();
 
             $current_Transfer->details()->delete();
             $current_Transfer->update([
@@ -1705,11 +1733,122 @@ class TransferController extends BaseController
             }
         }
 
+        // Apply jewelry serial movements on approval
+        $this->applyJewelrySerialMovement($transfer);
+
         // Pharmacy: per-batch movements are NOT auto-FEFO'd at approval time. The
         // strict picker is the source of truth — for a pending transfer to update
         // the per-batch ledger on approval, the user must edit it after approval
         // and pick batches explicitly (the same flow they'd use to fix any line).
         // Warehouse stock above is still moved either way; only the per-batch
         // ledger is left untouched when no batches were saved.
+    }
+
+    protected function saveJewelryTransferItems(Transfer $transfer)
+    {
+        // 1. Delete existing transfer items for this transfer
+        \App\Models\TransferItem::where('transfer_id', $transfer->id)->delete();
+
+        // 2. Fetch the transfer details
+        $details = \App\Models\TransferDetail::with('product')
+            ->where('transfer_id', $transfer->id)
+            ->get();
+
+        foreach ($details as $detail) {
+            $product = $detail->product;
+            if ($product && $product->is_jewelry_item && $product->jewelry_item_type === 'serialized') {
+                // Find available serials for this product at the from_warehouse_id
+                $serials = \App\Models\ProductSerial::where('product_id', $product->id)
+                    ->where('warehouse_id', $transfer->from_warehouse_id)
+                    ->where('status', \App\Models\ProductSerial::STATUS_AVAILABLE)
+                    ->take((int) $detail->quantity)
+                    ->get();
+
+                foreach ($serials as $serial) {
+                    // Check if there is an RFID tag for this serial
+                    $rfid = \App\Models\RfidTag::where('product_serial_id', $serial->id)->first();
+
+                    \App\Models\TransferItem::create([
+                        'transfer_id' => $transfer->id,
+                        'product_id' => $product->id,
+                        'product_serial_id' => $serial->id,
+                        'dispatch_weight' => $product->jewelry_gross_weight ?? 0.000,
+                        'receive_weight' => ($transfer->statut === 'completed') ? ($product->jewelry_gross_weight ?? 0.000) : null,
+                        'dispatch_rfid' => $rfid ? $rfid->epc_number : null,
+                        'receive_rfid' => ($transfer->statut === 'completed') ? ($rfid ? $rfid->epc_number : null) : null,
+                        'quantity' => 1,
+                        'remarks' => 'Auto-allocated on transfer creation/update.',
+                    ]);
+                }
+            }
+        }
+    }
+
+    protected function applyJewelrySerialMovement(Transfer $transfer)
+    {
+        // Only move serials if the status is completed!
+        if ($transfer->statut !== 'completed') {
+            return;
+        }
+
+        $transferItems = \App\Models\TransferItem::where('transfer_id', $transfer->id)->get();
+
+        foreach ($transferItems as $item) {
+            $serial = \App\Models\ProductSerial::find($item->product_serial_id);
+            if ($serial) {
+                // Update the warehouse_id to the destination warehouse
+                $serial->warehouse_id = $transfer->to_warehouse_id;
+                $serial->save();
+
+                // Record the movement
+                \App\Models\ProductSerialMovement::create([
+                    'product_serial_id' => $serial->id,
+                    'serial_number' => $serial->serial_number ?? '',
+                    'action' => \App\Models\ProductSerialMovement::ACTION_STATUS_CHANGED,
+                    'from_status' => \App\Models\ProductSerial::STATUS_AVAILABLE,
+                    'to_status' => \App\Models\ProductSerial::STATUS_AVAILABLE,
+                    'warehouse_id' => $transfer->to_warehouse_id,
+                    'reference_type' => 'Transfer',
+                    'reference_id' => $transfer->id,
+                    'user_id' => Auth::id() ?? $transfer->user_id,
+                    'notes' => 'Transferred from warehouse ID ' . $transfer->from_warehouse_id . ' to warehouse ID ' . $transfer->to_warehouse_id,
+                    'created_at' => now(),
+                ]);
+            }
+        }
+    }
+
+    protected function reverseJewelrySerialMovement(Transfer $transfer)
+    {
+        // Only reverse if the transfer statut was completed (meaning they actually moved)
+        if ($transfer->statut !== 'completed') {
+            return;
+        }
+
+        $transferItems = \App\Models\TransferItem::where('transfer_id', $transfer->id)->get();
+
+        foreach ($transferItems as $item) {
+            $serial = \App\Models\ProductSerial::find($item->product_serial_id);
+            if ($serial) {
+                // Revert warehouse_id to the source warehouse
+                $serial->warehouse_id = $transfer->from_warehouse_id;
+                $serial->save();
+
+                // Record reversal movement
+                \App\Models\ProductSerialMovement::create([
+                    'product_serial_id' => $serial->id,
+                    'serial_number' => $serial->serial_number ?? '',
+                    'action' => \App\Models\ProductSerialMovement::ACTION_STATUS_CHANGED,
+                    'from_status' => \App\Models\ProductSerial::STATUS_AVAILABLE,
+                    'to_status' => \App\Models\ProductSerial::STATUS_AVAILABLE,
+                    'warehouse_id' => $transfer->from_warehouse_id,
+                    'reference_type' => 'Transfer',
+                    'reference_id' => $transfer->id,
+                    'user_id' => Auth::id() ?? $transfer->user_id,
+                    'notes' => 'Transfer updated/reversed. Returned to source warehouse ID ' . $transfer->from_warehouse_id,
+                    'created_at' => now(),
+                ]);
+            }
+        }
     }
 }

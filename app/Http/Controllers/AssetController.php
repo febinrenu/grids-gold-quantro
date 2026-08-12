@@ -63,10 +63,11 @@ class AssetController extends BaseController
             $perPage = $totalRows;
         }
 
-        $assets = $query->offset($offSet)
-            ->limit($perPage)
-            ->orderBy($order, $dir)
-            ->get();
+        if ($perPage > 0) {
+            $query->offset($offSet)->limit($perPage);
+        }
+
+        $assets = $query->orderBy($order, $dir)->get();
 
         $data = [];
         foreach ($assets as $asset) {

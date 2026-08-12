@@ -146,10 +146,15 @@ class StoreFrontController extends Controller
                 // === Use the same SQL pipeline as shop(), scoped to this collection ===
                 $products = Product::query()
                     ->where('products.is_active', 1)
+                    ->where('products.is_jewelry_item', 1)
                     ->where('products.hide_from_online_store', 0)
                     ->with([
                         'variants:id,product_id,name,price,image',
                         'images:id,product_id,image_path,is_main,sort_order',
+                        'stones',
+                        'stones.stoneType',
+                        'metalType',
+                        'karat',
                     ]) // QuickView / gallery + variant picker
                     ->join('collection_product', 'collection_product.product_id', '=', 'products.id')
                     ->where('collection_product.collection_id', $collection->id)
@@ -169,8 +174,13 @@ class StoreFrontController extends Controller
 
                 // Attach display_price to product (from SQL) AND compute each variant's display price (PHP)
                 foreach ($products as $p) {
-                    // Product display price from SQL
-                    $p->display_price = (float) ($p->final_display_price ?? 0);
+                    if ($p->is_jewelry_item) {
+                        $preview = app(\App\Services\Jewelry\JewelryPricingService::class)->preview($p->id, $s->default_warehouse_id);
+                        $p->display_price = (float) ($preview['selling_price'] ?? 0.0);
+                    } else {
+                        // Product display price from SQL
+                        $p->display_price = (float) ($p->final_display_price ?? 0);
+                    }
 
                     // Variant display prices computed with same rules as SQL
                     $taxRate = is_numeric($p->TaxNet) ? (float) $p->TaxNet : $defaultTaxRate;
@@ -229,7 +239,12 @@ class StoreFrontController extends Controller
             $b->image_url = global_asset($b->image ?: upload_path('banners').'/no-image.png');
         }
 
-        $categories = Category::with('subcategories')->orderBy('name')->get();
+        $categories = Category::with('subcategories')
+            ->whereHas('products', function ($q) {
+                $q->where('is_active', 1)->where('is_jewelry_item', 1);
+            })
+            ->orderBy('name')
+            ->get();
 
         $viewData = [
             's' => $s,
@@ -290,11 +305,16 @@ class StoreFrontController extends Controller
         $productsQuery = Product::query()
             ->where('deleted_at', '=', null)
             ->where('is_active', 1)
+            ->where('products.is_jewelry_item', 1)
             ->where('hide_from_online_store', 0)
             // Note: product_variants table doesn't have a `qty` column; stock comes from product_warehouse.qte
             ->with([
                 'variants:id,product_id,name,price,image',
                 'images:id,product_id,image_path,is_main,sort_order',
+                'stones',
+                'stones.stoneType',
+                'metalType',
+                'karat',
             ]) // Quick View / gallery + picker
             ->leftJoinSub($minVariantSub, 'pvmin', function ($join) {
                 $join->on('pvmin.product_id', '=', 'products.id');
@@ -374,7 +394,12 @@ class StoreFrontController extends Controller
         }
 
         $products = $products->paginate(12)->withQueryString();
-        $categories = Category::with('subcategories')->orderBy('name')->get(['id', 'name']);
+        $categories = Category::with('subcategories')
+            ->whereHas('products', function ($q) {
+                $q->where('is_active', 1)->where('is_jewelry_item', 1);
+            })
+            ->orderBy('name')
+            ->get(['id', 'name']);
         $collections = Collection::orderBy('title')
             ->get(['id', 'title', 'slug'])
             ->map(function ($c) {
@@ -385,7 +410,12 @@ class StoreFrontController extends Controller
 
         // Attach display_price for the Blade (use SQL-computed final_display_price)
         foreach ($products as $p) {
-            $p->display_price = (float) ($p->final_display_price ?? 0);
+            if ($p->is_jewelry_item) {
+                $preview = app(\App\Services\Jewelry\JewelryPricingService::class)->preview($p->id, $s->default_warehouse_id);
+                $p->display_price = (float) ($preview['selling_price'] ?? 0.0);
+            } else {
+                $p->display_price = (float) ($p->final_display_price ?? 0);
+            }
         }
         $this->attachStockToProducts($products, $s->default_warehouse_id);
 
@@ -403,7 +433,13 @@ class StoreFrontController extends Controller
             'showCategoryBar' => true,
         ]);
     }
- 
+
+    public function collection(Request $request, string $slug)
+    {
+        $request->merge(['collection' => $slug]);
+
+        return $this->shop($request);
+    }
 
     public function contact()
     {
@@ -551,6 +587,7 @@ class StoreFrontController extends Controller
 
         $products = Product::query()
             ->where('is_active', 1)
+            ->where('is_jewelry_item', 1)
             ->where('hide_from_online_store', 0)
             ->where(function ($query) use ($q) {
                 $query->where('name', 'like', "%{$q}%")
@@ -558,13 +595,18 @@ class StoreFrontController extends Controller
                     ->orWhere('note', 'like', "%{$q}%");
             })
             ->take(8)
-            ->get(['id', 'name', 'code', 'image', 'price', 'tax_method', 'TaxNet', 'discount', 'discount_method']);
+            ->get();
 
         foreach ($products as $p) {
             $p->loadMissing(['images' => fn ($q) => $q->orderBy('sort_order')->orderBy('id')]);
             $fn = $p->primaryProductImageFilename();
             $p->image_url = global_asset(upload_path('products').'/'.($fn ?: 'no-image.png'));
-            $p->display_price = $p->computeFinalPrice()['final'];
+            if ($p->is_jewelry_item) {
+                $preview = app(\App\Services\Jewelry\JewelryPricingService::class)->preview($p->id, $warehouseId);
+                $p->display_price = (float) ($preview['selling_price'] ?? 0.0);
+            } else {
+                $p->display_price = $p->computeFinalPrice()['final'];
+            }
             $p->url = route('store.shop', ['q' => $p->name]); 
         }
 

@@ -2664,16 +2664,12 @@ export default {
         'meeting',
         'marketing',
         'subscription_product',
-        'service',
-        'assets',
         'projects',
         'contracts',
         'tasks',
         'bookings',
         'commissions',
-        'woocommerce_settings',
-        'knowledge-base',
-        'ai_reports'
+        'knowledge-base'
       ]);
     },
 

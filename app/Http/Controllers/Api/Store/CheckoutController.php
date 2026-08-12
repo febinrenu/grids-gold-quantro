@@ -112,8 +112,7 @@ class CheckoutController extends Controller
         // Preload products and verify existence
         $ids = collect($data['items'])->pluck('product_id')->unique()->values();
         $products = Product::whereIn('id', $ids)
-            ->get(['id', 'price', 'TaxNet', 'discount', 'discount_method', 'tax_method',
-                   'is_preorder', 'preorder_available_date', 'preorder_limit', 'preorder_note'])
+            ->get()
             ->keyBy('id');
 
         if ($products->count() !== $ids->count()) {
@@ -152,14 +151,32 @@ class CheckoutController extends Controller
             $qty  = max(1, (float) $i['qty']);
 
             $product = $products->get($pid);
-            $price   = (float) $product->price;
-            if ($pvid) {
-                $variant = $variants->get($pvid);
-                if ($variant && (int) $variant->product_id === $pid) {
-                    $price = (float) $variant->price;
+            
+            $isJewelry = (bool) ($product->is_jewelry_item ?? false);
+            $taxNet = (float) ($product->TaxNet ?? 0);
+            $discount = (float) ($product->discount ?? 0);
+            $discountMethod = (string) ($product->discount_method ?? '1');
+            $taxMethod = (string) ($product->tax_method ?? '1');
+
+            if ($isJewelry) {
+                $calc = app(\App\Services\Jewelry\JewelryPricingService::class)->priceForSale($pid, $warehouseId);
+                $price = (float) ($calc['selling_price'] ?? 0.0);
+                // Zero out storefront tax/discount to prevent double calculations
+                $taxNet = 0.0;
+                $discount = 0.0;
+                $discountMethod = '1';
+                $taxMethod = '1';
+            } else {
+                $price = (float) $product->price;
+                if ($pvid) {
+                    $variant = $variants->get($pvid);
+                    if ($variant && (int) $variant->product_id === $pid) {
+                        $price = (float) $variant->price;
+                    }
                 }
+                $price = round(max(0, $price), 2);
             }
-            $price = round(max(0, $price), 2);
+
             $line  = round($qty * $price, 2);
 
             // Determine if this line is a pre-order
@@ -189,10 +206,10 @@ class CheckoutController extends Controller
                 'product_variant_id' => $pvid,
                 'qty'                => $qty,
                 'price'              => $price,
-                'TaxNet'             => (float) ($product->TaxNet ?? 0),
-                'discount'           => (float) ($product->discount ?? 0),
-                'discount_method'    => (string) ($product->discount_method ?? '1'),
-                'tax_method'         => (string) ($product->tax_method ?? '1'),
+                'TaxNet'             => $taxNet,
+                'discount'           => $discount,
+                'discount_method'    => $discountMethod,
+                'tax_method'         => $taxMethod,
                 'is_preorder'        => $isPreorder,
                 'created_at'         => now(),
                 'updated_at'         => now(),

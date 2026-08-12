@@ -10,7 +10,7 @@ echo.
 if not exist ".env" (
     echo [setup] No .env found - copying .env.example
     copy ".env.example" ".env" >nul
-    php artisan key:generate
+    call php artisan key:generate
     echo.
     echo [!] .env was just created from .env.example.
     echo [!] Check DB_HOST / DB_PORT / DB_USERNAME / DB_PASSWORD match your
@@ -51,7 +51,7 @@ if not exist "public\js\bundle" (
 
 echo.
 echo [1/4] Running central database migrations...
-php artisan migrate --force
+call php artisan migrate --force
 if errorlevel 1 (
     echo [!] Central migration failed. Check your DB connection in .env.
     pause
@@ -60,7 +60,7 @@ if errorlevel 1 (
 
 echo.
 echo [2/4] Ensuring the shared jewelry tenant exists (db: quantrocousr_tenant_jewelry)...
-php artisan tenant:ensure-jewelry --migrate
+call php -d memory_limit=512M artisan tenant:ensure-jewelry --migrate
 if errorlevel 1 (
     echo [!] Failed to set up the jewelry tenant.
     pause
@@ -70,7 +70,7 @@ if errorlevel 1 (
 echo.
 echo [3/4] Ensuring the public storage symlink exists...
 if not exist "public\storage" (
-    php artisan storage:link
+    call php artisan storage:link
 )
 
 echo.
@@ -86,4 +86,4 @@ echo.
 echo   Press Ctrl+C to stop the server.
 echo.
 
-php artisan serve --host=127.0.0.1 --port=8000
+call php artisan serve --host=127.0.0.1 --port=8000
