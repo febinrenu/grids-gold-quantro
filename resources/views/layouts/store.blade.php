@@ -124,6 +124,9 @@
 
     {!! $s->custom_css ?? '' !!}
   </style>
+
+  {{-- Per-theme extra head content (fonts, Tailwind CDN config, theme <style>) --}}
+  @stack('head')
 </head>
 <body x-data class="bg-bg-base text-fg-primary antialiased min-h-screen flex flex-col">
 
@@ -133,6 +136,8 @@
     <div class="w-10 h-10 border-2 border-line-subtle border-t-accent-500 rounded-full animate-spin"></div>
   </div>
 
+  {{-- Header (overridable per theme via @section('header') ... @endsection) --}}
+  @section('header')
   {{-- Topbar --}}
   <div class="bg-bg-elevated border-b border-line-subtle text-xs text-fg-secondary">
     <div class="container flex items-center justify-between h-9">
@@ -333,6 +338,7 @@
       </div>
     @endif
   </header>
+  @show
 
   {{-- Mobile Category Sidebar (Alpine drawer) --}}
   <div id="mobileCategorySidebar" x-data="drawer({ side: 'start' })" @keydown.window="onEsc">
@@ -510,7 +516,8 @@
     </div>
   </nav>
 
-  {{-- Footer --}}
+  {{-- Footer (overridable per theme via @section('footer') ... @endsection) --}}
+  @section('footer')
   <footer class="mt-16 bg-bg-surface border-t border-line-subtle">
     <div class="container py-10">
       <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
@@ -574,6 +581,7 @@
       </div>
     </div>
   </footer>
+  @show
 
   {{-- Mini Cart (Alpine drawer + miniCart renderer) --}}
   <div id="miniCart" x-data="drawer({ side: 'end' })" @keydown.window="onEsc">

@@ -37,8 +37,11 @@
               <div class="col-md-4">
                 <b-form-group :label="$t('Store_Theme')">
                   <b-form-select v-model="form.theme">
+                    <b-form-select-option value="nexgold">NexGold Jewelers (classic multi-page) — Default</b-form-select-option>
+                    <b-form-select-option value="aurumeclat">AurumÉclat — Fine Jewelry (dark &amp; gold)</b-form-select-option>
+                    <b-form-select-option value="elegance">Élan — Elegance Fine Jewelry (editorial)</b-form-select-option>
+                    <b-form-select-option value="naturae">Naturae Gems (organic &amp; earthy)</b-form-select-option>
                     <b-form-select-option value="default">{{ $t('Default_Store_Theme') }}</b-form-select-option>
-                    <b-form-select-option value="real_estate">{{ $t('Real_Estate_Theme') }}</b-form-select-option>
                   </b-form-select>
                   <small class="text-muted d-block mt-1">
                     {{ $t('Store_Theme_Hint') }}
@@ -79,21 +82,13 @@
                 </b-form-group>
               </b-col>
 
-              <div class="col-md-4">
-                <b-form-group :label="$t('Primary_Color')">
-                  <b-form-input type="color" v-model="form.primary_color"/>
-                </b-form-group>
-              </div>
-              <div class="col-md-4">
-                <b-form-group :label="$t('Secondary_Color')">
-                  <b-form-input type="color" v-model="form.secondary_color"/>
-                </b-form-group>
-              </div>
-              <div class="col-md-4">
-                <b-form-group :label="$t('Font_Family')">
-                  <b-form-input v-model="form.font_family"/>
-                </b-form-group>
-              </div>
+              <!--
+                Primary/secondary color + font family fields are intentionally
+                hidden: every store theme now ships its own fixed, hand-tuned
+                palette and typography, so these generic overrides no longer
+                apply. The underlying form/model fields are left in place
+                (still submitted on save) so nothing else that reads them breaks.
+              -->
 
               <!-- Registration Access Control -->
               <div class="col-md-12 mt-2">
@@ -427,7 +422,7 @@ export default {
         require_invite_code: false,
         require_admin_approval: false,
         store_name: '',
-        theme: 'default',
+        theme: 'nexgold',
         primary_color: '#6c5ce7',
         secondary_color: '#00c2ff',
         font_family: 'Arial, sans-serif',
@@ -642,7 +637,7 @@ export default {
         merged.menus          = this.normalizeMenus(settings && settings.menus)
         merged.social_links   = this.normalizeSocialLinks(settings && settings.social_links)
         merged.store_slug     = (settings && settings.store_slug) ? settings.store_slug : this.form.store_slug
-        merged.theme          = (settings && settings.theme) ? settings.theme : 'default'
+        merged.theme          = (settings && settings.theme) ? settings.theme : 'nexgold'
 
         var lineupRaw = settings && settings.homepage_lineup
         merged.homepage_lineup = Array.isArray(lineupRaw)

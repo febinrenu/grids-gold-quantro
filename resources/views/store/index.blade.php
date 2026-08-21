@@ -31,19 +31,42 @@
   </section>
 @endif
 
+{{-- ===== TRUST BAR (always shown) ===== --}}
+<section class="border-b border-line-subtle" style="background: rgb(var(--color-bg-surface));">
+  <div class="container py-5 grid grid-cols-2 md:grid-cols-4 gap-5">
+    <div class="flex items-center gap-2.5">
+      <x-store.icon name="shield-check" class="w-5 h-5 shrink-0 text-accent-500" />
+      <div><p class="font-semibold text-xs md:text-sm text-fg-primary">Certified Diamonds</p><p class="text-[10px] md:text-xs text-fg-muted">100% Genuine</p></div>
+    </div>
+    <div class="flex items-center gap-2.5">
+      <x-store.icon name="truck" class="w-5 h-5 shrink-0 text-accent-500" />
+      <div><p class="font-semibold text-xs md:text-sm text-fg-primary">Insured Delivery</p><p class="text-[10px] md:text-xs text-fg-muted">Safe &amp; Discreet</p></div>
+    </div>
+    <div class="flex items-center gap-2.5">
+      <x-store.icon name="clock" class="w-5 h-5 shrink-0 text-accent-500" />
+      <div><p class="font-semibold text-xs md:text-sm text-fg-primary">Lifetime Service</p><p class="text-[10px] md:text-xs text-fg-muted">Polish &middot; Resize</p></div>
+    </div>
+    <div class="flex items-center gap-2.5">
+      <x-store.icon name="refresh" class="w-5 h-5 shrink-0 text-accent-500" />
+      <div><p class="font-semibold text-xs md:text-sm text-fg-primary">Easy Returns</p><p class="text-[10px] md:text-xs text-fg-muted">30-Day Policy</p></div>
+    </div>
+  </div>
+</section>
+
 @forelse($blocks ?? [] as $block)
   @switch($block['type'])
 
     @case('hero')
       @php
-        // A real, licensed photograph elevates this section — but a crude
-        // placeholder graphic is worse than no image at all. Only trust an
-        // explicitly-uploaded file; never fall back to stock/placeholder art.
+        // Prefer the tenant's own uploaded hero photo; fall back to a
+        // curated, verified real jewelry photograph (never a crude
+        // SVG/gradient placeholder) so the homepage is never bare.
         $heroImg = $block['image'] ?? $s->hero_image_path;
         $heroUrl = null;
         if (!empty($heroImg) && is_string($heroImg) && !\Illuminate\Support\Str::startsWith($heroImg, ['http://', 'https://']) && file_exists(public_path($heroImg))) {
             $heroUrl = global_asset($heroImg);
         }
+        $heroUrl = $heroUrl ?: 'https://images.unsplash.com/photo-1611652022419-a9419f74343d?auto=format&fit=crop&w=1200&q=80';
       @endphp
       <section class="relative overflow-hidden border-b border-line-subtle"
                style="background:
@@ -180,6 +203,33 @@
     @php $printedCenter = true; @endphp
   @endif
 @endforelse
+
+{{-- ===== SHOP BY CATEGORY (real product photos, always shown) ===== --}}
+@if(($categories ?? collect())->count())
+  <section class="py-10 lg:py-14">
+    <div class="container">
+      <div class="flex flex-col items-center text-center mb-6">
+        <span class="section-kicker">{{ __('messages.Shop') }}</span>
+        <h2 class="section-title mt-1">Shop by Category</h2>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-4">
+        @foreach($categories->take(6) as $cat)
+          <a href="{{ route('store.shop', ['category' => $cat->id]) }}" class="group relative rounded-lg overflow-hidden aspect-square flex items-end justify-center pb-3"
+             style="background: rgb(var(--color-bg-muted));">
+            @if($cat->cover_image_url)
+              <img src="{{ $cat->cover_image_url }}" alt="{{ $cat->name }}" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-500">
+              <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/5 to-transparent"></div>
+              <span class="relative z-10 text-white text-[11px] md:text-xs font-semibold text-center px-2">{{ $cat->name }}</span>
+            @else
+              <x-store.icon name="tag" class="absolute top-1/3 -translate-y-1/2 w-8 h-8 text-accent-500/70" />
+              <span class="relative z-10 text-fg-primary text-[11px] md:text-xs font-semibold text-center px-2">{{ $cat->name }}</span>
+            @endif
+          </a>
+        @endforeach
+      </div>
+    </div>
+  </section>
+@endif
 
 @if(!$printedCenter && ( ($byPos['center_left'] ?? collect())->count() || ($byPos['center_right'] ?? collect())->count() ))
   <section class="py-6">

@@ -32,6 +32,7 @@ class SettingsApiController extends Controller
             $s = StoreSetting::create([
                 'enabled' => 1,
                 'store_name' => 'StoreX',
+                'theme' => 'nexgold',
                 'primary_color' => '#A16207',
                 'secondary_color' => '#2F6B4F',
                 'font_family' => "'Montserrat', system-ui, sans-serif",
@@ -145,7 +146,7 @@ class SettingsApiController extends Controller
             'show_stock' => 'nullable|in:0,1',
 
             'store_name' => 'nullable|string|max:190',
-            'theme' => 'nullable|string|in:default,real_estate',
+            'theme' => 'nullable|string|in:default,aurumeclat,elegance,naturae,nexgold',
             'primary_color' => 'nullable|string|max:20',
             'secondary_color' => 'nullable|string|max:20',
             'font_family' => 'nullable|string|max:100',

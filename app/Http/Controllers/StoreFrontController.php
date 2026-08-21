@@ -14,17 +14,111 @@ use Illuminate\Http\Request;
 class StoreFrontController extends Controller
 {
     /**
+     * Tenant-selectable "design" themes: blade views under resources/views/store/{theme}/
+     * that @extend layouts.store (so they get the real cart/quick-view/checkout machinery
+     * for free) but override the header/content/footer sections with their own branding.
+     */
+    public const CUSTOM_THEMES = ['aurumeclat', 'elegance', 'naturae', 'nexgold'];
+
+    /**
+     * Shared "active jewelry catalog" query used by every custom theme's home page.
+     */
+    private function customThemeCategories()
+    {
+        $categories = Category::with('subcategories')
+            ->whereHas('products', function ($q) {
+                $q->where('is_active', 1)->where('is_jewelry_item', 1);
+            })
+            ->orderBy('name')
+            ->get();
+
+        $this->attachCategoryCoverImages($categories);
+
+        return $categories;
+    }
+
+    /**
+     * Attach a real product photo per category (for photo-tile grids on any
+     * theme, including the default) instead of relying on icon/gradient
+     * placeholders. Sets $category->cover_image_url (nullable).
+     */
+    private function attachCategoryCoverImages($categories): void
+    {
+        foreach ($categories as $cat) {
+            $cover = Product::query()
+                ->where('is_active', 1)
+                ->where('is_jewelry_item', 1)
+                ->where('hide_from_online_store', 0)
+                ->where(function ($q) use ($cat) {
+                    $q->where('category_id', $cat->id);
+                    if (Schema::hasTable('category_product')) {
+                        $q->orWhereExists(function ($sub) use ($cat) {
+                            $sub->select(DB::raw(1))
+                                ->from('category_product')
+                                ->whereColumn('category_product.product_id', 'products.id')
+                                ->where('category_product.category_id', $cat->id);
+                        });
+                    }
+                })
+                ->with(['images' => fn ($q) => $q->orderBy('is_main', 'desc')->orderBy('sort_order')])
+                ->orderBy('created_at', 'desc')
+                ->first();
+
+            $filename = $cover?->primaryProductImageFilename();
+            $cat->cover_image_url = $filename ? global_asset(upload_path('products').'/'.$filename) : null;
+        }
+    }
+
+    private function customThemeFeaturedProducts(StoreSetting $s, int $limit = 10)
+    {
+        $products = Product::query()
+            ->where('is_active', 1)
+            ->where('is_jewelry_item', 1)
+            ->where('hide_from_online_store', 0)
+            ->with([
+                'images:id,product_id,image_path,is_main,sort_order',
+                'variants:id,product_id,name,price,image',
+                'metalType',
+                'karat',
+                'stones',
+                'stones.stoneType',
+            ])
+            ->orderBy('created_at', 'desc')
+            ->take($limit)
+            ->get();
+
+        foreach ($products as $p) {
+            $preview = app(\App\Services\Jewelry\JewelryPricingService::class)->preview($p->id, $s->default_warehouse_id);
+            $p->display_price = (float) ($preview['selling_price'] ?? $p->price ?? 0.0);
+        }
+
+        $this->attachStockToProducts($products, $s->default_warehouse_id);
+
+        return $products;
+    }
+
+    /**
      * Homepage — blocks driven by StoreSetting->homepage_lineup.
      */
     public function index(Request $request)
     {
         $s = StoreSetting::firstOrFail();
+        $theme = $s->theme ?? 'default';
 
         // Theme switch: when the Real Estate theme is active, the storefront
         // homepage is served by the dedicated real estate controller. This keeps
         // the default eCommerce storefront untouched.
-        if (($s->theme ?? 'default') === 'real_estate') {
+        if ($theme === 'real_estate') {
             return app(RealEstateStoreController::class)->home($request);
+        }
+
+        // Custom design themes — @extend layouts.store, override header/content/footer.
+        if (in_array($theme, self::CUSTOM_THEMES, true)) {
+            return view("store.$theme.home", [
+                's' => $s,
+                'products' => $this->customThemeFeaturedProducts($s, 18),
+                'categories' => $this->customThemeCategories(),
+            ]);
         }
 
         // 1) Load lineup (already cast to array by StoreSetting::$casts)
@@ -245,6 +339,7 @@ class StoreFrontController extends Controller
             })
             ->orderBy('name')
             ->get();
+        $this->attachCategoryCoverImages($categories);
 
         $viewData = [
             's' => $s,
@@ -419,7 +514,10 @@ class StoreFrontController extends Controller
         }
         $this->attachStockToProducts($products, $s->default_warehouse_id);
 
-        return view('store.shop', [
+        $theme = $s->theme ?? 'default';
+        $shopView = in_array($theme, self::CUSTOM_THEMES, true) ? "store.$theme.shop" : 'store.shop';
+
+        return view($shopView, [
             's' => $s,
             'products' => $products,
             'categories' => $categories,
