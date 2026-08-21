@@ -50,7 +50,7 @@ function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
         require_invite_code: false,
         require_admin_approval: false,
         store_name: '',
-        theme: 'default',
+        theme: 'nexgold',
         primary_color: '#6c5ce7',
         secondary_color: '#00c2ff',
         font_family: 'Arial, sans-serif',
@@ -351,7 +351,7 @@ function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
               merged.menus = _this3.normalizeMenus(settings && settings.menus);
               merged.social_links = _this3.normalizeSocialLinks(settings && settings.social_links);
               merged.store_slug = settings && settings.store_slug ? settings.store_slug : _this3.form.store_slug;
-              merged.theme = settings && settings.theme ? settings.theme : 'default';
+              merged.theme = settings && settings.theme ? settings.theme : 'nexgold';
               lineupRaw = settings && settings.homepage_lineup;
               merged.homepage_lineup = Array.isArray(lineupRaw) ? lineupRaw : _this3.tryParseJson(lineupRaw) || [];
               merged.homepage_layout = 'default';
@@ -679,13 +679,25 @@ var render = function render() {
     }
   }, [_c("b-form-select-option", {
     attrs: {
+      value: "nexgold"
+    }
+  }, [_vm._v("NexGold Jewelers (classic multi-page) — Default")]), _vm._v(" "), _c("b-form-select-option", {
+    attrs: {
+      value: "aurumeclat"
+    }
+  }, [_vm._v("AurumÉclat — Fine Jewelry (dark & gold)")]), _vm._v(" "), _c("b-form-select-option", {
+    attrs: {
+      value: "elegance"
+    }
+  }, [_vm._v("Élan — Elegance Fine Jewelry (editorial)")]), _vm._v(" "), _c("b-form-select-option", {
+    attrs: {
+      value: "naturae"
+    }
+  }, [_vm._v("Naturae Gems (organic & earthy)")]), _vm._v(" "), _c("b-form-select-option", {
+    attrs: {
       value: "default"
     }
-  }, [_vm._v(_vm._s(_vm.$t("Default_Store_Theme")))]), _vm._v(" "), _c("b-form-select-option", {
-    attrs: {
-      value: "real_estate"
-    }
-  }, [_vm._v(_vm._s(_vm.$t("Real_Estate_Theme")))])], 1), _vm._v(" "), _c("small", {
+  }, [_vm._v(_vm._s(_vm.$t("Default_Store_Theme")))])], 1), _vm._v(" "), _c("small", {
     staticClass: "text-muted d-block mt-1"
   }, [_vm._v("\n                  " + _vm._s(_vm.$t("Store_Theme_Hint")) + "\n                ")])], 1)], 1), _vm._v(" "), _c("b-col", {
     attrs: {
@@ -745,54 +757,6 @@ var render = function render() {
         _vm.$set(_vm.form, "default_warehouse_id", $$v);
       },
       expression: "form.default_warehouse_id"
-    }
-  })], 1)], 1), _vm._v(" "), _c("div", {
-    staticClass: "col-md-4"
-  }, [_c("b-form-group", {
-    attrs: {
-      label: _vm.$t("Primary_Color")
-    }
-  }, [_c("b-form-input", {
-    attrs: {
-      type: "color"
-    },
-    model: {
-      value: _vm.form.primary_color,
-      callback: function callback($$v) {
-        _vm.$set(_vm.form, "primary_color", $$v);
-      },
-      expression: "form.primary_color"
-    }
-  })], 1)], 1), _vm._v(" "), _c("div", {
-    staticClass: "col-md-4"
-  }, [_c("b-form-group", {
-    attrs: {
-      label: _vm.$t("Secondary_Color")
-    }
-  }, [_c("b-form-input", {
-    attrs: {
-      type: "color"
-    },
-    model: {
-      value: _vm.form.secondary_color,
-      callback: function callback($$v) {
-        _vm.$set(_vm.form, "secondary_color", $$v);
-      },
-      expression: "form.secondary_color"
-    }
-  })], 1)], 1), _vm._v(" "), _c("div", {
-    staticClass: "col-md-4"
-  }, [_c("b-form-group", {
-    attrs: {
-      label: _vm.$t("Font_Family")
-    }
-  }, [_c("b-form-input", {
-    model: {
-      value: _vm.form.font_family,
-      callback: function callback($$v) {
-        _vm.$set(_vm.form, "font_family", $$v);
-      },
-      expression: "form.font_family"
     }
   })], 1)], 1), _vm._v(" "), _c("div", {
     staticClass: "col-md-12 mt-2"
