@@ -41,6 +41,10 @@
                     <b-form-select-option value="aurumeclat">AurumÉclat — Fine Jewelry (dark &amp; gold)</b-form-select-option>
                     <b-form-select-option value="elegance">Élan — Elegance Fine Jewelry (editorial)</b-form-select-option>
                     <b-form-select-option value="naturae">Naturae Gems (organic &amp; earthy)</b-form-select-option>
+                    <b-form-select-option value="monolith">Monolith — Editorial Gallery (mosaic &amp; catalog index)</b-form-select-option>
+                    <b-form-select-option value="kiosk">Kiosk — Bold Streetwear (poster &amp; sticker blocks)</b-form-select-option>
+                    <b-form-select-option value="atlas">Atlas — Studio Sidebar (persistent side nav)</b-form-select-option>
+                    <b-form-select-option value="ledger">The Ledger — Auction Catalogue (formal price list)</b-form-select-option>
                     <b-form-select-option value="default">{{ $t('Default_Store_Theme') }}</b-form-select-option>
                   </b-form-select>
                   <small class="text-muted d-block mt-1">
