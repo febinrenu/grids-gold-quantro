@@ -1853,17 +1853,26 @@ html[dir="rtl"] .auth-tab-indicator.right { transform: translateX(-100%); }
   left: 0px;
   right: 0px;
 }
+.-bottom-2 {
+  bottom: -0.5rem;
+}
 .-bottom-6 {
   bottom: -1.5rem;
 }
 .-bottom-8 {
   bottom: -2rem;
 }
+.-left-10 {
+  left: -2.5rem;
+}
 .-left-4 {
   left: -1rem;
 }
 .-left-6 {
   left: -1.5rem;
+}
+.-left-8 {
+  left: -2rem;
 }
 .-right-0\.5 {
   right: -0.125rem;
@@ -2364,8 +2373,8 @@ html[dir="rtl"] .auth-tab-indicator.right { transform: translateX(-100%); }
 .max-w-7xl {
   max-width: 80rem;
 }
-.max-w-\[110rem\] {
-  max-width: 110rem;
+.max-w-\[100rem\] {
+  max-width: 100rem;
 }
 .max-w-\[120px\] {
   max-width: 120px;
@@ -3080,6 +3089,10 @@ html[dir="rtl"] .auth-tab-indicator.right { transform: translateX(-100%); }
 .object-cover {
   -o-object-fit: cover;
      object-fit: cover;
+}
+.object-center {
+  -o-object-position: center;
+     object-position: center;
 }
 .p-0 {
   padding: 0px;
@@ -3961,6 +3974,10 @@ html[dir="rtl"] .auth-tab-indicator.right { transform: translateX(-100%); }
     display: block;
   }
 
+  .md\:inline {
+    display: inline;
+  }
+
   .md\:flex {
     display: flex;
   }
@@ -4035,6 +4052,14 @@ html[dir="rtl"] .auth-tab-indicator.right { transform: translateX(-100%); }
 
   .md\:grid-cols-8 {
     grid-template-columns: repeat(8, minmax(0, 1fr));
+  }
+
+  .md\:grid-cols-\[1\.2fr_\.8fr\] {
+    grid-template-columns: 1.2fr .8fr;
+  }
+
+  .md\:grid-cols-\[auto_1fr\] {
+    grid-template-columns: auto 1fr;
   }
 
   .md\:grid-rows-2 {
