@@ -86,6 +86,14 @@
           $grossWeight = $isJewelry ? (float) ($p->jewelry_gross_weight ?? 0.0) : 0.0;
           $netWeight = $isJewelry ? (float) ($p->jewelry_net_weight ?? 0.0) : 0.0;
           $metalWeight = $isJewelry ? (float) ($p->jewelry_metal_weight ?? 0.0) : 0.0;
+          $stonesSummary = '';
+          if ($isJewelry && $p->relationLoaded('stones') && $p->stones) {
+              $stonesSummary = $p->stones->map(fn($st) => $st->quantity . 'x ' . ($st->stoneType->name ?? $st->stone_name ?? ''))->join(', ');
+          }
+          $pricingBreakdown = null;
+          if ($isJewelry) {
+              $pricingBreakdown = app(\App\Services\Jewelry\JewelryPricingService::class)->preview($p->id, $s->default_warehouse_id ?? null);
+          }
           
           $variants = $p->relationLoaded('variants') ? $p->variants : collect($p->variants ?? []);
           $variants = collect($variants);
@@ -137,6 +145,8 @@
                data-gross-weight="{{ $grossWeight }}"
                data-net-weight="{{ $netWeight }}"
                data-metal-weight="{{ $metalWeight }}"
+               data-stones-summary="{{ e($stonesSummary) }}"
+               data-pricing-breakdown='@json($pricingBreakdown)'
                @click.prevent>
               <img src="{{ $imgUrl }}" alt="{{ $p->name }}" class="w-full h-full object-cover">
             </a>
@@ -145,7 +155,28 @@
           <div class="draft-spec-body">
             <div class="space-y-1">
               <h3 class="font-draft-mono text-sm font-bold text-draft-ink line-clamp-1" title="{{ $p->name }}">
-                {{ $p->name }}
+                <a href="#" class="js-quick-view hover:text-draft-blue transition"
+                   data-id="{{ $p->id }}"
+                   data-slug="{{ $productSlug }}"
+                   data-name="{{ e($p->name) }}"
+                   data-price="{{ number_format($price, 2, '.', '') }}"
+                   data-image="{{ $imgUrl }}"
+                   data-gallery='@json($galleryUrls)'
+                   data-currency="{{ $currency }}"
+                   data-description="{{ e($descShort) }}"
+                   data-stock="{{ $productStock }}"
+                   data-variants='@json($variantPayload)'
+                   data-is-jewelry="{{ $isJewelry ? '1' : '0' }}"
+                   data-metal-type="{{ e($metalTypeName) }}"
+                   data-karat="{{ e($karatName) }}"
+                   data-gross-weight="{{ $grossWeight }}"
+                   data-net-weight="{{ $netWeight }}"
+                   data-metal-weight="{{ $metalWeight }}"
+                   data-stones-summary="{{ e($stonesSummary) }}"
+                   data-pricing-breakdown='@json($pricingBreakdown)'
+                   @click.prevent>
+                  {{ $p->name }}
+                </a>
               </h3>
               
               {{-- Technical specs table --}}
@@ -232,6 +263,8 @@
       </div>
     </div>
   </section>
+
+  @include('store.partials.home-modals-scripts', ['currency' => $s->currency_code ?? '$', 'nlBtn' => __('messages.Subscribe')])
 
 </div>
 @endsection

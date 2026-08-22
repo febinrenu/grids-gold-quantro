@@ -123,6 +123,17 @@
           $isJewelry = (bool) ($p->is_jewelry_item ?? false);
           $metalTypeName = $isJewelry && $p->metalType ? $p->metalType->name : '';
           $karatName = $isJewelry && $p->karat ? $p->karat->name : '';
+          $grossWeight = $isJewelry ? (float) ($p->jewelry_gross_weight ?? 0) : '';
+          $netWeight = $isJewelry ? (float) ($p->jewelry_net_weight ?? 0) : '';
+          $metalWeight = $isJewelry ? (float) ($p->jewelry_metal_weight ?? 0) : '';
+          $stonesSummary = '';
+          if ($isJewelry && $p->relationLoaded('stones') && $p->stones) {
+              $stonesSummary = $p->stones->map(fn($st) => $st->quantity . 'x ' . ($st->stoneType->name ?? $st->stone_name ?? ''))->join(', ');
+          }
+          $pricingBreakdown = null;
+          if ($isJewelry) {
+              $pricingBreakdown = app(\App\Services\Jewelry\JewelryPricingService::class)->preview($p->id, $s->default_warehouse_id ?? null);
+          }
           $variants = $p->relationLoaded('variants') ? $p->variants : collect($p->variants ?? []);
           $variants = collect($variants);
           $variantPayload = $variants->map(function($v) use ($currency) {
@@ -159,6 +170,11 @@
                data-is-jewelry="{{ $isJewelry ? '1' : '0' }}"
                data-metal-type="{{ e($metalTypeName) }}"
                data-karat="{{ e($karatName) }}"
+               data-gross-weight="{{ $grossWeight }}"
+               data-net-weight="{{ $netWeight }}"
+               data-metal-weight="{{ $metalWeight }}"
+               data-stones-summary="{{ e($stonesSummary) }}"
+               data-pricing-breakdown='@json($pricingBreakdown)'
                @click.prevent>
               <img src="{{ $imgUrl }}" alt="{{ $p->name }}" class="w-full h-full object-cover">
             </a>
@@ -171,13 +187,35 @@
 
           <div class="px-2 pb-3 space-y-1.5 flex-1 flex flex-col justify-between">
             <div>
-              @if($isJewelry && ($metalTypeName || $karatName))
+              @if($isJewelry && ($metalTypeName || $karatName || $grossWeight))
                 <p class="font-poeme-serif italic text-xs text-poeme-grey">
                   {{ trim($metalTypeName . ' ' . $karatName) }}
+                  @if($grossWeight > 0) — {{ $grossWeight }}g @endif
                 </p>
               @endif
               <h3 class="font-poeme-serif text-sm font-semibold text-poeme-charcoal tracking-wide line-clamp-1" title="{{ $p->name }}">
-                {{ $p->name }}
+                 <a href="#" class="js-quick-view hover:text-poeme-grey transition"
+                    data-id="{{ $p->id }}"
+                    data-slug="{{ $productSlug }}"
+                    data-name="{{ e($p->name) }}"
+                    data-price="{{ number_format($price, 2, '.', '') }}"
+                    data-image="{{ $imgUrl }}"
+                    data-gallery='@json($galleryUrls)'
+                    data-currency="{{ $currency }}"
+                    data-description="{{ e($descShort) }}"
+                    data-stock="{{ $productStock }}"
+                    data-variants='@json($variantPayload)'
+                    data-is-jewelry="{{ $isJewelry ? '1' : '0' }}"
+                    data-metal-type="{{ e($metalTypeName) }}"
+                    data-karat="{{ e($karatName) }}"
+                    data-gross-weight="{{ $grossWeight }}"
+                    data-net-weight="{{ $netWeight }}"
+                    data-metal-weight="{{ $metalWeight }}"
+                    data-stones-summary="{{ e($stonesSummary) }}"
+                    data-pricing-breakdown='@json($pricingBreakdown)'
+                    @click.prevent>
+                   {{ $p->name }}
+                 </a>
               </h3>
             </div>
             
@@ -224,6 +262,8 @@
       <p class="font-poeme-sans text-[10px] tracking-widest text-poeme-grey uppercase font-bold">&mdash; The Poeme Design Studio &mdash;</p>
     </div>
   </section>
+
+  @include('store.partials.home-modals-scripts', ['currency' => $s->currency_code ?? '$', 'nlBtn' => __('messages.Subscribe')])
 
 </div>
 @endsection
