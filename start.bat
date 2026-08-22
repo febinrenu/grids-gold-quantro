@@ -39,8 +39,17 @@ if not exist "node_modules" (
     )
 )
 
-if not exist "public\js\bundle" (
-    echo [setup] Compiled frontend assets missing - running npm run dev...
+echo [setup] Checking whether the frontend build is up to date...
+set NEEDS_BUILD=0
+if not exist "public\js\bundle" set NEEDS_BUILD=1
+if not exist "public\mix-manifest.json" set NEEDS_BUILD=1
+if !NEEDS_BUILD! == 0 (
+    powershell -NoProfile -Command "$m = (Get-Item 'public\mix-manifest.json').LastWriteTime; $stale = Get-ChildItem -Path 'resources\src','resources\css' -Recurse -File | Where-Object { $_.LastWriteTime -gt $m }; if ($stale) { exit 1 } else { exit 0 }"
+    if errorlevel 1 set NEEDS_BUILD=1
+)
+
+if !NEEDS_BUILD! == 1 (
+    echo [setup] Compiled frontend assets are missing or out of date - running npm run dev...
     call npm run dev
     if errorlevel 1 (
         echo [!] Frontend build failed.
