@@ -41,6 +41,10 @@
                     <b-form-select-option value="aurumeclat">AurumÉclat — Fine Jewelry (dark &amp; gold)</b-form-select-option>
                     <b-form-select-option value="elegance">Élan — Elegance Fine Jewelry (editorial)</b-form-select-option>
                     <b-form-select-option value="naturae">Naturae Gems (organic &amp; earthy)</b-form-select-option>
+                    <b-form-select-option value="facet">Facet — Modern Diamond Studio (bold &amp; indigo)</b-form-select-option>
+                    <b-form-select-option value="atelier">Atelier &amp; Co. — Handcrafted Studio (warm &amp; artisan)</b-form-select-option>
+                    <b-form-select-option value="verdant">Verdant — Sustainable Jewelry (sage &amp; minimal)</b-form-select-option>
+                    <b-form-select-option value="aurora">Aurora — Statement Jewelry (bold &amp; gradient)</b-form-select-option>
                     <b-form-select-option value="default">{{ $t('Default_Store_Theme') }}</b-form-select-option>
                   </b-form-select>
                   <small class="text-muted d-block mt-1">
