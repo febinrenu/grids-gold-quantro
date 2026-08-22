@@ -108,7 +108,7 @@
         <img src="https://images.unsplash.com/photo-1616401784845-180882ba9ba8?auto=format&fit=crop&w=700&q=80" alt="Hand-finishing a ring" style="width:100%; height:100%; object-fit:cover;">
       </div>
       <div style="border-radius:8px; overflow:hidden; aspect-ratio:3/4;">
-        <img src="https://images.unsplash.com/photo-1611591437281-460914d6cd52?auto=format&fit=crop&w=700&q=80" alt="Workbench and tools" style="width:100%; height:100%; object-fit:cover;">
+        <img src="https://images.unsplash.com/photo-1611591437281-460bfbe1220a?auto=format&fit=crop&w=700&q=80" alt="Workbench and tools" style="width:100%; height:100%; object-fit:cover;">
       </div>
       <div style="border-radius:8px; overflow:hidden; aspect-ratio:3/4;">
         <img src="https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=700&q=80" alt="Finished ring on velvet" style="width:100%; height:100%; object-fit:cover;">
