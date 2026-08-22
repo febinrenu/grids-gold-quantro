@@ -45,6 +45,9 @@
                     <b-form-select-option value="kiosk">Kiosk — Bold Streetwear (poster &amp; sticker blocks)</b-form-select-option>
                     <b-form-select-option value="atlas">Atlas — Studio Sidebar (persistent side nav)</b-form-select-option>
                     <b-form-select-option value="ledger">The Ledger — Auction Catalogue (formal price list)</b-form-select-option>
+                    <b-form-select-option value="deco">Deco — Art Deco / Gatsby Glamour (symmetrical grid)</b-form-select-option>
+                    <b-form-select-option value="draft">Draft — Precision Atelier (technical specs sheet)</b-form-select-option>
+                    <b-form-select-option value="poeme">Poeme — Ethereal Bridal (romantic storybook)</b-form-select-option>
                     <b-form-select-option value="default">{{ $t('Default_Store_Theme') }}</b-form-select-option>
                   </b-form-select>
                   <small class="text-muted d-block mt-1">
