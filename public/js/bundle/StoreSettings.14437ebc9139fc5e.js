@@ -695,6 +695,22 @@ var render = function render() {
     }
   }, [_vm._v("Naturae Gems (organic & earthy)")]), _vm._v(" "), _c("b-form-select-option", {
     attrs: {
+      value: "monolith"
+    }
+  }, [_vm._v("Monolith — Editorial Gallery (mosaic & catalog index)")]), _vm._v(" "), _c("b-form-select-option", {
+    attrs: {
+      value: "kiosk"
+    }
+  }, [_vm._v("Kiosk — Bold Streetwear (poster & sticker blocks)")]), _vm._v(" "), _c("b-form-select-option", {
+    attrs: {
+      value: "atlas"
+    }
+  }, [_vm._v("Atlas — Studio Sidebar (persistent side nav)")]), _vm._v(" "), _c("b-form-select-option", {
+    attrs: {
+      value: "ledger"
+    }
+  }, [_vm._v("The Ledger — Auction Catalogue (formal price list)")]), _vm._v(" "), _c("b-form-select-option", {
+    attrs: {
       value: "default"
     }
   }, [_vm._v(_vm._s(_vm.$t("Default_Store_Theme")))])], 1), _vm._v(" "), _c("small", {
@@ -1439,7 +1455,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(function(i){return i[1]});
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, "\n/* Cards */\n.settings-card .card-header[data-v-96072164]{\n  background: #f8fafc;\n  border-bottom: 1px solid #e5e7eb;\n}\n.settings-card .card-body[data-v-96072164]{\n  background: #fff;\n}\n\n/* Social links row */\n.section-row[data-v-96072164] {\n  background: #f8fafc;\n  border: 1px dashed #e2e8f0;\n  border-radius: .5rem;\n  padding: .5rem;\n}\n.pill-type[data-v-96072164] {\n  background: #fff;\n  border: 1px solid #e5e7eb;\n  border-radius: 999px;\n  padding: .15rem .5rem;\n  font-size: .85rem;\n}\n\n/* Homepage blocks list */\n.empty-state[data-v-96072164] {\n  border: 2px dashed #e2e8f0;\n  border-radius: 1rem;\n  padding: 1.25rem;\n  text-align: center;\n  background: #fafafa;\n  color: #6b7280;\n}\n.empty-state .emoji[data-v-96072164] { font-size: 1.6rem;\n}\n.empty-state .title[data-v-96072164] { font-weight: 700; margin-top: .2rem;\n}\n.simple-row[data-v-96072164]{\n  display:flex; align-items:center; justify-content:space-between;\n  padding:.75rem .8rem; background:#fff; border:1px solid #e5e7eb;\n  border-radius:.9rem; margin-bottom:.6rem;\n}\n.simple-row .left[data-v-96072164]{ min-width:0;\n}\n.muted-row[data-v-96072164] { color:#6b7280; font-size:.85rem;\n}\n.a-muted[data-v-96072164] { color:#6b7280;\n}\n.a-muted[data-v-96072164]:hover { color:#111827; text-decoration:none;\n}\n.fade-enter-active[data-v-96072164], .fade-leave-active[data-v-96072164] { transition: all .15s ease;\n}\n.fade-enter[data-v-96072164], .fade-leave-to[data-v-96072164] { opacity:0; transform: translateY(-4px);\n}\n\n/* Sticky Save Bar */\n.savebar[data-v-96072164]{\n  position: sticky;\n  bottom: 0;\n  background: linear-gradient(180deg, rgba(255,255,255,.0), rgba(255,255,255,.95) 20%);\n  padding: .75rem 1rem;\n  border-top: 1px solid #e5e7eb;\n  border-radius: .75rem;\n}\n", ""]);
+___CSS_LOADER_EXPORT___.push([module.id, "\r\n/* Cards */\n.settings-card .card-header[data-v-96072164]{\r\n  background: #f8fafc;\r\n  border-bottom: 1px solid #e5e7eb;\n}\n.settings-card .card-body[data-v-96072164]{\r\n  background: #fff;\n}\r\n\r\n/* Social links row */\n.section-row[data-v-96072164] {\r\n  background: #f8fafc;\r\n  border: 1px dashed #e2e8f0;\r\n  border-radius: .5rem;\r\n  padding: .5rem;\n}\n.pill-type[data-v-96072164] {\r\n  background: #fff;\r\n  border: 1px solid #e5e7eb;\r\n  border-radius: 999px;\r\n  padding: .15rem .5rem;\r\n  font-size: .85rem;\n}\r\n\r\n/* Homepage blocks list */\n.empty-state[data-v-96072164] {\r\n  border: 2px dashed #e2e8f0;\r\n  border-radius: 1rem;\r\n  padding: 1.25rem;\r\n  text-align: center;\r\n  background: #fafafa;\r\n  color: #6b7280;\n}\n.empty-state .emoji[data-v-96072164] { font-size: 1.6rem;\n}\n.empty-state .title[data-v-96072164] { font-weight: 700; margin-top: .2rem;\n}\n.simple-row[data-v-96072164]{\r\n  display:flex; align-items:center; justify-content:space-between;\r\n  padding:.75rem .8rem; background:#fff; border:1px solid #e5e7eb;\r\n  border-radius:.9rem; margin-bottom:.6rem;\n}\n.simple-row .left[data-v-96072164]{ min-width:0;\n}\n.muted-row[data-v-96072164] { color:#6b7280; font-size:.85rem;\n}\n.a-muted[data-v-96072164] { color:#6b7280;\n}\n.a-muted[data-v-96072164]:hover { color:#111827; text-decoration:none;\n}\n.fade-enter-active[data-v-96072164], .fade-leave-active[data-v-96072164] { transition: all .15s ease;\n}\n.fade-enter[data-v-96072164], .fade-leave-to[data-v-96072164] { opacity:0; transform: translateY(-4px);\n}\r\n\r\n/* Sticky Save Bar */\n.savebar[data-v-96072164]{\r\n  position: sticky;\r\n  bottom: 0;\r\n  background: linear-gradient(180deg, rgba(255,255,255,.0), rgba(255,255,255,.95) 20%);\r\n  padding: .75rem 1rem;\r\n  border-top: 1px solid #e5e7eb;\r\n  border-radius: .75rem;\n}\r\n", ""]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 
