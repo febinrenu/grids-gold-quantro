@@ -146,7 +146,7 @@ class SettingsApiController extends Controller
             'show_stock' => 'nullable|in:0,1',
 
             'store_name' => 'nullable|string|max:190',
-            'theme' => 'nullable|string|in:default,aurumeclat,elegance,naturae,nexgold,facet,atelier,verdant,aurora',
+            'theme' => 'nullable|string|in:default,aurumeclat,elegance,naturae,nexgold,monolith,kiosk,atlas,ledger',
             'primary_color' => 'nullable|string|max:20',
             'secondary_color' => 'nullable|string|max:20',
             'font_family' => 'nullable|string|max:100',
