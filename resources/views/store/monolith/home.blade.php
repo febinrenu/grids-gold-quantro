@@ -3,47 +3,75 @@
 @php use Illuminate\Support\Str; @endphp
 
 @section('content')
-<div class="theme-monolith" style="background:#0A0A09; color:#F3F0EA;">
+<div class="theme-monolith" style="background:var(--mono-paper); color:var(--mono-ink);">
 
-  <!-- ============ HERO — full-height, single image, bottom-left oversized type ============ -->
-  <section class="m-hero">
-    <img src="https://images.unsplash.com/photo-1611652022419-a9419f74343d?auto=format&fit=crop&w=1600&q=80"
-         alt="" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:.55;" loading="eager">
-    <div class="m-hero-inner relative">
-      <p class="m-label mb-6" style="color:#C7A97A;">Object N°001 — {{ now()->format('Y') }} Collection</p>
-      <h1 class="m-hero-title">{{ $s->hero_title ?? 'Form Follows Material' }}</h1>
-      <p class="text-sm mt-6 max-w-md" style="color:#C4BDB0;">{{ $s->hero_subtitle ?? 'A single collection of considered objects. Nothing extraneous.' }}</p>
-      <a href="{{ route('store.shop') }}" class="m-btn mt-8">View The Index</a>
+  <!-- ============ HERO — asymmetric image collage, not a single full-bleed photo ============ -->
+  <section class="max-w-7xl mx-auto px-6 md:px-8 pt-12 pb-16">
+    <div class="grid md:grid-cols-2 gap-10 items-center">
+      <div>
+        <p class="m-label mb-5" style="color:var(--mono-rust);">Object N°001 — {{ now()->format('Y') }} Collection</p>
+        <h1 class="m-serif" style="font-weight:480; font-size:clamp(2.6rem,6vw,4.6rem); line-height:1.02; color:var(--mono-ink);">{{ $s->hero_title ?? 'Form Follows Material' }}</h1>
+        <p class="text-sm mt-6 max-w-sm" style="color:var(--mono-moss);">{{ $s->hero_subtitle ?? 'A single collection of considered objects — shaped by hand, catalogued one by one.' }}</p>
+        <div class="flex flex-wrap gap-3 mt-8">
+          <a href="{{ route('store.shop') }}" class="m-btn m-btn-solid">View The Index</a>
+          <a href="{{ route('store.contact') }}" class="m-btn">Visit The Studio</a>
+        </div>
+      </div>
+      <div class="relative" style="padding-bottom:1.5rem;">
+        <div style="border-radius:8px; overflow:hidden; aspect-ratio:4/5;">
+          <img src="https://images.unsplash.com/photo-1611652022419-a9419f74343d?auto=format&fit=crop&w=900&q=80" alt="Gold necklace detail" style="width:100%; height:100%; object-fit:cover;">
+        </div>
+        <div class="hidden md:block absolute -bottom-2 -left-10" style="width:44%; border-radius:8px; overflow:hidden; aspect-ratio:1; box-shadow:0 20px 40px -12px rgba(35,48,31,.35); border:6px solid var(--mono-paper);">
+          <img src="https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=700&q=80" alt="Ring detail" style="width:100%; height:100%; object-fit:cover;">
+        </div>
+      </div>
     </div>
   </section>
 
-  <!-- ============ ASYMMETRIC MOSAIC — categories as an irregular gallery grid ============ -->
-  <section class="py-16">
-    <div class="max-w-[110rem] mx-auto">
-      <div class="flex items-baseline justify-between px-8 mb-6">
-        <p class="m-label" style="color:#C4BDB0;">Departments</p>
-        <a href="{{ route('store.shop') }}" class="m-label hover:opacity-60 transition" style="color:#9C7A54;">All →</a>
+  <!-- ============ ASYMMETRIC MOSAIC — categories as an irregular gallery grid, real photos ============ -->
+  <section class="py-14">
+    <div class="max-w-[100rem] mx-auto">
+      <div class="flex items-baseline justify-between px-6 md:px-8 mb-6">
+        <p class="m-label" style="color:var(--mono-moss);">Departments</p>
+        <a href="{{ route('store.shop') }}" class="m-label hover:opacity-60 transition" style="color:var(--mono-rust);">All →</a>
       </div>
       @php $cats = ($categories ?? collect())->take(4); @endphp
       <div class="m-mosaic {{ $cats->isEmpty() ? 'm-mosaic-empty' : '' }}">
-        @forelse($cats as $cat)
+        @forelse($cats as $i => $cat)
           <a href="{{ route('store.shop', ['category' => $cat->id]) }}" class="m-tile">
             @if($cat->cover_image_url)
               <img src="{{ $cat->cover_image_url }}" alt="{{ $cat->name }}">
+            @else
+              @php
+                $fallbacks = ['1611652022419-a9419f74343d','1605100804763-247f67b3557e','1599643478518-a784e5dc4c8f','1616401784845-180882ba9ba8'];
+              @endphp
+              <img src="https://images.unsplash.com/photo-{{ $fallbacks[$i % count($fallbacks)] }}?auto=format&fit=crop&w=700&q=80" alt="{{ $cat->name }}">
             @endif
             <span class="m-tile-cap">{{ $cat->name }}</span>
           </a>
         @empty
-          <div class="m-tile" style="grid-area: a;"><span class="m-tile-cap">The Index</span></div>
+          <div class="m-tile" style="grid-area: a;">
+            <img src="https://images.unsplash.com/photo-1611652022419-a9419f74343d?auto=format&fit=crop&w=1200&q=80" alt="">
+            <span class="m-tile-cap">The Index</span>
+          </div>
         @endforelse
       </div>
     </div>
   </section>
 
+  <!-- ============ EDITORIAL STRIP — full-width image break with a quote ============ -->
+  <section class="relative" style="height:22rem; overflow:hidden;">
+    <img src="https://images.unsplash.com/photo-1573408301185-9146fe634ad0?auto=format&fit=crop&w=1600&q=80" alt="" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover;">
+    <div style="position:absolute; inset:0; background:linear-gradient(180deg, rgba(35,48,31,.15), rgba(35,48,31,.75));"></div>
+    <div class="relative h-full flex items-center justify-center px-6 text-center">
+      <p class="m-serif" style="font-style:italic; font-size:clamp(1.4rem,3.5vw,2.4rem); color:var(--mono-paper); max-width:38rem;">"{{ $s->footer_text ?? 'We make fewer things, and we make them properly.' }}"</p>
+    </div>
+  </section>
+
   <!-- ============ CATALOG LISTING — numbered rows, not a card grid (real products) ============ -->
-  <section class="max-w-4xl mx-auto px-8 py-10">
-    <p class="m-label mb-2" style="color:#C4BDB0;">The Collection</p>
-    <p class="m-serif" style="font-size:2.2rem; color:#F3F0EA;">Recently Catalogued</p>
+  <section class="max-w-4xl mx-auto px-6 md:px-8 py-14">
+    <p class="m-label mb-2" style="color:var(--mono-moss);">The Collection</p>
+    <p class="m-serif" style="font-size:2.2rem; color:var(--mono-ink);">Recently Catalogued</p>
     <div class="mt-8">
       @php $currency = $s->currency_code ?? '$'; $items = ($products ?? collect())->take(6); @endphp
       @forelse($items as $i => $p)
@@ -57,14 +85,14 @@
           <img src="{{ $imgUrl }}" alt="{{ $p->name }}" class="m-catalog-thumb">
           <div>
             <p class="m-catalog-name">{{ $p->name }}</p>
-            <p class="m-label mt-1" style="color:#9C7A54;">{{ $p->metalType->name ?? '' }} {{ $p->karat->name ?? '' }}</p>
+            <p class="m-label mt-1" style="color:var(--mono-rust);">{{ $p->metalType->name ?? '' }} {{ $p->karat->name ?? '' }}</p>
           </div>
           <div class="text-right">
-            <p class="m-serif" style="font-size:1.15rem; color:#C7A97A;">{{ $currency }}{{ number_format($price, 2) }}</p>
+            <p class="m-serif" style="font-size:1.15rem; color:var(--mono-rust);">{{ $currency }}{{ number_format($price, 2) }}</p>
           </div>
         </div>
       @empty
-        <p class="text-sm" style="color:#C4BDB0;">The index is currently empty.</p>
+        <p class="text-sm" style="color:var(--mono-moss);">The index is currently empty.</p>
       @endforelse
     </div>
     <div class="mt-10">
@@ -72,8 +100,28 @@
     </div>
   </section>
 
+  <!-- ============ ATELIER GALLERY — 3-image strip, more content ============ -->
+  <section class="max-w-7xl mx-auto px-6 md:px-8 pb-14">
+    <p class="m-label mb-6" style="color:var(--mono-moss);">From The Studio</p>
+    <div class="grid md:grid-cols-3 gap-4">
+      <div style="border-radius:8px; overflow:hidden; aspect-ratio:3/4;">
+        <img src="https://images.unsplash.com/photo-1616401784845-180882ba9ba8?auto=format&fit=crop&w=700&q=80" alt="Hand-finishing a ring" style="width:100%; height:100%; object-fit:cover;">
+      </div>
+      <div style="border-radius:8px; overflow:hidden; aspect-ratio:3/4;">
+        <img src="https://images.unsplash.com/photo-1611591437281-460914d6cd52?auto=format&fit=crop&w=700&q=80" alt="Workbench and tools" style="width:100%; height:100%; object-fit:cover;">
+      </div>
+      <div style="border-radius:8px; overflow:hidden; aspect-ratio:3/4;">
+        <img src="https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=700&q=80" alt="Finished ring on velvet" style="width:100%; height:100%; object-fit:cover;">
+      </div>
+    </div>
+  </section>
+
   <!-- ============ EDITORIAL SPLIT — real product cards for the shared cart/quickview wiring ============ -->
-  <section class="max-w-7xl mx-auto px-8 py-16" style="border-top:1px solid rgba(243,240,234,.08);">
+  <section class="max-w-7xl mx-auto px-6 md:px-8 pb-16" style="border-top:1px solid rgba(35,48,31,.1); padding-top:3.5rem;">
+    <div class="flex items-end justify-between mb-6">
+      <p class="m-serif" style="font-size:2rem; color:var(--mono-ink);">More From The Index</p>
+      <a href="{{ route('store.shop') }}" class="m-label hover:opacity-60 transition" style="color:var(--mono-rust);">View All →</a>
+    </div>
     <div class="grid md:grid-cols-3 gap-4">
       @php $more = ($products ?? collect())->slice(6, 3); @endphp
       @forelse($more as $p)
@@ -84,11 +132,6 @@
         @endforeach
       @endforelse
     </div>
-  </section>
-
-  <!-- ============ CLOSING STATEMENT ============ -->
-  <section class="max-w-3xl mx-auto px-8 py-24 text-center">
-    <p class="m-serif" style="font-size:clamp(1.6rem,4vw,2.6rem); line-height:1.3; color:#F3F0EA;">"{{ $s->footer_text ?? 'We make fewer things, and we make them properly.' }}"</p>
   </section>
 
 </div>

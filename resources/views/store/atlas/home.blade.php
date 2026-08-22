@@ -5,7 +5,7 @@
 @section('content')
 <div class="theme-atlas a-offset" style="background:#EDE8E0; color:#262421;">
 
-  <!-- ============ FEATURE ROW — text + image side-by-side, not a full-bleed hero ============ -->
+  <!-- ============ FEATURE ROW — text + paired overlapping images ============ -->
   <section class="px-6 md:px-12 pt-14 pb-10">
     <div class="a-feature-row max-w-5xl">
       <div>
@@ -17,24 +17,63 @@
           <a href="{{ route('store.contact') }}" class="a-btn a-btn-outline">Book a Fitting</a>
         </div>
       </div>
-      <div style="border-radius:4px; overflow:hidden; aspect-ratio: 4/5;">
-        <img src="https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=900&q=80" alt="" style="width:100%; height:100%; object-fit:cover;">
+      <div class="relative">
+        <div style="border-radius:4px; overflow:hidden; aspect-ratio: 4/5;">
+          <img src="https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=900&q=80" alt="Diamond ring on velvet" style="width:100%; height:100%; object-fit:cover;">
+        </div>
+        <div class="hidden md:block absolute -bottom-8 -left-8" style="width:48%; aspect-ratio:1; border-radius:4px; overflow:hidden; border:6px solid #EDE8E0; box-shadow:0 16px 32px -10px rgba(38,36,33,.3);">
+          <img src="https://images.unsplash.com/photo-1611652022419-a9419f74343d?auto=format&fit=crop&w=700&q=80" alt="Gold necklace detail" style="width:100%; height:100%; object-fit:cover;">
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- ============ CATEGORY INDEX — simple text list, not image tiles ============ -->
-  <section class="px-6 md:px-12 py-10" style="border-top:1px solid #DDD5C4;">
+  <!-- ============ CATEGORY INDEX — text list with small thumbnails, not bare text ============ -->
+  <section class="px-6 md:px-12 py-14" style="border-top:1px solid #DDD5C4;">
     <p class="a-label mb-5">Departments</p>
     <div class="grid md:grid-cols-2 gap-x-10 max-w-5xl">
+      @php
+        $catImgs = ['1611652022419-a9419f74343d','1605100804763-247f67b3557e','1599643478518-a784e5dc4c8f','1616401784845-180882ba9ba8','1611591437281-460914d6cd52','1573408301185-9146fe634ad0','1620656798579-1984d9e87df7','1611652022419-a9419f74343d'];
+      @endphp
       @forelse(($categories ?? collect())->take(8) as $i => $cat)
-        <a href="{{ route('store.shop', ['category' => $cat->id]) }}" class="flex items-center justify-between py-3.5" style="border-bottom:1px solid #DDD5C4;">
-          <span style="font-family:'Sora',sans-serif; font-weight:600; font-size:1.1rem;">{{ $cat->name }}</span>
+        <a href="{{ route('store.shop', ['category' => $cat->id]) }}" class="flex items-center gap-4 py-3.5" style="border-bottom:1px solid #DDD5C4;">
+          <span style="width:3.2rem; height:3.2rem; border-radius:4px; overflow:hidden; flex-shrink:0; background:#DDD5C4;">
+            <img src="{{ $cat->cover_image_url ?? 'https://images.unsplash.com/photo-'.$catImgs[$i % count($catImgs)].'?auto=format&fit=crop&w=200&q=70' }}" alt="{{ $cat->name }}" style="width:100%; height:100%; object-fit:cover;">
+          </span>
+          <span style="font-family:'Sora',sans-serif; font-weight:600; font-size:1.1rem; flex:1;">{{ $cat->name }}</span>
           <span style="opacity:.5;">→</span>
         </a>
       @empty
         <p class="text-sm" style="opacity:.6;">No categories yet.</p>
       @endforelse
+    </div>
+  </section>
+
+  <!-- ============ LOOKBOOK GALLERY — three-image editorial strip ============ -->
+  <section class="px-6 md:px-12 py-14" style="border-top:1px solid #DDD5C4;">
+    <div class="flex items-end justify-between mb-6 max-w-6xl">
+      <p style="font-family:'Sora',sans-serif; font-weight:700; font-size:1.6rem;">The Lookbook</p>
+      <p class="a-label">Studio {{ now()->format('Y') }}</p>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-6xl">
+      <div style="border-radius:4px; overflow:hidden; aspect-ratio:4/5;">
+        <img src="https://images.unsplash.com/photo-1616401784845-180882ba9ba8?auto=format&fit=crop&w=900&q=80" alt="Artisan at work" style="width:100%; height:100%; object-fit:cover;">
+      </div>
+      <div style="border-radius:4px; overflow:hidden; aspect-ratio:4/5;">
+        <img src="https://images.unsplash.com/photo-1611591437281-460914d6cd52?auto=format&fit=crop&w=900&q=80" alt="Studio workbench" style="width:100%; height:100%; object-fit:cover;">
+      </div>
+      <div style="border-radius:4px; overflow:hidden; aspect-ratio:4/5;">
+        <img src="https://images.unsplash.com/photo-1573408301185-9146fe634ad0?auto=format&fit=crop&w=900&q=80" alt="Finished pieces on linen" style="width:100%; height:100%; object-fit:cover;">
+      </div>
+      <div style="border-radius:4px; overflow:hidden; aspect-ratio:4/5;">
+        <img src="https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=900&q=80" alt="Jewelry flatlay" style="width:100%; height:100%; object-fit:cover;">
+      </div>
+      <div style="border-radius:4px; overflow:hidden; aspect-ratio:4/5;">
+        <img src="https://images.unsplash.com/photo-1587467512961-120760940315?auto=format&fit=crop&w=900&q=80" alt="Gold rings detail" style="width:100%; height:100%; object-fit:cover;">
+      </div>
+      <div style="border-radius:4px; overflow:hidden; aspect-ratio:4/5;">
+        <img src="https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=900&q=80" alt="Diamond ring on velvet" style="width:100%; height:100%; object-fit:cover;">
+      </div>
     </div>
   </section>
 
@@ -54,6 +93,19 @@
     </div>
   </section>
 
+  <!-- ============ TESTIMONIAL — portrait image + quote ============ -->
+  <section class="px-6 md:px-12 py-14" style="border-top:1px solid #DDD5C4;">
+    <div class="max-w-4xl mx-auto grid md:grid-cols-[auto_1fr] gap-6 items-center">
+      <div style="width:6rem; height:6rem; border-radius:50%; overflow:hidden; flex-shrink:0;">
+        <img src="https://images.unsplash.com/photo-1599643477877-530eb83abc8e?auto=format&fit=crop&w=200&q=80" alt="Customer portrait" style="width:100%; height:100%; object-fit:cover;">
+      </div>
+      <div>
+        <p style="font-family:'Sora',sans-serif; font-style:italic; font-size:1.3rem; line-height:1.4;">"{{ $s->footer_text ?? 'Sourced responsibly, finished by hand — every piece feels like it was made specifically for me.' }}"</p>
+        <p class="a-label mt-3">— A Studio Client</p>
+      </div>
+    </div>
+  </section>
+
   <!-- ============ SECOND FEATURE ROW — reversed, different product spotlighted ============ -->
   <section class="px-6 md:px-12 py-14" style="border-top:1px solid #DDD5C4;">
     <div class="a-feature-row max-w-5xl" style="grid-template-columns: .9fr 1.1fr;">
@@ -62,7 +114,7 @@
       </div>
       <div class="order-1 md:order-2">
         <p class="a-label mb-4">The Process</p>
-        <p style="font-family:'Sora',sans-serif; font-weight:700; font-size:clamp(1.6rem,3.5vw,2.4rem); line-height:1.15;">{{ $s->footer_text ?? 'Sourced Responsibly. Finished By Hand.' }}</p>
+        <p style="font-family:'Sora',sans-serif; font-weight:700; font-size:clamp(1.6rem,3.5vw,2.4rem); line-height:1.15;">Sourced Responsibly. Finished By Hand.</p>
         <p class="text-sm mt-4 max-w-sm" style="opacity:.7;">Every piece passes through the same small team, start to finish.</p>
         <a href="{{ route('store.contact') }}" class="a-btn a-btn-outline mt-6 w-fit">Learn More</a>
       </div>
