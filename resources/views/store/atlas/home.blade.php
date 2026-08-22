@@ -33,7 +33,7 @@
     <p class="a-label mb-5">Departments</p>
     <div class="grid md:grid-cols-2 gap-x-10 max-w-5xl">
       @php
-        $catImgs = ['1611652022419-a9419f74343d','1605100804763-247f67b3557e','1599643478518-a784e5dc4c8f','1616401784845-180882ba9ba8','1611591437281-460914d6cd52','1573408301185-9146fe634ad0','1620656798579-1984d9e87df7','1611652022419-a9419f74343d'];
+        $catImgs = ['1611652022419-a9419f74343d','1605100804763-247f67b3557e','1599643478518-a784e5dc4c8f','1616401784845-180882ba9ba8','1611591437281-460bfbe1220a','1573408301185-9146fe634ad0','1620656798579-1984d9e87df7','1611652022419-a9419f74343d'];
       @endphp
       @forelse(($categories ?? collect())->take(8) as $i => $cat)
         <a href="{{ route('store.shop', ['category' => $cat->id]) }}" class="flex items-center gap-4 py-3.5" style="border-bottom:1px solid #DDD5C4;">
@@ -60,7 +60,7 @@
         <img src="https://images.unsplash.com/photo-1616401784845-180882ba9ba8?auto=format&fit=crop&w=900&q=80" alt="Artisan at work" style="width:100%; height:100%; object-fit:cover;">
       </div>
       <div style="border-radius:4px; overflow:hidden; aspect-ratio:4/5;">
-        <img src="https://images.unsplash.com/photo-1611591437281-460914d6cd52?auto=format&fit=crop&w=900&q=80" alt="Studio workbench" style="width:100%; height:100%; object-fit:cover;">
+        <img src="https://images.unsplash.com/photo-1611591437281-460bfbe1220a?auto=format&fit=crop&w=900&q=80" alt="Studio workbench" style="width:100%; height:100%; object-fit:cover;">
       </div>
       <div style="border-radius:4px; overflow:hidden; aspect-ratio:4/5;">
         <img src="https://images.unsplash.com/photo-1573408301185-9146fe634ad0?auto=format&fit=crop&w=900&q=80" alt="Finished pieces on linen" style="width:100%; height:100%; object-fit:cover;">
@@ -110,7 +110,7 @@
   <section class="px-6 md:px-12 py-14" style="border-top:1px solid #DDD5C4;">
     <div class="a-feature-row max-w-5xl" style="grid-template-columns: .9fr 1.1fr;">
       <div style="border-radius:4px; overflow:hidden; aspect-ratio: 4/5; order:2;" class="md:order-1">
-        <img src="https://images.unsplash.com/photo-1611591437281-460914d6cd52?auto=format&fit=crop&w=900&q=80" alt="" style="width:100%; height:100%; object-fit:cover;">
+        <img src="https://images.unsplash.com/photo-1611591437281-460bfbe1220a?auto=format&fit=crop&w=900&q=80" alt="" style="width:100%; height:100%; object-fit:cover;">
       </div>
       <div class="order-1 md:order-2">
         <p class="a-label mb-4">The Process</p>
