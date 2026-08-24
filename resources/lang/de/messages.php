@@ -824,4 +824,23 @@ return [
     'Default_ExploreCollection' => 'Kollektion entdecken',
     'Default_BookPrivateViewing' => 'Private Besichtigung buchen',
     'Default_StayInTouch' => 'In Kontakt bleiben',
+
+    // --- Storefront theme translations (auto-merged) ---
+    'Default_HallmarkedGold' => '100 % gestempelt',
+    'Default_EveryPiece' => 'Geprüftes Gold',
+    'Default_LifetimePolicy' => 'Lebenslange Pflege',
+    'Default_PolishAndResize' => 'Kostenloses Polieren & Anpassen',
+    'Default_NewArrivals' => 'Neuheiten',
+    'Default_FeaturedPieces' => 'Ausgewählte Stücke',
+    'Default_OurCraft' => 'Unser Handwerk',
+    'Default_WhyChooseUs' => 'Warum bei uns kaufen',
+    'Default_WhyChooseUsBody' => 'Jedes Stück wird vor Ihren Augen gewogen, gestempelt und bepreist — keine versteckten Verarbeitungsgebühren, kein Rätselraten.',
+    'Default_TransparentPricing' => 'Transparente Preisgestaltung',
+    'Default_TransparentPricingBody' => 'Aktuelle Metallpreise, detaillierte Verarbeitungsgebühren und Steinwert separat auf jeder Rechnung ausgewiesen.',
+    'Default_CertifiedSourcing' => 'Zertifizierte Beschaffung',
+    'Default_CertifiedSourcingBody' => 'Diamanten und Farbsteine werden mit unabhängigen Laborzertifikaten geliefert, nicht nur mit einer Garantie des Geschäfts.',
+    'Default_FreeResizing' => 'Kostenlose Größenänderung',
+    'Default_FreeResizingBody' => 'Eine kostenlose Größenänderung innerhalb von 60 Tagen nach Lieferung, plus lebenslang vergünstigtes Polieren.',
+    'Default_InsuredShipping' => 'Versicherter Versand',
+    'Default_InsuredShippingBody' => 'Jede Bestellung wird in manipulationssicherer, neutraler Verpackung versendet, vollständig versichert von Tür zu Tür.',
 ];

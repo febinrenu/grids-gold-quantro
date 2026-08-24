@@ -347,6 +347,11 @@ class StoreFrontController extends Controller
             'categories' => $categories,
             'banners' => $banners,
             'showCategoryBar' => true,
+            // Real, always-available product data for the default theme's
+            // hero collage and "Featured Pieces" section — independent of
+            // whether homepage_lineup has any 'collection' blocks configured,
+            // so the homepage is never bare on a freshly provisioned store.
+            'featuredProducts' => $this->customThemeFeaturedProducts($s, 8),
         ];
 
         return view('store.index', $viewData);

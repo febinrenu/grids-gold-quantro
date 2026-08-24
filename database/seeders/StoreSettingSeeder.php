@@ -20,8 +20,8 @@ class StoreSettingSeeder extends Seeder
             'id' => 1, // single-row table: primary key
             'enabled' => 1,
             'store_name' => 'StoreX',
-            'primary_color' => '#6c5ce7',
-            'secondary_color' => '#00c2ff',
+            'primary_color' => '#A16207',
+            'secondary_color' => '#6B4226',
             'font_family' => 'Arial, sans-serif',
             'favicon_path' => upload_path('store') . '/favicon.ico',
             'hero_image_path' => upload_path('store') . '/hero_image.jpg',

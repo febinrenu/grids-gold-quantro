@@ -1656,8 +1656,8 @@ var render = function render() {
     directives: [{
       name: "show",
       rawName: "v-show",
-      value: _vm.currentUserPermissions && (_vm.currentUserPermissions.includes("setting_system") || _vm.currentUserPermissions.includes("sms_settings") || _vm.currentUserPermissions.includes("quickbooks_settings") || _vm.currentUserPermissions.includes("notification_template") || _vm.currentUserPermissions.includes("pos_settings") || _vm.currentUserPermissions.includes("appearance_settings") || _vm.currentUserPermissions.includes("translations_settings") || _vm.currentUserPermissions.includes("payment_gateway") || _vm.currentUserPermissions.includes("mail_settings") || _vm.currentUserPermissions.includes("warehouse") || _vm.currentUserPermissions.includes("warehouse_locations") || _vm.currentUserPermissions.includes("backup") || _vm.currentUserPermissions.includes("payment_methods") || _vm.currentUserPermissions.includes("currency") || _vm.currentUserPermissions.includes("gold_rates_view") || _vm.currentUserPermissions.includes("gold_rates_manage") || _vm.currentUserPermissions.includes("login_device_management") || _vm.currentUserPermissions.includes("system_health_view") || _vm.currentUserPermissions.includes("webhooks_view")),
-      expression: "currentUserPermissions && (currentUserPermissions.includes('setting_system')\n                      || currentUserPermissions.includes('sms_settings')\n                      || currentUserPermissions.includes('quickbooks_settings')\n                      || currentUserPermissions.includes('notification_template')\n                      || currentUserPermissions.includes('pos_settings')\n                      || currentUserPermissions.includes('appearance_settings')\n                      || currentUserPermissions.includes('translations_settings')\n                      || currentUserPermissions.includes('payment_gateway')\n                      || currentUserPermissions.includes('mail_settings')\n                      || currentUserPermissions.includes('warehouse')\n                      || currentUserPermissions.includes('warehouse_locations')\n                      || currentUserPermissions.includes('backup')\n                      || currentUserPermissions.includes('payment_methods')\n                      || currentUserPermissions.includes('currency')\n                      || currentUserPermissions.includes('gold_rates_view')\n                      || currentUserPermissions.includes('gold_rates_manage')\n                      || currentUserPermissions.includes('login_device_management')\n                      || currentUserPermissions.includes('system_health_view')\n                      || currentUserPermissions.includes('webhooks_view'))"
+      value: _vm.currentUserPermissions && (_vm.currentUserPermissions.includes("setting_system") || _vm.currentUserPermissions.includes("sms_settings") || _vm.currentUserPermissions.includes("quickbooks_settings") || _vm.currentUserPermissions.includes("notification_template") || _vm.currentUserPermissions.includes("pos_settings") || _vm.currentUserPermissions.includes("appearance_settings") || _vm.currentUserPermissions.includes("translations_settings") || _vm.currentUserPermissions.includes("payment_gateway") || _vm.currentUserPermissions.includes("mail_settings") || _vm.currentUserPermissions.includes("warehouse") || _vm.currentUserPermissions.includes("warehouse_locations") || _vm.currentUserPermissions.includes("backup") || _vm.currentUserPermissions.includes("payment_methods") || _vm.currentUserPermissions.includes("currency") || _vm.currentUserPermissions.includes("gold_rates_view") || _vm.currentUserPermissions.includes("gold_rates_manage") || _vm.currentUserPermissions.includes("gold_saving_schemes") || _vm.currentUserPermissions.includes("alloy_mix_calculations") || _vm.currentUserPermissions.includes("scale_readings") || _vm.currentUserPermissions.includes("consignment_settlements") || _vm.currentUserPermissions.includes("kyc_verifications") || _vm.currentUserPermissions.includes("aml_flagged_transactions") || _vm.currentUserPermissions.includes("diamond_price_rates") || _vm.currentUserPermissions.includes("login_device_management") || _vm.currentUserPermissions.includes("system_health_view") || _vm.currentUserPermissions.includes("webhooks_view")),
+      expression: "currentUserPermissions && (currentUserPermissions.includes('setting_system')\n                      || currentUserPermissions.includes('sms_settings')\n                      || currentUserPermissions.includes('quickbooks_settings')\n                      || currentUserPermissions.includes('notification_template')\n                      || currentUserPermissions.includes('pos_settings')\n                      || currentUserPermissions.includes('appearance_settings')\n                      || currentUserPermissions.includes('translations_settings')\n                      || currentUserPermissions.includes('payment_gateway')\n                      || currentUserPermissions.includes('mail_settings')\n                      || currentUserPermissions.includes('warehouse')\n                      || currentUserPermissions.includes('warehouse_locations')\n                      || currentUserPermissions.includes('backup')\n                      || currentUserPermissions.includes('payment_methods')\n                      || currentUserPermissions.includes('currency')\n                      || currentUserPermissions.includes('gold_rates_view')\n                      || currentUserPermissions.includes('gold_rates_manage')\n                      || currentUserPermissions.includes('gold_saving_schemes')\n                      || currentUserPermissions.includes('alloy_mix_calculations')\n                      || currentUserPermissions.includes('scale_readings')\n                      || currentUserPermissions.includes('consignment_settlements')\n                      || currentUserPermissions.includes('kyc_verifications')\n                      || currentUserPermissions.includes('aml_flagged_transactions')\n                      || currentUserPermissions.includes('diamond_price_rates')\n                      || currentUserPermissions.includes('login_device_management')\n                      || currentUserPermissions.includes('system_health_view')\n                      || currentUserPermissions.includes('webhooks_view'))"
     }],
     staticClass: "nav-item",
     "class": {
@@ -2184,7 +2184,21 @@ var render = function render() {
     }
   }), _vm._v(" "), _c("span", {
     staticClass: "item-name"
-  }, [_vm._v(_vm._s(_vm.$t("Serial_Numbers")))])], 1)], 1) : _vm._e()]), _vm._v(" "), _c("ul", {
+  }, [_vm._v(_vm._s(_vm.$t("Serial_Numbers")))])], 1)], 1) : _vm._e(), _vm._v(" "), _vm.currentUserPermissions && _vm.currentUserPermissions.includes("serial_numbers") ? _c("li", {
+    staticClass: "nav-item"
+  }, [_c("router-link", {
+    attrs: {
+      tag: "a",
+      to: "/app/serial_numbers/reconcile"
+    }
+  }, [_c("lucide-icon", {
+    staticClass: "nav-icon",
+    attrs: {
+      name: "check-square"
+    }
+  }), _vm._v(" "), _c("span", {
+    staticClass: "item-name"
+  }, [_vm._v("RFID Reconcile")])], 1)], 1) : _vm._e()]), _vm._v(" "), _c("ul", {
     staticClass: "childNav d-none",
     "class": {
       "d-block": _vm.selectedParentMenu == "accounting"
@@ -3887,7 +3901,105 @@ var render = function render() {
     }
   }), _vm._v(" "), _c("span", {
     staticClass: "item-name"
-  }, [_vm._v(_vm._s(_vm.$t("Gold_Rates") || "Gold Rates"))])], 1)], 1) : _vm._e(), _vm._v(" "), _vm.currentUserPermissions && _vm.currentUserPermissions.includes("backup") ? _c("li", {
+  }, [_vm._v(_vm._s(_vm.$t("Gold_Rates") || "Gold Rates"))])], 1)], 1) : _vm._e(), _vm._v(" "), _vm.currentUserPermissions && _vm.currentUserPermissions.includes("gold_saving_schemes") ? _c("li", {
+    staticClass: "nav-item"
+  }, [_c("router-link", {
+    attrs: {
+      tag: "a",
+      to: "/app/settings/gold_saving_schemes"
+    }
+  }, [_c("lucide-icon", {
+    staticClass: "nav-icon",
+    attrs: {
+      name: "piggy-bank"
+    }
+  }), _vm._v(" "), _c("span", {
+    staticClass: "item-name"
+  }, [_vm._v(_vm._s(_vm.$t("Gold_Saving_Schemes") || "Gold Saving Schemes"))])], 1)], 1) : _vm._e(), _vm._v(" "), _vm.currentUserPermissions && _vm.currentUserPermissions.includes("alloy_mix_calculations") ? _c("li", {
+    staticClass: "nav-item"
+  }, [_c("router-link", {
+    attrs: {
+      tag: "a",
+      to: "/app/settings/alloy_calculator"
+    }
+  }, [_c("lucide-icon", {
+    staticClass: "nav-icon",
+    attrs: {
+      name: "flask-conical"
+    }
+  }), _vm._v(" "), _c("span", {
+    staticClass: "item-name"
+  }, [_vm._v(_vm._s(_vm.$t("Alloy_Calculator") || "Alloy Calculator"))])], 1)], 1) : _vm._e(), _vm._v(" "), _vm.currentUserPermissions && _vm.currentUserPermissions.includes("scale_readings") ? _c("li", {
+    staticClass: "nav-item"
+  }, [_c("router-link", {
+    attrs: {
+      tag: "a",
+      to: "/app/settings/scale_readings"
+    }
+  }, [_c("lucide-icon", {
+    staticClass: "nav-icon",
+    attrs: {
+      name: "scale"
+    }
+  }), _vm._v(" "), _c("span", {
+    staticClass: "item-name"
+  }, [_vm._v(_vm._s(_vm.$t("Weighing_Scale") || "Weighing Scale"))])], 1)], 1) : _vm._e(), _vm._v(" "), _vm.currentUserPermissions && _vm.currentUserPermissions.includes("consignment_settlements") ? _c("li", {
+    staticClass: "nav-item"
+  }, [_c("router-link", {
+    attrs: {
+      tag: "a",
+      to: "/app/settings/consignment_settlements"
+    }
+  }, [_c("lucide-icon", {
+    staticClass: "nav-icon",
+    attrs: {
+      name: "handshake"
+    }
+  }), _vm._v(" "), _c("span", {
+    staticClass: "item-name"
+  }, [_vm._v(_vm._s(_vm.$t("Consignment_Settlements") || "Consignment Settlements"))])], 1)], 1) : _vm._e(), _vm._v(" "), _vm.currentUserPermissions && _vm.currentUserPermissions.includes("kyc_verifications") ? _c("li", {
+    staticClass: "nav-item"
+  }, [_c("router-link", {
+    attrs: {
+      tag: "a",
+      to: "/app/settings/kyc_verifications"
+    }
+  }, [_c("lucide-icon", {
+    staticClass: "nav-icon",
+    attrs: {
+      name: "user-check"
+    }
+  }), _vm._v(" "), _c("span", {
+    staticClass: "item-name"
+  }, [_vm._v(_vm._s(_vm.$t("KYC_Verifications") || "KYC Verifications"))])], 1)], 1) : _vm._e(), _vm._v(" "), _vm.currentUserPermissions && _vm.currentUserPermissions.includes("aml_flagged_transactions") ? _c("li", {
+    staticClass: "nav-item"
+  }, [_c("router-link", {
+    attrs: {
+      tag: "a",
+      to: "/app/settings/aml_flagged_transactions"
+    }
+  }, [_c("lucide-icon", {
+    staticClass: "nav-icon",
+    attrs: {
+      name: "shield-alert"
+    }
+  }), _vm._v(" "), _c("span", {
+    staticClass: "item-name"
+  }, [_vm._v(_vm._s(_vm.$t("AML_Flagged_Transactions") || "AML Flagged Transactions"))])], 1)], 1) : _vm._e(), _vm._v(" "), _vm.currentUserPermissions && _vm.currentUserPermissions.includes("diamond_price_rates") ? _c("li", {
+    staticClass: "nav-item"
+  }, [_c("router-link", {
+    attrs: {
+      tag: "a",
+      to: "/app/settings/diamond_price_rates"
+    }
+  }, [_c("lucide-icon", {
+    staticClass: "nav-icon",
+    attrs: {
+      name: "gem"
+    }
+  }), _vm._v(" "), _c("span", {
+    staticClass: "item-name"
+  }, [_vm._v(_vm._s(_vm.$t("Diamond_Price_Rates") || "Diamond Price Rates"))])], 1)], 1) : _vm._e(), _vm._v(" "), _vm.currentUserPermissions && _vm.currentUserPermissions.includes("backup") ? _c("li", {
     staticClass: "nav-item"
   }, [_c("router-link", {
     attrs: {
