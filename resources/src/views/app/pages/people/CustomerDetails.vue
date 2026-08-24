@@ -31,6 +31,17 @@
                   : $t('No_limit') }}
               </span>
             </div>
+            <div class="text-muted mt-2">
+              <span class="mr-3"><strong>{{ $t('RingSize') || 'Ring Size' }}:</strong> {{ client.ring_size || '-' }}</span>
+              <span class="mr-3"><strong>{{ $t('AnniversaryDate') || 'Anniversary Date' }}:</strong> {{ client.anniversary_date || '-' }}</span>
+              <span class="mr-3"><strong>{{ $t('PreferredMetals') || 'Preferred Metals' }}:</strong> {{ client.preferred_metals || '-' }}</span>
+              <span class="mr-3"><strong>{{ $t('PartnerCustomer') || 'Partner Customer' }}:</strong>
+                <router-link v-if="client.partner" :to="{ name: 'CustomerDetails', params: { id: client.partner.id } }">
+                  {{ client.partner.name }}
+                </router-link>
+                <span v-else>-</span>
+              </span>
+            </div>
           </b-col>
           <b-col md="4" class="text-right">
             <b-button variant="secondary" @click="$router.push({ name: 'Customers' })" class="mr-2">

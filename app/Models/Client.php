@@ -14,6 +14,7 @@ class Client extends Model
         'is_royalty_eligible', 'points', 'opening_balance', 'credit_limit',
         'woocommerce_id',
         'sync_issue_type', 'sync_issue_message', 'sync_issue_source', 'sync_issue_at',
+        'ring_size', 'anniversary_date', 'preferred_metals', 'partner_customer_id',
     ];
 
     protected $casts = [
@@ -23,6 +24,7 @@ class Client extends Model
         'opening_balance' => 'double',
         'credit_limit' => 'double',
         'sync_issue_at' => 'datetime',
+        'partner_customer_id' => 'integer',
     ];
 
     /**
@@ -31,5 +33,10 @@ class Client extends Model
     public function customFieldValues()
     {
         return $this->morphMany(CustomFieldValue::class, 'entity', 'entity_type', 'entity_id');
+    }
+
+    public function partner()
+    {
+        return $this->belongsTo(Client::class, 'partner_customer_id');
     }
 }

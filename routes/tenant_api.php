@@ -425,6 +425,7 @@ Route::middleware(['auth:api', 'Is_Active', 'request.safety', 'token.timeout', '
     Route::resource('clients', 'ClientController')->middleware('tenant.limit:max_customers');
     Route::post('customers/import', 'ClientController@import');
     Route::get('get_clients_without_paginate', 'ClientController@Get_Clients_Without_Paginate');
+    Route::get('get_metal_types_list', function() { return response()->json(\App\Models\MetalType::all(['id', 'name'])); });
     Route::post('clients/delete/by_selection', 'ClientController@delete_by_selection');
     Route::post('clients_pay_due', 'ClientController@clients_pay_due');
     Route::post('clients_pay_return_due', 'ClientController@pay_sale_return_due');
@@ -1416,6 +1417,12 @@ Route::middleware(['auth:api', 'Is_Active', 'request.safety', 'tenant.subscribed
     Route::apiResource('sales-approvals', 'Jewelry\\SalesApprovalController');
     Route::apiResource('workshops', 'Jewelry\\WorkshopController');
     Route::apiResource('manufacturing-orders', 'Jewelry\\ManufacturingOrderController');
+    Route::post('quotations/{id}/convert-to-manufacturing', 'Jewelry\\ManufacturingConversionController@convert');
+    Route::get('manufacturing-orders/{id}/stages', 'Jewelry\\ManufacturingStageController@stages');
+    Route::post('manufacturing-orders/{id}/stages/{stage_id}/status', 'Jewelry\\ManufacturingStageController@updateStatus');
+    Route::post('manufacturing-orders/{id}/stages/{stage_id}/assign', 'Jewelry\\ManufacturingStageController@assignWorker');
+    Route::post('manufacturing-orders/{id}/stages/{stage_id}/timer/start', 'Jewelry\\ManufacturingStageController@startTimer');
+    Route::post('manufacturing-orders/{id}/stages/{stage_id}/timer/stop', 'Jewelry\\ManufacturingStageController@stopTimer');
     Route::apiResource('manufacturing-material-issues', 'Jewelry\\ManufacturingMaterialIssueController');
     Route::apiResource('manufacturing-stone-issues', 'Jewelry\\ManufacturingStoneIssueController');
     Route::apiResource('manufacturing-receipts', 'Jewelry\\ManufacturingReceiptController');

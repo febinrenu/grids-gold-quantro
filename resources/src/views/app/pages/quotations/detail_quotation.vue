@@ -42,6 +42,16 @@
               </router-link>
 
               <button
+                v-if="quote.statut === 'sent' && !quote.is_converted && currentUserPermissions && currentUserPermissions.includes('Quotations_edit')"
+                title="Create Manufacturing Order"
+                class="action-btn btn-create bg-success text-white"
+                @click="convertToManufacturing"
+              >
+                <lucide-icon name="hammer" />
+                <span>Create Manufacturing Order</span>
+              </button>
+
+              <button
                 v-if="currentUserPermissions && currentUserPermissions.includes('Quotations_delete')"
                 @click="Remove_Quote()"
                 class="action-btn btn-delete"
@@ -76,6 +86,24 @@
               </button>
             </div>
           </div>
+        </b-col>
+      </b-row>
+      <b-row v-if="quote.is_converted" class="no-print mb-3">
+        <b-col md="12">
+          <b-alert show variant="success" class="d-flex align-items-center justify-content-between m-0">
+            <div class="d-flex align-items-center">
+              <lucide-icon name="check-circle" class="mr-2 text-success" />
+              <span>
+                This quotation has been converted to Manufacturing Order(s):
+                <span v-for="(mfg, index) in quote.mfg_orders" :key="mfg.id">
+                  <router-link :to="{ name: 'ManufacturingOrderDetails', params: { id: mfg.id } }" class="font-weight-bold text-success text-underline ml-1">
+                    {{ mfg.manufacturing_number }}
+                  </router-link>
+                  <span v-if="index < quote.mfg_orders.length - 1">,</span>
+                </span>
+              </span>
+            </div>
+          </b-alert>
         </b-col>
       </b-row>
       <div class="invoice" id="print_Invoice">
@@ -526,6 +554,30 @@ export default {
           setTimeout(() => {
             this.isLoading = false;
           }, 500);
+        });
+    },
+
+    convertToManufacturing() {
+      NProgress.start();
+      let id = this.$route.params.id;
+      axios
+        .post(`quotations/${id}/convert-to-manufacturing`)
+        .then(response => {
+          NProgress.done();
+          this.makeToast(
+            "success",
+            response.data.message || "Successfully converted quotation to manufacturing order(s)",
+            "Success"
+          );
+          this.Get_Details();
+        })
+        .catch(error => {
+          NProgress.done();
+          this.makeToast(
+            "danger",
+            error.response?.data?.message || "Failed to convert quotation",
+            "Error"
+          );
         });
     },
 

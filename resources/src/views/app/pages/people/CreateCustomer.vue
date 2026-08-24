@@ -191,6 +191,55 @@
                 </b-form-group>
             </b-col>
 
+            <!-- Personalization: Ring Size -->
+            <b-col md="6" sm="12">
+                <b-form-group :label="$t('RingSize') || 'Ring Size'">
+                  <b-form-input
+                    label="Ring Size"
+                    v-model="client.ring_size"
+                    placeholder="e.g. 7.5"
+                  ></b-form-input>
+                </b-form-group>
+            </b-col>
+
+            <!-- Personalization: Anniversary Date -->
+            <b-col md="6" sm="12">
+                <b-form-group :label="$t('AnniversaryDate') || 'Anniversary Date'">
+                  <b-form-input
+                    type="date"
+                    label="Anniversary Date"
+                    v-model="client.anniversary_date"
+                  ></b-form-input>
+                </b-form-group>
+            </b-col>
+
+            <!-- Personalization: Preferred Metals -->
+            <b-col md="6" sm="12">
+                <b-form-group :label="$t('PreferredMetals') || 'Preferred Metals'">
+                  <v-select
+                    multiple
+                    v-model="client.preferred_metals_array"
+                    :reduce="label => label.name"
+                    label="name"
+                    placeholder="Select metals"
+                    :options="metals"
+                  ></v-select>
+                </b-form-group>
+            </b-col>
+
+            <!-- Personalization: Partner Customer -->
+            <b-col md="6" sm="12">
+                <b-form-group :label="$t('PartnerCustomer') || 'Partner Customer'">
+                  <v-select
+                    v-model="client.partner_customer_id"
+                    :reduce="label => label.id"
+                    label="name"
+                    placeholder="Select partner customer"
+                    :options="clients_list"
+                  ></v-select>
+                </b-form-group>
+            </b-col>
+
              <b-col md="6" sm="12" class="mt-4 mb-4">
               <div class="psx-form-check">
                 <input type="checkbox" v-model="client.is_royalty_eligible" class="psx-checkbox psx-form-check-input" id="is_royalty_eligible">
@@ -237,6 +286,8 @@ export default {
     return {
       SubmitProcessing: false,
       customFieldValues: {},
+      metals: [],
+      clients_list: [],
       client: {
         id: "",
         firstname: "",
@@ -253,6 +304,11 @@ export default {
         is_royalty_eligible: "",
         opening_balance: 0,
         credit_limit: 0,
+        ring_size: "",
+        anniversary_date: "",
+        preferred_metals: "",
+        preferred_metals_array: [],
+        partner_customer_id: null,
       },
     };
   },
@@ -286,6 +342,12 @@ export default {
     //---------------------------------------- Create new Client -------------------------------\\
     Create_Client() {
       this.SubmitProcessing = true;
+      if (this.client.preferred_metals_array && this.client.preferred_metals_array.length > 0) {
+        this.client.preferred_metals = this.client.preferred_metals_array.join(', ');
+      } else {
+        this.client.preferred_metals = '';
+      }
+
       axios
         .post("clients", {
           firstname: this.client.firstname,
@@ -301,7 +363,11 @@ export default {
           adresse: this.client.adresse,
           is_royalty_eligible: this.client.is_royalty_eligible,
           opening_balance: parseFloat(this.client.opening_balance) || 0,
-          credit_limit: parseFloat(this.client.credit_limit) || 0
+          credit_limit: parseFloat(this.client.credit_limit) || 0,
+          ring_size: this.client.ring_size,
+          anniversary_date: this.client.anniversary_date,
+          preferred_metals: this.client.preferred_metals,
+          partner_customer_id: this.client.partner_customer_id,
         })
         .then(response => {
           const clientId = response.data.id || response.data.client?.id;
@@ -371,7 +437,20 @@ export default {
       is_royalty_eligible: "",
       opening_balance: 0,
       credit_limit: 0,
+      ring_size: "",
+      anniversary_date: "",
+      preferred_metals: "",
+      preferred_metals_array: [],
+      partner_customer_id: null,
     };
+
+    axios.get("get_clients_without_paginate").then(response => {
+      this.clients_list = response.data;
+    });
+
+    axios.get("get_metal_types_list").then(response => {
+      this.metals = response.data;
+    });
   }
 };
 </script>
