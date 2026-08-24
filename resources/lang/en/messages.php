@@ -905,4 +905,23 @@ return [
     'Default_ExploreCollection' => 'Explore the Collection',
     'Default_BookPrivateViewing' => 'Book a Private Viewing',
     'Default_StayInTouch' => 'Stay in Touch',
+
+    // --- Storefront theme translations (auto-merged) ---
+    'Default_HallmarkedGold' => '100% Hallmarked',
+    'Default_EveryPiece' => 'Gold, verified',
+    'Default_LifetimePolicy' => 'Lifetime Care',
+    'Default_PolishAndResize' => 'Free polish & resize',
+    'Default_NewArrivals' => 'New Arrivals',
+    'Default_FeaturedPieces' => 'Featured Pieces',
+    'Default_OurCraft' => 'Our Craft',
+    'Default_WhyChooseUs' => 'Why buy from us',
+    'Default_WhyChooseUsBody' => 'Every piece is weighed, hallmarked, and priced in front of you — no hidden making charges, no guesswork.',
+    'Default_TransparentPricing' => 'Transparent Pricing',
+    'Default_TransparentPricingBody' => 'Live metal rates, itemized making charges, and stone value shown separately on every invoice.',
+    'Default_CertifiedSourcing' => 'Certified Sourcing',
+    'Default_CertifiedSourcingBody' => 'Diamonds and colored stones ship with independent lab certificates, not just a store guarantee.',
+    'Default_FreeResizing' => 'Free Resizing',
+    'Default_FreeResizingBody' => 'One free resize within 60 days of delivery, plus discounted polishing for life.',
+    'Default_InsuredShipping' => 'Insured Shipping',
+    'Default_InsuredShippingBody' => 'Every order ships in tamper-evident, unmarked packaging, fully insured door to door.',
 ];

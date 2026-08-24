@@ -894,4 +894,23 @@ return [
     'Default_ExploreCollection' => 'কালেকশন দেখুন',
     'Default_BookPrivateViewing' => 'ব্যক্তিগত প্রদর্শনী বুক করুন',
     'Default_StayInTouch' => 'যোগাযোগ রাখুন',
+
+    // --- Storefront theme translations (auto-merged) ---
+    'Default_HallmarkedGold' => '১০০% হলমার্কযুক্ত',
+    'Default_EveryPiece' => 'যাচাইকৃত সোনা',
+    'Default_LifetimePolicy' => 'আজীবন যত্ন',
+    'Default_PolishAndResize' => 'ফ্রি পলিশ ও রিসাইজ',
+    'Default_NewArrivals' => 'নতুন সংযোজন',
+    'Default_FeaturedPieces' => 'বিশেষ অলংকার',
+    'Default_OurCraft' => 'আমাদের কারুশিল্প',
+    'Default_WhyChooseUs' => 'কেন আমাদের থেকে কিনবেন',
+    'Default_WhyChooseUsBody' => 'প্রতিটি অলংকার আপনার সামনে ওজন, হলমার্ক এবং মূল্য নির্ধারণ করা হয় — কোনো লুকানো মেকিং চার্জ নেই, অনুমান নেই।',
+    'Default_TransparentPricing' => 'স্বচ্ছ মূল্য নির্ধারণ',
+    'Default_TransparentPricingBody' => 'লাইভ ধাতুর দর, খাতভিত্তিক মেকিং চার্জ, এবং প্রতিটি চালানে পৃথকভাবে দেখানো পাথরের মূল্য।',
+    'Default_CertifiedSourcing' => 'সার্টিফাইড সোর্সিং',
+    'Default_CertifiedSourcingBody' => 'হীরা এবং রঙিন পাথর স্বাধীন ল্যাব সার্টিফিকেট সহ পাঠানো হয়, শুধু দোকানের গ্যারান্টি নয়।',
+    'Default_FreeResizing' => 'ফ্রি সাইজ পরিবর্তন',
+    'Default_FreeResizingBody' => 'ডেলিভারির ৬০ দিনের মধ্যে একটি ফ্রি সাইজ পরিবর্তন, সাথে আজীবন ছাড়ে পলিশিং।',
+    'Default_InsuredShipping' => 'বীমাকৃত শিপিং',
+    'Default_InsuredShippingBody' => 'প্রতিটি অর্ডার ট্যাম্পার-প্রুফ, চিহ্নবিহীন প্যাকেজিংয়ে পাঠানো হয়, সম্পূর্ণ বীমাকৃত দরজা থেকে দরজা পর্যন্ত।',
 ];

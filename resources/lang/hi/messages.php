@@ -894,4 +894,23 @@ return [
     'Default_ExploreCollection' => 'संग्रह देखें',
     'Default_BookPrivateViewing' => 'निजी अवलोकन बुक करें',
     'Default_StayInTouch' => 'संपर्क में रहें',
+
+    // --- Storefront theme translations (auto-merged) ---
+    'Default_HallmarkedGold' => '100% हॉलमार्क',
+    'Default_EveryPiece' => 'सत्यापित सोना',
+    'Default_LifetimePolicy' => 'आजीवन देखभाल',
+    'Default_PolishAndResize' => 'मुफ्त पॉलिश और आकार समायोजन',
+    'Default_NewArrivals' => 'नई आगमन',
+    'Default_FeaturedPieces' => 'विशेष आभूषण',
+    'Default_OurCraft' => 'हमारी कारीगरी',
+    'Default_WhyChooseUs' => 'हमसे क्यों खरीदें',
+    'Default_WhyChooseUsBody' => 'हर आभूषण आपके सामने तौला, हॉलमार्क किया और मूल्यांकित किया जाता है — कोई छिपा हुआ मेकिंग चार्ज नहीं, कोई अनुमान नहीं।',
+    'Default_TransparentPricing' => 'पारदर्शी मूल्य निर्धारण',
+    'Default_TransparentPricingBody' => 'लाइव धातु दरें, विस्तृत मेकिंग चार्ज, और हर बिल पर अलग से दिखाया गया रत्न मूल्य।',
+    'Default_CertifiedSourcing' => 'प्रमाणित सोर्सिंग',
+    'Default_CertifiedSourcingBody' => 'हीरे और रंगीन रत्न स्वतंत्र प्रयोगशाला प्रमाणपत्रों के साथ भेजे जाते हैं, केवल स्टोर की गारंटी नहीं।',
+    'Default_FreeResizing' => 'मुफ्त आकार समायोजन',
+    'Default_FreeResizingBody' => 'डिलीवरी के 60 दिनों के भीतर एक मुफ्त आकार समायोजन, साथ ही आजीवन रियायती पॉलिशिंग।',
+    'Default_InsuredShipping' => 'बीमित शिपिंग',
+    'Default_InsuredShippingBody' => 'हर ऑर्डर छेड़छाड़-रोधी, बिना पहचान वाली पैकेजिंग में भेजा जाता है, जो दरवाजे से दरवाजे तक पूरी तरह बीमित है।',
 ];

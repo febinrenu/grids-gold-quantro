@@ -899,4 +899,23 @@ return [
     'Default_ExploreCollection' => 'استكشف المجموعة',
     'Default_BookPrivateViewing' => 'احجز معاينة خاصة',
     'Default_StayInTouch' => 'ابق على تواصل',
+
+    // --- Storefront theme translations (auto-merged) ---
+    'Default_HallmarkedGold' => 'مختوم 100٪',
+    'Default_EveryPiece' => 'ذهب موثّق',
+    'Default_LifetimePolicy' => 'رعاية مدى الحياة',
+    'Default_PolishAndResize' => 'تلميع وتعديل مجاني',
+    'Default_NewArrivals' => 'وصل حديثًا',
+    'Default_FeaturedPieces' => 'قطع مميزة',
+    'Default_OurCraft' => 'حرفتنا',
+    'Default_WhyChooseUs' => 'لماذا تشتري منا',
+    'Default_WhyChooseUsBody' => 'يتم وزن كل قطعة وختمها وتسعيرها أمامك — بدون رسوم صنعة خفية وبدون تخمين.',
+    'Default_TransparentPricing' => 'تسعير شفاف',
+    'Default_TransparentPricingBody' => 'أسعار المعادن الحية، رسوم الصنعة التفصيلية، وقيمة الأحجار موضحة بشكل منفصل في كل فاتورة.',
+    'Default_CertifiedSourcing' => 'مصادر معتمدة',
+    'Default_CertifiedSourcingBody' => 'الألماس والأحجار الملونة تُشحن مع شهادات مختبر مستقلة، وليس فقط ضمان المتجر.',
+    'Default_FreeResizing' => 'تعديل مجاني للمقاس',
+    'Default_FreeResizingBody' => 'تعديل مجاني واحد للمقاس خلال 60 يومًا من التسليم، بالإضافة إلى تلميع بخصم مدى الحياة.',
+    'Default_InsuredShipping' => 'شحن مؤمَّن',
+    'Default_InsuredShippingBody' => 'يتم شحن كل طلب في تغليف غير مميز ومقاوم للعبث، ومؤمَّن بالكامل من الباب إلى الباب.',
 ];

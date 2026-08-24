@@ -35,7 +35,15 @@ __webpack_require__.r(__webpack_exports__);
       serials: [],
       warehouses: [],
       warehouse_id: "",
-      status: ""
+      status: "",
+      rfidModalOpen: false,
+      selectedSerial: null,
+      activeTagLoading: false,
+      activeEpc: null,
+      submittingRfid: false,
+      rfidForm: {
+        epc_number: ""
+      }
     };
   },
   computed: {
@@ -105,6 +113,84 @@ __webpack_require__.r(__webpack_exports__);
     }
   },
   methods: {
+    openRfidModal: function openRfidModal(serial) {
+      var _this = this;
+      this.selectedSerial = serial;
+      this.activeEpc = null;
+      this.rfidForm.epc_number = "";
+      this.rfidModalOpen = true;
+      this.activeTagLoading = true;
+
+      // Fetch active tag for this serial
+      axios.get("rfid-tags", {
+        params: {
+          product_serial_id: serial.id,
+          status: "active",
+          limit: 1
+        }
+      }).then(function (response) {
+        if (response.data.data && response.data.data.length > 0) {
+          _this.activeEpc = response.data.data[0].epc_number;
+        }
+        _this.activeTagLoading = false;
+        _this.$nextTick(function () {
+          if (_this.$refs.epcInput) {
+            _this.$refs.epcInput.focus();
+          }
+        });
+      })["catch"](function () {
+        _this.activeTagLoading = false;
+      });
+    },
+    assignRfid: function assignRfid() {
+      var _this2 = this;
+      if (!this.rfidForm.epc_number) return;
+      this.submittingRfid = true;
+      axios.post("rfid-tags/assign", {
+        product_serial_id: this.selectedSerial.id,
+        epc_number: this.rfidForm.epc_number
+      }).then(function (response) {
+        _this2.submittingRfid = false;
+        if (response.data.success) {
+          _this2.makeToast("success", response.data.message || "RFID Tag assigned successfully!");
+          _this2.rfidModalOpen = false;
+          _this2.loadItems(_this2.serverParams.page);
+        } else {
+          _this2.makeToast("danger", response.data.message || "Failed to assign RFID tag.");
+        }
+      })["catch"](function (error) {
+        _this2.submittingRfid = false;
+        var msg = error.response && error.response.data && error.response.data.message ? error.response.data.message : "Failed to assign RFID tag.";
+        _this2.makeToast("danger", msg);
+      });
+    },
+    unassignRfid: function unassignRfid() {
+      var _this3 = this;
+      this.activeTagLoading = true;
+      axios.post("rfid-tags/unassign", {
+        product_serial_id: this.selectedSerial.id
+      }).then(function (response) {
+        _this3.activeTagLoading = false;
+        if (response.data.success) {
+          _this3.makeToast("success", response.data.message || "RFID Tag unassigned successfully!");
+          _this3.activeEpc = null;
+          _this3.loadItems(_this3.serverParams.page);
+        } else {
+          _this3.makeToast("danger", response.data.message || "Failed to unassign RFID tag.");
+        }
+      })["catch"](function (error) {
+        _this3.activeTagLoading = false;
+        var msg = error.response && error.response.data && error.response.data.message ? error.response.data.message : "Failed to unassign RFID tag.";
+        _this3.makeToast("danger", msg);
+      });
+    },
+    makeToast: function makeToast(variant, msg, title) {
+      this.$bvToast.toast(msg, {
+        title: title || "RFID Tagging",
+        variant: variant,
+        solid: true
+      });
+    },
     statusLabel: function statusLabel(s) {
       return this.$t("Status_" + s) || s;
     },
@@ -159,7 +245,7 @@ __webpack_require__.r(__webpack_exports__);
       this.loadItems(1);
     },
     loadItems: function loadItems(page) {
-      var _this = this;
+      var _this4 = this;
       nprogress__WEBPACK_IMPORTED_MODULE_0___default().start();
       nprogress__WEBPACK_IMPORTED_MODULE_0___default().set(0.1);
       axios.get("serial_numbers", {
@@ -173,15 +259,15 @@ __webpack_require__.r(__webpack_exports__);
           limit: this.limit
         }
       }).then(function (response) {
-        _this.serials = response.data.serials;
-        _this.totalRows = response.data.totalRows;
-        if (response.data.warehouses) _this.warehouses = response.data.warehouses;
+        _this4.serials = response.data.serials;
+        _this4.totalRows = response.data.totalRows;
+        if (response.data.warehouses) _this4.warehouses = response.data.warehouses;
         nprogress__WEBPACK_IMPORTED_MODULE_0___default().done();
-        _this.isLoading = false;
+        _this4.isLoading = false;
       })["catch"](function () {
         nprogress__WEBPACK_IMPORTED_MODULE_0___default().done();
         setTimeout(function () {
-          _this.isLoading = false;
+          _this4.isLoading = false;
         }, 500);
       });
     }
@@ -262,9 +348,24 @@ var render = function render() {
           attrs: {
             name: "history"
           }
-        }), _vm._v(" " + _vm._s(_vm.$t("History") || "History"))], 1)], 1)], 1) : _c("span", [_vm._v(_vm._s(props.formattedRow[props.column.field]))])];
+        }), _vm._v(" " + _vm._s(_vm.$t("History") || "History"))], 1)], 1), _vm._v(" "), _c("b-button", {
+          staticClass: "ml-1",
+          attrs: {
+            size: "sm",
+            variant: "info"
+          },
+          on: {
+            click: function click($event) {
+              return _vm.openRfidModal(props.row);
+            }
+          }
+        }, [_c("lucide-icon", {
+          attrs: {
+            name: "tag"
+          }
+        }), _vm._v(" RFID\n          ")], 1)], 1) : _c("span", [_vm._v(_vm._s(props.formattedRow[props.column.field]))])];
       }
-    }], null, false, 1013080203)
+    }], null, false, 2892138213)
   }, [_c("div", {
     staticClass: "mt-2 mb-3",
     staticStyle: {
@@ -331,7 +432,86 @@ var render = function render() {
       },
       expression: "status"
     }
-  })], 1)], 1)])], 1) : _vm._e()], 1);
+  })], 1)], 1)])], 1) : _vm._e(), _vm._v(" "), _c("b-modal", {
+    attrs: {
+      id: "rfid-modal",
+      title: "RFID Tag Assignment",
+      "hide-footer": "",
+      size: "md"
+    },
+    model: {
+      value: _vm.rfidModalOpen,
+      callback: function callback($$v) {
+        _vm.rfidModalOpen = $$v;
+      },
+      expression: "rfidModalOpen"
+    }
+  }, [_vm.selectedSerial ? _c("div", [_c("div", {
+    staticClass: "mb-3 p-3 bg-light rounded"
+  }, [_c("strong", [_vm._v("Product:")]), _vm._v(" " + _vm._s(_vm.selectedSerial.product_name) + " "), _c("br"), _vm._v(" "), _c("strong", [_vm._v("Serial:")]), _vm._v(" " + _vm._s(_vm.selectedSerial.serial_number) + " "), _c("br"), _vm._v(" "), _c("strong", [_vm._v("Branch:")]), _vm._v(" " + _vm._s(_vm.selectedSerial.warehouse_name) + "\n      ")]), _vm._v(" "), _vm.activeTagLoading ? _c("div", {
+    staticClass: "text-center my-3"
+  }, [_c("div", {
+    staticClass: "spinner spinner-primary small"
+  })]) : _c("div", [_vm.activeEpc ? _c("div", {
+    staticClass: "alert alert-success d-flex justify-content-between align-items-center mb-3"
+  }, [_c("span", [_c("strong", [_vm._v("Active RFID Tag:")]), _vm._v(" "), _c("code", [_vm._v(_vm._s(_vm.activeEpc))])]), _vm._v(" "), _c("b-button", {
+    attrs: {
+      size: "sm",
+      variant: "danger"
+    },
+    on: {
+      click: _vm.unassignRfid
+    }
+  }, [_vm._v("Unassign")])], 1) : _c("div", {
+    staticClass: "alert alert-warning mb-3"
+  }, [_vm._v("\n          No active RFID tag assigned to this item.\n        ")]), _vm._v(" "), _c("b-form", {
+    on: {
+      submit: function submit($event) {
+        $event.preventDefault();
+        return _vm.assignRfid.apply(null, arguments);
+      }
+    }
+  }, [_c("b-form-group", {
+    attrs: {
+      label: "RFID EPC Code (Scan or Type)"
+    }
+  }, [_c("b-form-input", {
+    ref: "epcInput",
+    attrs: {
+      required: "",
+      placeholder: "Enter EPC Code (e.g. E28011052...)",
+      autofocus: ""
+    },
+    model: {
+      value: _vm.rfidForm.epc_number,
+      callback: function callback($$v) {
+        _vm.$set(_vm.rfidForm, "epc_number", $$v);
+      },
+      expression: "rfidForm.epc_number"
+    }
+  })], 1), _vm._v(" "), _c("div", {
+    staticClass: "text-right mt-3"
+  }, [_c("b-button", {
+    staticClass: "mr-2",
+    attrs: {
+      size: "sm",
+      variant: "secondary"
+    },
+    on: {
+      click: function click($event) {
+        _vm.rfidModalOpen = false;
+      }
+    }
+  }, [_vm._v("Close")]), _vm._v(" "), _c("b-button", {
+    attrs: {
+      size: "sm",
+      variant: "success",
+      type: "submit",
+      disabled: _vm.submittingRfid
+    }
+  }, [_vm.submittingRfid ? _c("span", {
+    staticClass: "spinner spinner-primary small mr-1"
+  }) : _vm._e(), _vm._v("\n              Assign Tag\n            ")])], 1)], 1)], 1)]) : _vm._e()])], 1);
 };
 var staticRenderFns = [];
 render._withStripped = true;

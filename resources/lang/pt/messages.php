@@ -824,4 +824,23 @@ return [
     'Default_ExploreCollection' => 'Explorar a Coleção',
     'Default_BookPrivateViewing' => 'Agendar uma Visita Privada',
     'Default_StayInTouch' => 'Fique em Contato',
+
+    // --- Storefront theme translations (auto-merged) ---
+    'Default_HallmarkedGold' => '100% Contrastado',
+    'Default_EveryPiece' => 'Ouro verificado',
+    'Default_LifetimePolicy' => 'Cuidado Vitalício',
+    'Default_PolishAndResize' => 'Polimento e ajuste grátis',
+    'Default_NewArrivals' => 'Novidades',
+    'Default_FeaturedPieces' => 'Peças em Destaque',
+    'Default_OurCraft' => 'Nosso Ofício',
+    'Default_WhyChooseUs' => 'Por que comprar conosco',
+    'Default_WhyChooseUsBody' => 'Cada peça é pesada, contrastada e precificada na sua frente — sem taxas de fabricação ocultas, sem suposições.',
+    'Default_TransparentPricing' => 'Preços Transparentes',
+    'Default_TransparentPricingBody' => 'Cotações de metal em tempo real, taxas de fabricação detalhadas e valor das pedras mostrados separadamente em cada fatura.',
+    'Default_CertifiedSourcing' => 'Fornecimento Certificado',
+    'Default_CertifiedSourcingBody' => 'Diamantes e pedras coloridas são enviados com certificados de laboratório independentes, não apenas uma garantia da loja.',
+    'Default_FreeResizing' => 'Ajuste de Tamanho Grátis',
+    'Default_FreeResizingBody' => 'Um ajuste de tamanho grátis em até 60 dias após a entrega, além de polimento com desconto vitalício.',
+    'Default_InsuredShipping' => 'Envio Segurado',
+    'Default_InsuredShippingBody' => 'Cada pedido é enviado em embalagem neutra e inviolável, totalmente segurado de porta a porta.',
 ];

@@ -1950,6 +1950,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
       // preferred layout survives a reload.
       cartAsideWidth: 600,
       cartAsideResizing: false,
+      rfid_pos_input: "",
       // ===== Mobile UI state (drives the phone layout) =====
       mobileActiveTab: 'home',
       // home | cart | hold | recent | more
@@ -3023,6 +3024,74 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
     } else {
       this.makeToast("warning", this.$t("Please_wait_until_the_product_is_loaded"), this.$t("Warning"));
     }
+  },
+  onPosRfidScan: function onPosRfidScan() {
+    var epc = this.rfid_pos_input.trim();
+    if (!epc) return;
+    this.rfid_pos_input = "";
+    this.addRfidItemToCart(epc);
+  },
+  addRfidItemToCart: function addRfidItemToCart(epc) {
+    var _this12 = this;
+    if (!this.sale.warehouse_id) {
+      this.makeToast("warning", "Please select a warehouse before scanning RFID items.", "Warning");
+      return;
+    }
+    nprogress__WEBPACK_IMPORTED_MODULE_0___default().start();
+    axios.get("pos/rfid-add", {
+      params: {
+        epc: epc,
+        warehouse_id: this.sale.warehouse_id
+      }
+    }).then(function (response) {
+      nprogress__WEBPACK_IMPORTED_MODULE_0___default().done();
+      if (response.data.success) {
+        var product = response.data.product;
+
+        // Mimics SearchProduct logic by calling Get_Product_Details directly
+        if (_this12.load_product) {
+          _this12.load_product = false;
+          _this12.product = {};
+          _this12.product.code = product.code;
+          _this12.product.current = product.qte_sale;
+          _this12.product.fix_stock = product.qte;
+          _this12.product.quantity = 1;
+          _this12.product.product_variant_id = product.product_variant_id;
+          _this12.Get_Product_Details(product.id, product.product_variant_id, product);
+          _this12.makeToast("success", "Added '".concat(product.name, "' via RFID!"));
+        } else {
+          _this12.makeToast("warning", _this12.$t("Please_wait_until_the_product_is_loaded"), _this12.$t("Warning"));
+        }
+      } else {
+        _this12.makeToast("danger", response.data.message || "Failed to add RFID item.");
+      }
+    })["catch"](function (error) {
+      nprogress__WEBPACK_IMPORTED_MODULE_0___default().done();
+      var msg = error.response && error.response.data && error.response.data.message ? error.response.data.message : "Failed to add RFID item.";
+      _this12.makeToast("danger", msg);
+    });
+  },
+  triggerMockRfidScan: function triggerMockRfidScan() {
+    var _this13 = this;
+    nprogress__WEBPACK_IMPORTED_MODULE_0___default().start();
+    axios.get("rfid-tags", {
+      params: {
+        status: "active",
+        limit: 100
+      }
+    }).then(function (response) {
+      nprogress__WEBPACK_IMPORTED_MODULE_0___default().done();
+      var tags = response.data.data;
+      if (tags && tags.length > 0) {
+        // Trigger scan using the first active tag
+        var mockEpc = tags[0].epc_number;
+        _this13.addRfidItemToCart(mockEpc);
+      } else {
+        _this13.makeToast("warning", "No active RFID tags found in the database to mock-scan.");
+      }
+    })["catch"](function () {
+      nprogress__WEBPACK_IMPORTED_MODULE_0___default().done();
+    });
   }
 }, (0,vuex__WEBPACK_IMPORTED_MODULE_1__.mapActions)(["changeSidebarProperties", "changeThemeMode", "logout"])), {}, (_objectSpread2 = {
   // ... All methods from old_pos will be injected here
@@ -3077,7 +3146,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
     line.amount = parseFloat(s);
   },
   Selected_PaymentMethod: function Selected_PaymentMethod(value) {
-    var _this12 = this;
+    var _this14 = this;
     return _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee6() {
       return _regenerator().w(function (_context6) {
         while (1) switch (_context6.n) {
@@ -3086,38 +3155,38 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
               _context6.n = 2;
               break;
             }
-            _this12.savedPaymentMethods = [];
-            _this12.submit_showing_credit_card = true;
-            _this12.selectedCard = null;
-            _this12.card_id = '';
+            _this14.savedPaymentMethods = [];
+            _this14.submit_showing_credit_card = true;
+            _this14.selectedCard = null;
+            _this14.card_id = '';
             // Check if the customer has saved payment methods
             _context6.n = 1;
-            return axios.get("/retrieve-customer?customerId=".concat(_this12.selectedClientId)).then(function (response) {
+            return axios.get("/retrieve-customer?customerId=".concat(_this14.selectedClientId)).then(function (response) {
               // If the customer has saved payment methods, display them
-              _this12.savedPaymentMethods = response.data.data;
-              _this12.card_id = response.data.customer_default_source;
-              _this12.hasSavedPaymentMethod = true;
-              _this12.useSavedPaymentMethod = true;
-              _this12.is_new_credit_card = false;
-              _this12.submit_showing_credit_card = false;
+              _this14.savedPaymentMethods = response.data.data;
+              _this14.card_id = response.data.customer_default_source;
+              _this14.hasSavedPaymentMethod = true;
+              _this14.useSavedPaymentMethod = true;
+              _this14.is_new_credit_card = false;
+              _this14.submit_showing_credit_card = false;
             })["catch"](function (error) {
               // If the customer does not have saved payment methods, show the card element for them to enter their payment information
-              _this12.hasSavedPaymentMethod = false;
-              _this12.useSavedPaymentMethod = false;
-              _this12.is_new_credit_card = true;
-              _this12.card_id = '';
+              _this14.hasSavedPaymentMethod = false;
+              _this14.useSavedPaymentMethod = false;
+              _this14.is_new_credit_card = true;
+              _this14.card_id = '';
               setTimeout(function () {
-                _this12.loadStripe_payment();
+                _this14.loadStripe_payment();
               }, 1000);
-              _this12.submit_showing_credit_card = false;
+              _this14.submit_showing_credit_card = false;
             });
           case 1:
             _context6.n = 3;
             break;
           case 2:
-            _this12.hasSavedPaymentMethod = false;
-            _this12.useSavedPaymentMethod = false;
-            _this12.is_new_credit_card = false;
+            _this14.hasSavedPaymentMethod = false;
+            _this14.useSavedPaymentMethod = false;
+            _this14.is_new_credit_card = false;
           case 3:
             return _context6.a(2);
         }
@@ -3131,14 +3200,14 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
     this.Selected_PaymentMethod(1);
   },
   show_new_credit_card: function show_new_credit_card() {
-    var _this13 = this;
+    var _this15 = this;
     this.selectedCard = null;
     this.card_id = '';
     this.useSavedPaymentMethod = false;
     this.hasSavedPaymentMethod = false;
     this.is_new_credit_card = true;
     setTimeout(function () {
-      _this13.loadStripe_payment();
+      _this15.loadStripe_payment();
     }, 500);
   },
   selectCard: function selectCard(card) {
@@ -3146,23 +3215,23 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
     this.card_id = card.card_id;
   },
   loadStripe_payment: function loadStripe_payment() {
-    var _this14 = this;
+    var _this16 = this;
     return _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee7() {
       var elements;
       return _regenerator().w(function (_context7) {
         while (1) switch (_context7.n) {
           case 0:
             _context7.n = 1;
-            return (0,_stripe_stripe_js__WEBPACK_IMPORTED_MODULE_7__.loadStripe)("".concat(_this14.stripe_key));
+            return (0,_stripe_stripe_js__WEBPACK_IMPORTED_MODULE_7__.loadStripe)("".concat(_this16.stripe_key));
           case 1:
-            _this14.stripe = _context7.v;
-            elements = _this14.stripe.elements();
-            _this14.cardElement = elements.create("card", {
+            _this16.stripe = _context7.v;
+            elements = _this16.stripe.elements();
+            _this16.cardElement = elements.create("card", {
               classes: {
                 base: "bg-gray-100 rounded border border-gray-300 focus:border-indigo-500 text-base outline-none text-gray-700 p-3 leading-8 transition-colors duration-200 ease-in-out"
               }
             });
-            _this14.cardElement.mount("#card-element");
+            _this16.cardElement.mount("#card-element");
           case 2:
             return _context7.a(2);
         }
@@ -3170,16 +3239,16 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
     }))();
   },
   SetLocal: function SetLocal(locale) {
-    var _this15 = this;
+    var _this17 = this;
     return _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee8() {
       return _regenerator().w(function (_context8) {
         while (1) switch (_context8.n) {
           case 0:
-            _this15.$i18n.locale = locale;
+            _this17.$i18n.locale = locale;
             // Await so the locale cookie (sync-locale) is written before the reload
             // aborts in-flight requests. setLanguage swallows its own errors.
             _context8.n = 1;
-            return _this15.$store.dispatch("setLanguage", locale);
+            return _this17.$store.dispatch("setLanguage", locale);
           case 1:
             Fire.$emit("ChangeLanguage");
             window.location.reload();
@@ -3294,7 +3363,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
   }
   return true;
 }), "Create_Draft", function Create_Draft() {
-  var _this16 = this;
+  var _this18 = this;
   nprogress__WEBPACK_IMPORTED_MODULE_0___default().start();
   nprogress__WEBPACK_IMPORTED_MODULE_0___default().set(0.1);
   this.DraftProcessing = true;
@@ -3313,15 +3382,15 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
     GrandTotal: this.GrandTotal
   }).then(function (response) {
     if (response.data.success === true) {
-      _this16.makeToast("success", _this16.$t("Draft_Created_successfully"), _this16.$t("Success"));
+      _this18.makeToast("success", _this18.$t("Draft_Created_successfully"), _this18.$t("Success"));
       nprogress__WEBPACK_IMPORTED_MODULE_0___default().done();
-      _this16.DraftProcessing = false;
-      _this16.Reset_Pos();
+      _this18.DraftProcessing = false;
+      _this18.Reset_Pos();
     }
   })["catch"](function (error) {
     nprogress__WEBPACK_IMPORTED_MODULE_0___default().done();
-    _this16.DraftProcessing = false;
-    _this16.makeToast("danger", _this16.$t("InvalidData"), _this16.$t("Failed"));
+    _this18.DraftProcessing = false;
+    _this18.makeToast("danger", _this18.$t("InvalidData"), _this18.$t("Failed"));
   });
 }), "Submit_Payment", function Submit_Payment() {
   nprogress__WEBPACK_IMPORTED_MODULE_0___default().start();
@@ -3336,7 +3405,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
   }
   this.CreatePOS();
 }), "CreatePOS", function CreatePOS() {
-  var _this17 = this;
+  var _this19 = this;
   nprogress__WEBPACK_IMPORTED_MODULE_0___default().start();
   nprogress__WEBPACK_IMPORTED_MODULE_0___default().set(0.1);
   if (this.paymentLines.length > 1 && this.totalPaid > this.GrandTotal) {
@@ -3364,7 +3433,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
     }
   }
   var anyNewCard = this.paymentLines.some(function (p) {
-    return (p.payment_method_id === '1' || p.payment_method_id === 1) && _this17.is_new_credit_card;
+    return (p.payment_method_id === '1' || p.payment_method_id === 1) && _this19.is_new_credit_card;
   });
   if (anyNewCard) {
     if (this.stripe_key !== '') {
@@ -3401,20 +3470,20 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
     }).then(function (response) {
       if (response.data.success === true) {
         nprogress__WEBPACK_IMPORTED_MODULE_0___default().done();
-        _this17.paymentProcessing = false;
+        _this19.paymentProcessing = false;
         var saleId = response.data.id;
-        var draftId = _this17.draft_sale_id;
+        var draftId = _this19.draft_sale_id;
         // Patch in-memory stock with the server-authoritative values
         // for the items we just sold so the grid updates without a
         // full product reload.
         try {
-          _this17.applyStockUpdate(response.data.updated_stock, response.data.server_time);
+          _this19.applyStockUpdate(response.data.updated_stock, response.data.server_time);
         } catch (e) {}
         var afterCleanup = function afterCleanup() {
-          _this17.last_sale_id = saleId;
-          _this17.Invoice_POS(saleId);
-          _this17.$bvModal.hide("Add_Payment");
-          _this17.Reset_Pos();
+          _this19.last_sale_id = saleId;
+          _this19.Invoice_POS(saleId);
+          _this19.$bvModal.hide("Add_Payment");
+          _this19.Reset_Pos();
         };
         if (draftId) {
           axios["delete"]("remove_draft_sale/" + draftId).then(function () {
@@ -3422,7 +3491,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
               Fire.$emit("event_delete_draft_sale");
             } catch (e) {}
           })["catch"](function () {})["finally"](function () {
-            _this17.draft_sale_id = '';
+            _this19.draft_sale_id = '';
             afterCleanup();
           });
         } else {
@@ -3431,37 +3500,37 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
       }
     })["catch"](function (error) {
       nprogress__WEBPACK_IMPORTED_MODULE_0___default().done();
-      _this17.paymentProcessing = false;
-      _this17.makeToast("danger", _this17.$t("InvalidData"), _this17.$t("Failed"));
+      _this19.paymentProcessing = false;
+      _this19.makeToast("danger", _this19.$t("InvalidData"), _this19.$t("Failed"));
     });
   }
 }), _defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_objectSpread2, "processPayment", function processPayment() {
-  var _this18 = this;
+  var _this20 = this;
   return _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee9() {
-    var _yield$_this18$stripe, paymentMethod, error, paymentsWithMethod;
+    var _yield$_this20$stripe, paymentMethod, error, paymentsWithMethod;
     return _regenerator().w(function (_context9) {
       while (1) switch (_context9.n) {
         case 0:
-          _this18.paymentProcessing = true;
+          _this20.paymentProcessing = true;
           _context9.n = 1;
-          return _this18.stripe.createPaymentMethod({
+          return _this20.stripe.createPaymentMethod({
             type: "card",
-            card: _this18.cardElement,
+            card: _this20.cardElement,
             billing_details: {
-              name: _this18.client_name || ""
+              name: _this20.client_name || ""
             }
           });
         case 1:
-          _yield$_this18$stripe = _context9.v;
-          paymentMethod = _yield$_this18$stripe.paymentMethod;
-          error = _yield$_this18$stripe.error;
+          _yield$_this20$stripe = _context9.v;
+          paymentMethod = _yield$_this20$stripe.paymentMethod;
+          error = _yield$_this20$stripe.error;
           if (error) {
-            _this18.paymentProcessing = false;
+            _this20.paymentProcessing = false;
             nprogress__WEBPACK_IMPORTED_MODULE_0___default().done();
-            _this18.makeToast("danger", _this18.$t("InvalidData"), _this18.$t("Failed"));
+            _this20.makeToast("danger", _this20.$t("InvalidData"), _this20.$t("Failed"));
           } else {
             // Attach the Stripe Payment Method ID (pm_...) to all credit‑card lines
-            paymentsWithMethod = _this18.paymentLines.map(function (p) {
+            paymentsWithMethod = _this20.paymentLines.map(function (p) {
               if (p.payment_method_id === "1" || p.payment_method_id === 1) {
                 return _objectSpread(_objectSpread({}, p), {}, {
                   payment_method_id_stripe: paymentMethod.id
@@ -3470,40 +3539,40 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
               return p;
             });
             axios.post("pos/create_pos", {
-              client_id: _this18.selectedClientId,
-              warehouse_id: _this18.sale.warehouse_id,
-              tax_rate: _this18.sale.tax_rate ? _this18.sale.tax_rate : 0,
-              TaxNet: _this18.sale.TaxNet ? _this18.sale.TaxNet : 0,
-              discount: _this18.sale.discount ? _this18.sale.discount : 0,
-              shipping: _this18.sale.shipping ? _this18.sale.shipping : 0,
-              details: _this18.buildSubmitDetails(),
-              GrandTotal: _this18.GrandTotal,
-              notes: _this18.sale.notes,
+              client_id: _this20.selectedClientId,
+              warehouse_id: _this20.sale.warehouse_id,
+              tax_rate: _this20.sale.tax_rate ? _this20.sale.tax_rate : 0,
+              TaxNet: _this20.sale.TaxNet ? _this20.sale.TaxNet : 0,
+              discount: _this20.sale.discount ? _this20.sale.discount : 0,
+              shipping: _this20.sale.shipping ? _this20.sale.shipping : 0,
+              details: _this20.buildSubmitDetails(),
+              GrandTotal: _this20.GrandTotal,
+              notes: _this20.sale.notes,
               payments: paymentsWithMethod,
-              send_email: _this18.sendEmail,
-              send_sms: _this18.sendSMS,
-              account_id: _this18.selectedAccount,
-              payment_note: _this18.globalPaymentNote || "",
-              is_new_credit_card: _this18.is_new_credit_card,
-              selectedCard: _this18.selectedCard,
-              card_id: _this18.card_id,
-              discount_from_points: _this18.discount_from_points,
-              used_points: _this18.used_points,
-              draft_sale_id: _this18.draft_sale_id || undefined
+              send_email: _this20.sendEmail,
+              send_sms: _this20.sendSMS,
+              account_id: _this20.selectedAccount,
+              payment_note: _this20.globalPaymentNote || "",
+              is_new_credit_card: _this20.is_new_credit_card,
+              selectedCard: _this20.selectedCard,
+              card_id: _this20.card_id,
+              discount_from_points: _this20.discount_from_points,
+              used_points: _this20.used_points,
+              draft_sale_id: _this20.draft_sale_id || undefined
             }).then(function (response) {
-              _this18.paymentProcessing = false;
+              _this20.paymentProcessing = false;
               if (response.data.success === true) {
                 nprogress__WEBPACK_IMPORTED_MODULE_0___default().done();
                 var saleId = response.data.id;
-                var draftId = _this18.draft_sale_id;
+                var draftId = _this20.draft_sale_id;
                 try {
-                  _this18.applyStockUpdate(response.data.updated_stock, response.data.server_time);
+                  _this20.applyStockUpdate(response.data.updated_stock, response.data.server_time);
                 } catch (e) {}
                 var afterCleanup = function afterCleanup() {
-                  _this18.last_sale_id = saleId;
-                  _this18.Invoice_POS(saleId);
-                  _this18.$bvModal.hide("Add_Payment");
-                  _this18.Reset_Pos();
+                  _this20.last_sale_id = saleId;
+                  _this20.Invoice_POS(saleId);
+                  _this20.$bvModal.hide("Add_Payment");
+                  _this20.Reset_Pos();
                 };
                 if (draftId) {
                   axios["delete"]("remove_draft_sale/" + draftId).then(function () {
@@ -3511,7 +3580,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
                       Fire.$emit("event_delete_draft_sale");
                     } catch (e) {}
                   })["catch"](function () {})["finally"](function () {
-                    _this18.draft_sale_id = "";
+                    _this20.draft_sale_id = "";
                     afterCleanup();
                   });
                 } else {
@@ -3519,9 +3588,9 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
                 }
               }
             })["catch"](function (error) {
-              _this18.paymentProcessing = false;
+              _this20.paymentProcessing = false;
               nprogress__WEBPACK_IMPORTED_MODULE_0___default().done();
-              _this18.makeToast("danger", _this18.$t("InvalidData"), _this18.$t("Failed"));
+              _this20.makeToast("danger", _this20.$t("InvalidData"), _this20.$t("Failed"));
             });
           }
         case 2:
@@ -3669,81 +3738,81 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
   }
 }), "Get_Product_Details", function Get_Product_Details(product_id, variant_id) {
   var _arguments = arguments,
-    _this19 = this;
+    _this21 = this;
   return _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee10() {
     var sourceProduct, warehouseId, applyDetail, reallyOffline, buildDetailFromSource, loadFromOfflineCacheOrSource, loaded, fromSourceOnline;
     return _regenerator().w(function (_context10) {
       while (1) switch (_context10.n) {
         case 0:
           sourceProduct = _arguments.length > 2 && _arguments[2] !== undefined ? _arguments[2] : null;
-          warehouseId = _this19.sale && _this19.sale.warehouse_id ? _this19.sale.warehouse_id : null;
+          warehouseId = _this21.sale && _this21.sale.warehouse_id ? _this21.sale.warehouse_id : null;
           applyDetail = function applyDetail(data) {
             if (!data) return;
-            _this19.product.discount = data.discount;
-            _this19.product.DiscountNet = data.DiscountNet;
-            _this19.product.discount_Method = data.discount_method;
-            _this19.product.product_id = data.id;
-            _this19.product.product_type = data.product_type;
-            _this19.product.name = data.name;
-            _this19.product.Net_price = data.Net_price;
-            _this19.product.Total_price = data.Total_price;
-            _this19.product.Unit_price = data.Unit_price;
-            _this19.product.Unit_price_wholesale = data.Unit_price_wholesale;
-            _this19.product.wholesale_Net_price = data.wholesale_Net_price;
-            _this19.product.min_price = data.min_price || 0;
-            _this19.product.retail_unit_price = data.Unit_price;
-            _this19.product.wholesale_unit_price = data.Unit_price_wholesale;
-            _this19.product.price_type = 'retail';
-            _this19.product.taxe = data.tax_price;
-            _this19.product.tax_method = data.tax_method;
-            _this19.product.tax_percent = data.tax_percent;
-            _this19.product.unitSale = data.unitSale;
-            _this19.product.product_variant_id = variant_id;
-            _this19.product.code = data.code;
-            _this19.product.fix_price = data.fix_price;
-            _this19.product.sale_unit_id = data.sale_unit_id;
-            _this19.product.is_imei = data.is_imei;
-            _this19.product.imei_number = '';
-            _this19.product.serial_numbers = [];
-            _this19.product.is_batch_tracked = !!data.is_batch_tracked;
-            _this19.product.image = data.image;
+            _this21.product.discount = data.discount;
+            _this21.product.DiscountNet = data.DiscountNet;
+            _this21.product.discount_Method = data.discount_method;
+            _this21.product.product_id = data.id;
+            _this21.product.product_type = data.product_type;
+            _this21.product.name = data.name;
+            _this21.product.Net_price = data.Net_price;
+            _this21.product.Total_price = data.Total_price;
+            _this21.product.Unit_price = data.Unit_price;
+            _this21.product.Unit_price_wholesale = data.Unit_price_wholesale;
+            _this21.product.wholesale_Net_price = data.wholesale_Net_price;
+            _this21.product.min_price = data.min_price || 0;
+            _this21.product.retail_unit_price = data.Unit_price;
+            _this21.product.wholesale_unit_price = data.Unit_price_wholesale;
+            _this21.product.price_type = 'retail';
+            _this21.product.taxe = data.tax_price;
+            _this21.product.tax_method = data.tax_method;
+            _this21.product.tax_percent = data.tax_percent;
+            _this21.product.unitSale = data.unitSale;
+            _this21.product.product_variant_id = variant_id;
+            _this21.product.code = data.code;
+            _this21.product.fix_price = data.fix_price;
+            _this21.product.sale_unit_id = data.sale_unit_id;
+            _this21.product.is_imei = data.is_imei;
+            _this21.product.imei_number = '';
+            _this21.product.serial_numbers = data.scanned_serial_number ? [data.scanned_serial_number] : [];
+            _this21.product.is_batch_tracked = !!data.is_batch_tracked;
+            _this21.product.image = data.image;
 
             // Jewelry: carry the precomputed breakdown (gold rate, weight, making
             // charge, wastage, stone value...) from the product row onto the cart
             // line so it can be shown before the sale is completed. Never
             // recalculated here — this is exactly what CreatePOS will persist.
-            _this19.product.is_jewelry_item = !!data.is_jewelry_item;
-            _this19.product.metal_type = data.metal_type || '';
-            _this19.product.karat = data.karat || '';
-            _this19.product.jewelry_gross_weight = data.jewelry_gross_weight;
-            _this19.product.jewelry_weight_uom = data.jewelry_weight_uom || 'g';
-            _this19.product.stone_summary = data.stone_summary || '';
-            _this19.product.jewelry_pricing_breakdown = data.jewelry_pricing_breakdown || null;
+            _this21.product.is_jewelry_item = !!data.is_jewelry_item;
+            _this21.product.metal_type = data.metal_type || '';
+            _this21.product.karat = data.karat || '';
+            _this21.product.jewelry_gross_weight = data.jewelry_gross_weight;
+            _this21.product.jewelry_weight_uom = data.jewelry_weight_uom || 'g';
+            _this21.product.stone_summary = data.stone_summary || '';
+            _this21.product.jewelry_pricing_breakdown = data.jewelry_pricing_breakdown || null;
 
             // Multi-Pack Selling: carry packs + pre-select the default pack so the
             // cart line (cloned from this.product) can render the pack picker.
-            _this19.product.packs = Array.isArray(data.packs) ? data.packs : [];
-            var _defPack = _this19.product.packs.find(function (p) {
+            _this21.product.packs = Array.isArray(data.packs) ? data.packs : [];
+            var _defPack = _this21.product.packs.find(function (p) {
               return p.is_default;
             }) || null;
-            _this19.product.product_pack_id = _defPack ? _defPack.id : null;
-            _this19.product.pack_multiplier = 1;
-            _this19.product.pack_name = _defPack ? _defPack.name : null;
+            _this21.product.product_pack_id = _defPack ? _defPack.id : null;
+            _this21.product.pack_multiplier = 1;
+            _this21.product.pack_name = _defPack ? _defPack.name : null;
 
             // Set current stock quantity from warehouse data (already adjusted for shadow stock if applied below)
-            _this19.product.current = data.qte_sale || 0;
-            _this19.product.fix_stock = data.qte || 0;
+            _this21.product.current = data.qte_sale || 0;
+            _this21.product.fix_stock = data.qte || 0;
 
             // Ensure a valid default quantity when adding directly from the grid
-            if (_this19.product.product_type === 'is_service') {
-              _this19.product.quantity = 1;
-            } else if (_this19.product.quantity === undefined || _this19.product.quantity === null || _this19.product.quantity <= 0) {
-              _this19.product.quantity = _this19.product.current < 1 ? _this19.product.current : 1;
+            if (_this21.product.product_type === 'is_service') {
+              _this21.product.quantity = 1;
+            } else if (_this21.product.quantity === undefined || _this21.product.quantity === null || _this21.product.quantity <= 0) {
+              _this21.product.quantity = _this21.product.current < 1 ? _this21.product.current : 1;
             }
-            _this19.add_product(data.code);
-            _this19.CalculTotal();
+            _this21.add_product(data.code);
+            _this21.CalculTotal();
           };
-          reallyOffline = _this19.offlineSyncEnabled && (!_this19.isOnline || typeof window !== 'undefined' && window.navigator && window.navigator.onLine === false); // Helper: build a detail object from a sourceProduct row that came
+          reallyOffline = _this21.offlineSyncEnabled && (!_this21.isOnline || typeof window !== 'undefined' && window.navigator && window.navigator.onLine === false); // Helper: build a detail object from a sourceProduct row that came
           // directly from the backend (get_products_pos). This is used in BOTH
           // online and offline modes, but in online mode we *only* use this and
           // do not read from any offline cache.
@@ -3818,16 +3887,16 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
                   // Tax exclusive
                   var net = unitPrice - detail.DiscountNet;
                   var taxe = (unitPrice - detail.DiscountNet) * (taxPercent / 100);
-                  detail.Net_price = parseFloat(net.toFixed(_this19.priceDecimals));
-                  detail.taxe = parseFloat(taxe.toFixed(_this19.priceDecimals));
-                  detail.Total_price = parseFloat((net + taxe).toFixed(_this19.priceDecimals));
+                  detail.Net_price = parseFloat(net.toFixed(_this21.priceDecimals));
+                  detail.taxe = parseFloat(taxe.toFixed(_this21.priceDecimals));
+                  detail.Total_price = parseFloat((net + taxe).toFixed(_this21.priceDecimals));
                 } else {
                   // Tax inclusive
                   var _taxe = (unitPrice - detail.DiscountNet) * (taxPercent / 100);
                   var _net = unitPrice - _taxe - detail.DiscountNet;
-                  detail.taxe = parseFloat(_taxe.toFixed(_this19.priceDecimals));
-                  detail.Net_price = parseFloat(_net.toFixed(_this19.priceDecimals));
-                  detail.Total_price = parseFloat((_net + _taxe).toFixed(_this19.priceDecimals));
+                  detail.taxe = parseFloat(_taxe.toFixed(_this21.priceDecimals));
+                  detail.Net_price = parseFloat(_net.toFixed(_this21.priceDecimals));
+                  detail.Total_price = parseFloat((_net + _taxe).toFixed(_this21.priceDecimals));
                 }
               }
             } catch (e2) {}
@@ -3919,7 +3988,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
         case 1:
           loaded = _context10.v;
           if (!loaded) {
-            _this19.makeToast("danger", _this19.$t("InvalidData"), _this19.$t("Failed"));
+            _this21.makeToast("danger", _this21.$t("InvalidData"), _this21.$t("Failed"));
             nprogress__WEBPACK_IMPORTED_MODULE_0___default().done();
           }
           return _context10.a(2, Promise.resolve());
@@ -3964,14 +4033,14 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
               return _ref4.apply(this, arguments);
             };
           }())["catch"](function () {
-            _this19.makeToast("danger", _this19.$t("InvalidData"), _this19.$t("Failed"));
+            _this21.makeToast("danger", _this21.$t("InvalidData"), _this21.$t("Failed"));
             nprogress__WEBPACK_IMPORTED_MODULE_0___default().done();
           }));
       }
     }, _callee10);
   }))();
 }), "add_product", function add_product(code) {
-  var _this20 = this;
+  var _this22 = this;
   // Play sound only if barcode scanning sound is enabled
   if (this.pos_settings.barcode_scanning_sound) {
     this.audio.play();
@@ -3984,19 +4053,23 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
     var rowHasId = d.product_id !== undefined && d.product_id !== null;
     // Prefer strict match by ids when both sides have ids
     if (hasProductIds && rowHasId) {
-      return d.product_id === _this20.product.product_id && dVariant === targetVariantId && d.sale_unit_id === _this20.product.sale_unit_id;
+      return d.product_id === _this22.product.product_id && dVariant === targetVariantId && d.sale_unit_id === _this22.product.sale_unit_id;
     }
     // Fallback to matching by code + unit when ids are not available
-    return d.code === _this20.product.code && d.sale_unit_id === _this20.product.sale_unit_id;
+    return d.code === _this22.product.code && d.sale_unit_id === _this22.product.sale_unit_id;
   });
   if (existingIndex !== -1) {
     var row = this.details[existingIndex];
     var addQty = typeof this.product.quantity === 'number' && this.product.quantity > 0 ? this.product.quantity : 1;
-    if (row.product_type !== 'is_service') {
+    if (row.is_imei && this.product.serial_numbers && this.product.serial_numbers.length > 0) {
+      var serialToAppend = this.product.serial_numbers[0];
+      if (!row.serial_numbers.includes(serialToAppend)) {
+        row.serial_numbers.push(serialToAppend);
+      }
+      row.quantity = row.serial_numbers.length;
+    } else if (row.product_type !== 'is_service') {
       var desiredQty = row.quantity + addQty;
       var _mult = Number(row.pack_multiplier) || 1;
-      // Stock guard skipped when overselling is allowed: cart can grow past available stock.
-      // For packs the guard is in base units: desiredQty × pack_multiplier.
       if (!this.isOversellingAllowed && desiredQty * _mult > row.current) {
         this.makeToast("warning", this.$t("LowStock"), this.$t("Warning"));
         row.quantity = _mult > 1 ? Math.floor(row.current / _mult) : row.current;
@@ -4009,7 +4082,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
     this.CalculTotal();
     this.$forceUpdate();
     setTimeout(function () {
-      _this20.load_product = true;
+      _this22.load_product = true;
     }, 300);
     return;
   }
@@ -4088,7 +4161,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
   } catch (e) {}
   this.details.unshift(newItem);
   setTimeout(function () {
-    _this20.load_product = true;
+    _this22.load_product = true;
   }, 300);
   // Serial / IMEI numbers are selected inline in the cart (serial panel).
   // Pharmacy: fetch available batches for the just-added line if it's batch-tracked.
@@ -4107,7 +4180,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
   }
   this.product.detail_id = id + 1;
 }), "increment_qty_scanner", function increment_qty_scanner(code) {
-  var _this21 = this;
+  var _this23 = this;
   // Play sound only if barcode scanning sound is enabled
   if (this.pos_settings.barcode_scanning_sound) {
     this.audio.play();
@@ -4125,7 +4198,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
   this.$forceUpdate();
   nprogress__WEBPACK_IMPORTED_MODULE_0___default().done();
   setTimeout(function () {
-    _this21.load_product = true;
+    _this23.load_product = true;
   }, 300);
 }), "increment", function increment(id) {
   for (var i = 0; i < this.details.length; i++) {
@@ -4140,7 +4213,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
   this.CalculTotal();
   this.$forceUpdate();
 }), "handleProductClick", function handleProductClick(product) {
-  var _this22 = this;
+  var _this24 = this;
   // Out-of-stock guard skipped when overselling is allowed.
   if (!product) return;
   if (!this.isOversellingAllowed && product.product_type !== 'is_service' && product.qte_sale <= 0) return;
@@ -4149,7 +4222,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
   this.uiLoadingProductId = key;
   this.Get_Product_Details(product.id, product.product_variant_id, product)["catch"](function () {})["finally"](function () {
     // Clear only if still the same key (guard against fast double clicks)
-    if (_this22.uiLoadingProductId === key) _this22.uiLoadingProductId = null;
+    if (_this24.uiLoadingProductId === key) _this24.uiLoadingProductId = null;
   });
 }), "decrement", function decrement(detail, id) {
   for (var i = 0; i < this.details.length; i++) {
@@ -4200,35 +4273,35 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
     }
   }
 }), "Modal_Updat_Detail", function Modal_Updat_Detail(detail) {
-  var _this23 = this;
+  var _this25 = this;
   this.detailLoading = true;
   this.detail = {};
   this.detail.name = detail.name;
   this.$bvModal.show("form_Update_Detail");
   this.get_units(detail.product_id)["catch"](function () {})["finally"](function () {
-    _this23.detail.detail_id = detail.detail_id;
-    _this23.detail.sale_unit_id = detail.sale_unit_id;
-    _this23.detail.product_type = detail.product_type;
-    _this23.detail.Unit_price = detail.Unit_price;
-    _this23.detail.price_type = detail.price_type || 'retail';
-    _this23.detail.retail_unit_price = detail.retail_unit_price !== undefined ? detail.retail_unit_price : detail.Unit_price;
-    _this23.detail.wholesale_unit_price = detail.wholesale_unit_price !== undefined ? detail.wholesale_unit_price : detail.Unit_price_wholesale;
-    _this23.detail.min_price = detail.min_price !== undefined ? detail.min_price : 0;
-    _this23.detail.fix_price = detail.fix_price;
-    _this23.detail.fix_stock = detail.fix_stock;
-    _this23.detail.current = detail.current;
-    _this23.detail.tax_method = detail.tax_method;
-    _this23.detail.discount_Method = detail.discount_Method;
-    _this23.detail.discount = detail.discount;
-    _this23.detail.quantity = detail.quantity;
-    _this23.detail.tax_percent = detail.tax_percent;
-    _this23.detail.is_imei = detail.is_imei;
-    _this23.detail.imei_number = detail.imei_number;
-    _this23.detailLoading = false;
+    _this25.detail.detail_id = detail.detail_id;
+    _this25.detail.sale_unit_id = detail.sale_unit_id;
+    _this25.detail.product_type = detail.product_type;
+    _this25.detail.Unit_price = detail.Unit_price;
+    _this25.detail.price_type = detail.price_type || 'retail';
+    _this25.detail.retail_unit_price = detail.retail_unit_price !== undefined ? detail.retail_unit_price : detail.Unit_price;
+    _this25.detail.wholesale_unit_price = detail.wholesale_unit_price !== undefined ? detail.wholesale_unit_price : detail.Unit_price_wholesale;
+    _this25.detail.min_price = detail.min_price !== undefined ? detail.min_price : 0;
+    _this25.detail.fix_price = detail.fix_price;
+    _this25.detail.fix_stock = detail.fix_stock;
+    _this25.detail.current = detail.current;
+    _this25.detail.tax_method = detail.tax_method;
+    _this25.detail.discount_Method = detail.discount_Method;
+    _this25.detail.discount = detail.discount;
+    _this25.detail.quantity = detail.quantity;
+    _this25.detail.tax_percent = detail.tax_percent;
+    _this25.detail.is_imei = detail.is_imei;
+    _this25.detail.imei_number = detail.imei_number;
+    _this25.detailLoading = false;
   });
   console.log(detail);
 }), "submit_Update_Detail", function submit_Update_Detail() {
-  var _this24 = this;
+  var _this26 = this;
   for (var i = 0; i < this.details.length; i++) {
     if (this.details[i].detail_id === this.detail.detail_id) {
       // 1) Compute proposed pricing WITHOUT mutating the row yet
@@ -4300,7 +4373,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
   }
   this.CalculTotal();
   setTimeout(function () {
-    _this24.$bvModal.hide("form_Update_Detail");
+    _this26.$bvModal.hide("form_Update_Detail");
   }, 1000);
 }), "onChangePriceType", function onChangePriceType(detail) {
   // Multi-Pack Selling: a non-default pack fixes the price, ignoring retail/wholesale.
@@ -4434,7 +4507,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
   if (!detail) return;
   if (!detail.price_type) this.$set(detail, 'price_type', 'retail');
 }), _defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_objectSpread2, "Reset_Pos", function Reset_Pos() {
-  var _this25 = this;
+  var _this27 = this;
   return _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee11() {
     var hadFilter, client, response, data, _t7, _t8;
     return _regenerator().w(function (_context11) {
@@ -4444,62 +4517,62 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
           // we can decide whether a full product refetch is needed. The common
           // case (no filter) stays fast; only a filtered view requires a reload
           // so the cleared filter matches what is shown.
-          hadFilter = !!(_this25.category_id || _this25.brand_id);
-          _this25.details = [];
-          _this25.product = {};
-          _this25.draft_sale_id = '';
-          _this25.paymentLines = [{
+          hadFilter = !!(_this27.category_id || _this27.brand_id);
+          _this27.details = [];
+          _this27.product = {};
+          _this27.draft_sale_id = '';
+          _this27.paymentLines = [{
             amount: 0,
             payment_method_id: '2'
           }];
-          _this25.selectedAccount = null;
-          _this25.globalPaymentNote = '';
-          _this25.savedPaymentMethods = [], _this25.hasSavedPaymentMethod = false, _this25.useSavedPaymentMethod = false, _this25.selectedCard = null, _this25.card_id = '', _this25.is_new_credit_card = false, _this25.submit_showing_credit_card = false, _this25.sale.tax_rate = _this25.default_tax;
-          _this25.sale.TaxNet = 0;
-          _this25.sale.shipping = 0;
-          _this25.sale.discount = 0;
-          _this25.sale.discount_Method = '2'; // Reset to fixed (default)
-          _this25.sale.notes = '';
-          _this25.GrandTotal = 0;
-          _this25.total = 0;
-          _this25.category_id = "";
-          _this25.brand_id = "";
-          _this25.selectedClientPoints = 0;
-          _this25.points_to_convert = 0;
-          _this25.used_points = 0;
-          _this25.discount_from_points = 0;
-          _this25.clientIsEligible = false;
-          _this25.pointsConverted = false;
+          _this27.selectedAccount = null;
+          _this27.globalPaymentNote = '';
+          _this27.savedPaymentMethods = [], _this27.hasSavedPaymentMethod = false, _this27.useSavedPaymentMethod = false, _this27.selectedCard = null, _this27.card_id = '', _this27.is_new_credit_card = false, _this27.submit_showing_credit_card = false, _this27.sale.tax_rate = _this27.default_tax;
+          _this27.sale.TaxNet = 0;
+          _this27.sale.shipping = 0;
+          _this27.sale.discount = 0;
+          _this27.sale.discount_Method = '2'; // Reset to fixed (default)
+          _this27.sale.notes = '';
+          _this27.GrandTotal = 0;
+          _this27.total = 0;
+          _this27.category_id = "";
+          _this27.brand_id = "";
+          _this27.selectedClientPoints = 0;
+          _this27.points_to_convert = 0;
+          _this27.used_points = 0;
+          _this27.discount_from_points = 0;
+          _this27.clientIsEligible = false;
+          _this27.pointsConverted = false;
           try {
-            _this25._cd_emit && _this25._cd_emit({
-              currency: _this25.currentUser && _this25.currentUser.currency || '',
+            _this27._cd_emit && _this27._cd_emit({
+              currency: _this27.currentUser && _this27.currentUser.currency || '',
               details: [],
               discount: 0,
               TaxNet: 0,
               GrandTotal: 0
             }, true);
           } catch (e) {}
-          client = _this25.clients.find(function (client) {
+          client = _this27.clients.find(function (client) {
             return client.id === 1;
           });
           if (!client) {
             _context11.n = 4;
             break;
           }
-          _this25.client_name = client.name;
-          _this25.selectedClientId = 1;
+          _this27.client_name = client.name;
+          _this27.selectedClientId = 1;
           _context11.p = 1;
           _context11.n = 2;
-          return axios.get("/get_points_client/".concat(_this25.selectedClientId));
+          return axios.get("/get_points_client/".concat(_this27.selectedClientId));
         case 2:
           response = _context11.v;
           data = response.data;
           if (data.is_royalty_eligible) {
-            _this25.selectedClientPoints = data.points;
-            _this25.clientIsEligible = true;
+            _this27.selectedClientPoints = data.points;
+            _this27.clientIsEligible = true;
           } else {
-            _this25.selectedClientPoints = 0;
-            _this25.clientIsEligible = false;
+            _this27.selectedClientPoints = 0;
+            _this27.clientIsEligible = false;
           }
           _context11.n = 4;
           break;
@@ -4513,7 +4586,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
           }
           _context11.p = 5;
           _context11.n = 6;
-          return _this25.getProducts();
+          return _this27.getProducts();
         case 6:
           _context11.n = 8;
           break;
@@ -4526,7 +4599,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
     }, _callee11, null, [[5, 7], [1, 3]]);
   }))();
 }), "search", function search() {
-  var _this26 = this;
+  var _this28 = this;
   if (this.timer) {
     clearTimeout(this.timer);
     this.timer = null;
@@ -4536,66 +4609,66 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
   }
   if (this.sale.warehouse_id != "" && this.sale.warehouse_id != null) {
     this.timer = setTimeout(function () {
-      var barcode = _this26.search_input.trim();
+      var barcode = _this28.search_input.trim();
       var weight = null;
       if (barcode.length === 13 && !isNaN(barcode)) {
         // Play sound only if barcode scanning sound is enabled
-        if (_this26.pos_settings.barcode_scanning_sound) {
-          _this26.audio.play();
+        if (_this28.pos_settings.barcode_scanning_sound) {
+          _this28.audio.play();
         }
         // Play sound only if barcode scanning sound is enabled
-        if (_this26.pos_settings.barcode_scanning_sound) {
-          _this26.audio.play();
+        if (_this28.pos_settings.barcode_scanning_sound) {
+          _this28.audio.play();
         }
-        var product = _this26.products_pos.find(function (prod) {
-          return prod.code === barcode && (prod.product_type === 'is_service' || _this26.isOversellingAllowed || Number(prod.qte_sale || 0) > 0);
+        var product = _this28.products_pos.find(function (prod) {
+          return prod.code === barcode && (prod.product_type === 'is_service' || _this28.isOversellingAllowed || Number(prod.qte_sale || 0) > 0);
         });
         if (product) {
-          _this26.Check_Product_Exist(product, product.id, weight);
+          _this28.Check_Product_Exist(product, product.id, weight);
           return;
         } else {
           var productCode = barcode.substring(0, 7);
           var _weight = parseFloat(barcode.substring(7, 12)) / 1000;
-          var _product = _this26.products_pos.find(function (prod) {
-            return prod.code === productCode && (prod.product_type === 'is_service' || _this26.isOversellingAllowed || Number(prod.qte_sale || 0) > 0);
+          var _product = _this28.products_pos.find(function (prod) {
+            return prod.code === productCode && (prod.product_type === 'is_service' || _this28.isOversellingAllowed || Number(prod.qte_sale || 0) > 0);
           });
           if (_product) {
             // Play sound only if barcode scanning sound is enabled
-            if (_this26.pos_settings.barcode_scanning_sound) {
-              _this26.audio.play();
+            if (_this28.pos_settings.barcode_scanning_sound) {
+              _this28.audio.play();
             }
             // Ensure weight does not exceed available quantity (unless overselling is allowed)
             var available = Number(_product.qte_sale || 0);
-            if (!_this26.isOversellingAllowed && available > 0 && _weight > available) {
-              _this26.makeToast("warning", _this26.$t("LowStock"), _this26.$t("Warning"));
+            if (!_this28.isOversellingAllowed && available > 0 && _weight > available) {
+              _this28.makeToast("warning", _this28.$t("LowStock"), _this28.$t("Warning"));
               _weight = available;
             }
             _product.quantity = _weight;
-            _this26.Check_Product_Exist(_product, _product.id, _weight);
+            _this28.Check_Product_Exist(_product, _product.id, _weight);
             return;
           }
         }
-        _this26.makeToast("danger", "Invalid product code scanned", _this26.$t("Error"));
-        _this26.search_input = '';
-        _this26.product_filter = [];
+        _this28.makeToast("danger", "Invalid product code scanned", _this28.$t("Error"));
+        _this28.search_input = '';
+        _this28.product_filter = [];
       }
-      var product_filter = _this26.products_pos.filter(function (product) {
-        return (product.product_type === 'is_service' || _this26.isOversellingAllowed || Number(product.qte_sale || 0) > 0) && (product.code === _this26.search_input || String(product.barcode || '').includes(_this26.search_input));
+      var product_filter = _this28.products_pos.filter(function (product) {
+        return (product.product_type === 'is_service' || _this28.isOversellingAllowed || Number(product.qte_sale || 0) > 0) && (product.code === _this28.search_input || String(product.barcode || '').includes(_this28.search_input));
       });
       if (product_filter.length === 1) {
         // Play sound only if barcode scanning sound is enabled
-        if (_this26.pos_settings.barcode_scanning_sound) {
-          _this26.audio.play();
+        if (_this28.pos_settings.barcode_scanning_sound) {
+          _this28.audio.play();
         }
-        _this26.Check_Product_Exist(product_filter[0], product_filter[0].id, weight = null);
+        _this28.Check_Product_Exist(product_filter[0], product_filter[0].id, weight = null);
       } else {
-        _this26.product_filter = _this26.products_pos.filter(function (product) {
+        _this28.product_filter = _this28.products_pos.filter(function (product) {
           // Hide out-of-stock products from search results unless overselling is allowed.
-          if (!_this26.isOversellingAllowed && product.product_type !== 'is_service' && Number(product.qte_sale || 0) <= 0) return false;
+          if (!_this28.isOversellingAllowed && product.product_type !== 'is_service' && Number(product.qte_sale || 0) <= 0) return false;
           var name = String(product.name || '').toLowerCase();
           var code = String(product.code || '').toLowerCase();
           var barcodeStr = String(product.barcode || '').toLowerCase();
-          var term = _this26.search_input.toLowerCase();
+          var term = _this28.search_input.toLowerCase();
           return name.includes(term) || code.includes(term) || barcodeStr.includes(term);
         });
       }
@@ -4643,27 +4716,27 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
   this.search_brand = '';
   this.getProducts(1);
 }), "Show_Draft_Sales", function Show_Draft_Sales() {
-  var _this27 = this;
+  var _this29 = this;
   this.draft_sales_page = 1;
   this.get_Draft_Sales(1);
   setTimeout(function () {
-    _this27.$bvModal.show("show_draft_sales");
+    _this29.$bvModal.show("show_draft_sales");
   }, 1000);
 }), "onPageChangeDraftSales", function onPageChangeDraftSales(page) {
   this.draft_sales_page = page;
   this.get_Draft_Sales(page);
 }), "get_Draft_Sales", function get_Draft_Sales(page) {
-  var _this28 = this;
+  var _this30 = this;
   nprogress__WEBPACK_IMPORTED_MODULE_0___default().start();
   nprogress__WEBPACK_IMPORTED_MODULE_0___default().set(0.1);
   axios.get("get_draft_sales?page=" + page + "&limit=" + this.limit).then(function (response) {
-    _this28.draft_sales = response.data.draft_sales;
-    _this28.totalRows_draft_sales = response.data.totalRows;
+    _this30.draft_sales = response.data.draft_sales;
+    _this30.totalRows_draft_sales = response.data.totalRows;
 
     // If current page is empty but we have data and we're not on page 1, go to previous page
-    if (_this28.draft_sales.length === 0 && _this28.totalRows_draft_sales > 0 && page > 1) {
-      _this28.draft_sales_page = page - 1;
-      _this28.get_Draft_Sales(_this28.draft_sales_page);
+    if (_this30.draft_sales.length === 0 && _this30.totalRows_draft_sales > 0 && page > 1) {
+      _this30.draft_sales_page = page - 1;
+      _this30.get_Draft_Sales(_this30.draft_sales_page);
       return;
     }
     nprogress__WEBPACK_IMPORTED_MODULE_0___default().done();
@@ -4671,7 +4744,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
     nprogress__WEBPACK_IMPORTED_MODULE_0___default().done();
   });
 }), _defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_objectSpread2, "loadDraftSale", function loadDraftSale(id) {
-  var _this29 = this;
+  var _this31 = this;
   this.openingDraftId = id;
   // If this draft is already loaded, do nothing (do not update on open)
   if (this.draft_sale_id && String(this.draft_sale_id) === String(id)) {
@@ -4682,38 +4755,38 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
   nprogress__WEBPACK_IMPORTED_MODULE_0___default().set(0.1);
   axios.get("pos/data_draft_convert_sale/".concat(id)).then(function (response) {
     var _data$default_account, _data$default_payment;
-    _this29.draft_sale_id = id;
+    _this31.draft_sale_id = id;
     var data = response.data || {};
 
     // Basic references (keep layout/logic unchanged; just inject data)
-    if (Array.isArray(data.clients)) _this29.clients = data.clients;
-    if (Array.isArray(data.accounts)) _this29.accounts = data.accounts;
-    if (Array.isArray(data.warehouses)) _this29.warehouses = data.warehouses;
-    if (Array.isArray(data.categories)) _this29.categories = data.categories;
-    if (Array.isArray(data.brands)) _this29.brands = data.brands;
-    if (Array.isArray(data.payment_methods)) _this29.payment_methods = data.payment_methods;
-    if (data.default_account_id !== undefined) _this29.default_account_id = (_data$default_account = data.default_account_id) !== null && _data$default_account !== void 0 ? _data$default_account : null;
-    if (data.default_payment_method_id !== undefined) _this29.default_payment_method_id = (_data$default_payment = data.default_payment_method_id) !== null && _data$default_payment !== void 0 ? _data$default_payment : null;
+    if (Array.isArray(data.clients)) _this31.clients = data.clients;
+    if (Array.isArray(data.accounts)) _this31.accounts = data.accounts;
+    if (Array.isArray(data.warehouses)) _this31.warehouses = data.warehouses;
+    if (Array.isArray(data.categories)) _this31.categories = data.categories;
+    if (Array.isArray(data.brands)) _this31.brands = data.brands;
+    if (Array.isArray(data.payment_methods)) _this31.payment_methods = data.payment_methods;
+    if (data.default_account_id !== undefined) _this31.default_account_id = (_data$default_account = data.default_account_id) !== null && _data$default_account !== void 0 ? _data$default_account : null;
+    if (data.default_payment_method_id !== undefined) _this31.default_payment_method_id = (_data$default_payment = data.default_payment_method_id) !== null && _data$default_payment !== void 0 ? _data$default_payment : null;
 
     // Customer & loyalty
-    _this29.selectedClientId = data.client_id || data.sale && data.sale.client_id || _this29.selectedClientId;
-    _this29.client_name = data.client_name || _this29.client_name;
-    _this29.clientIsEligible = data.default_client_eligible === true || data.default_client_eligible === 1;
-    _this29.selectedClientPoints = _this29.clientIsEligible ? parseFloat(data.default_client_points || 0) : 0;
+    _this31.selectedClientId = data.client_id || data.sale && data.sale.client_id || _this31.selectedClientId;
+    _this31.client_name = data.client_name || _this31.client_name;
+    _this31.clientIsEligible = data.default_client_eligible === true || data.default_client_eligible === 1;
+    _this31.selectedClientPoints = _this31.clientIsEligible ? parseFloat(data.default_client_points || 0) : 0;
     if (typeof data.point_to_amount_rate !== 'undefined') {
-      _this29.point_to_amount_rate = data.point_to_amount_rate;
+      _this31.point_to_amount_rate = data.point_to_amount_rate;
     }
 
     // Sale-level fields
     var saleData = data.sale || {};
-    _this29.sale.warehouse_id = data.warehouse_id !== undefined && data.warehouse_id !== null ? data.warehouse_id : saleData.warehouse_id || _this29.sale.warehouse_id;
-    _this29.sale.tax_rate = saleData.tax_rate || 0;
-    _this29.sale.TaxNet = saleData.TaxNet || 0;
-    _this29.sale.discount = saleData.discount || 0;
+    _this31.sale.warehouse_id = data.warehouse_id !== undefined && data.warehouse_id !== null ? data.warehouse_id : saleData.warehouse_id || _this31.sale.warehouse_id;
+    _this31.sale.tax_rate = saleData.tax_rate || 0;
+    _this31.sale.TaxNet = saleData.TaxNet || 0;
+    _this31.sale.discount = saleData.discount || 0;
     // Backward compatibility: default to fixed ('2') if discount_Method is not present
-    _this29.sale.discount_Method = saleData.discount_Method || '2';
-    _this29.sale.shipping = saleData.shipping || 0;
-    _this29.sale.notes = saleData.notes || '';
+    _this31.sale.discount_Method = saleData.discount_Method || '2';
+    _this31.sale.shipping = saleData.shipping || 0;
+    _this31.sale.notes = saleData.notes || '';
 
     // Map draft details to POS details shape (ensuring fields required by POS)
     var incoming = Array.isArray(data.details) ? data.details : [];
@@ -4741,39 +4814,39 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
         d.DiscountNet = discountMethod === '2' ? discountVal : unitPrice * (discountVal / 100);
       }
       if (taxMethod === '1') {
-        d.Net_price = parseFloat((unitPrice - d.DiscountNet).toFixed(_this29.priceDecimals));
-        d.taxe = parseFloat(((unitPrice - d.DiscountNet) * taxPercent / 100).toFixed(_this29.priceDecimals));
-        d.Total_price = parseFloat((d.Net_price + d.taxe).toFixed(_this29.priceDecimals));
+        d.Net_price = parseFloat((unitPrice - d.DiscountNet).toFixed(_this31.priceDecimals));
+        d.taxe = parseFloat(((unitPrice - d.DiscountNet) * taxPercent / 100).toFixed(_this31.priceDecimals));
+        d.Total_price = parseFloat((d.Net_price + d.taxe).toFixed(_this31.priceDecimals));
       } else {
-        d.taxe = parseFloat(((unitPrice - d.DiscountNet) * (taxPercent / 100)).toFixed(_this29.priceDecimals));
-        d.Net_price = parseFloat((unitPrice - d.taxe - d.DiscountNet).toFixed(_this29.priceDecimals));
-        d.Total_price = parseFloat((d.Net_price + d.taxe).toFixed(_this29.priceDecimals));
+        d.taxe = parseFloat(((unitPrice - d.DiscountNet) * (taxPercent / 100)).toFixed(_this31.priceDecimals));
+        d.Net_price = parseFloat((unitPrice - d.taxe - d.DiscountNet).toFixed(_this31.priceDecimals));
+        d.Total_price = parseFloat((d.Net_price + d.taxe).toFixed(_this31.priceDecimals));
       }
       return d;
     });
-    _this29.details = mapped;
+    _this31.details = mapped;
 
     // Totals
-    _this29.GrandTotal = Number(data.GrandTotal || 0);
-    _this29.CalculTotal();
+    _this31.GrandTotal = Number(data.GrandTotal || 0);
+    _this31.CalculTotal();
 
     // Refresh product lists for the chosen warehouse (unified API)
-    if (_this29.sale.warehouse_id) {
-      _this29.getProducts();
+    if (_this31.sale.warehouse_id) {
+      _this31.getProducts();
     }
 
     // Close draft list modal
     try {
-      _this29.$bvModal.hide('show_draft_sales');
+      _this31.$bvModal.hide('show_draft_sales');
     } catch (e) {}
     nprogress__WEBPACK_IMPORTED_MODULE_0___default().done();
   })["catch"](function () {
     nprogress__WEBPACK_IMPORTED_MODULE_0___default().done();
   })["finally"](function () {
-    _this29.openingDraftId = null;
+    _this31.openingDraftId = null;
   });
 }), "Remove_Draft_Sale", function Remove_Draft_Sale(id) {
-  var _this30 = this;
+  var _this32 = this;
   this.$swal({
     title: this.$t("Delete_Title"),
     text: this.$t("Delete_Text"),
@@ -4788,13 +4861,13 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
       nprogress__WEBPACK_IMPORTED_MODULE_0___default().start();
       nprogress__WEBPACK_IMPORTED_MODULE_0___default().set(0.1);
       axios["delete"]("remove_draft_sale/" + id).then(function () {
-        _this30.$swal(_this30.$t("Delete_Deleted"), _this30.$t("Deleted_in_successfully"), "success");
+        _this32.$swal(_this32.$t("Delete_Deleted"), _this32.$t("Deleted_in_successfully"), "success");
         Fire.$emit("event_delete_draft_sale");
       })["catch"](function () {
         setTimeout(function () {
           return nprogress__WEBPACK_IMPORTED_MODULE_0___default().done();
         }, 500);
-        _this30.$swal(_this30.$t("Delete_Failed"), _this30.$t("Delete_Therewassomethingwronge"), "warning");
+        _this32.$swal(_this32.$t("Delete_Failed"), _this32.$t("Delete_Therewassomethingwronge"), "warning");
       });
     }
   });
@@ -4819,7 +4892,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
     this.get_Draft_Sales(1);
   }
 }), "getProducts", function getProducts() {
-  var _this31 = this;
+  var _this33 = this;
   this.productsLoading = true;
   nprogress__WEBPACK_IMPORTED_MODULE_0___default().start();
   nprogress__WEBPACK_IMPORTED_MODULE_0___default().set(0.1);
@@ -4827,39 +4900,39 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
     var rawProducts = Array.isArray(response.data.products) ? response.data.products : [];
     // Always show real backend stock in online mode;
     // only apply shadow stock adjustments when we are offline.
-    _this31.products = rawProducts.map(function (p) {
+    _this33.products = rawProducts.map(function (p) {
       return _objectSpread({}, p);
     });
     // Use the same unified list for barcode scanning / quick search.
-    _this31.products_pos = rawProducts.map(function (p) {
+    _this33.products_pos = rawProducts.map(function (p) {
       return _objectSpread({}, p);
     });
-    _this31.product_totalRows = response.data.totalRows;
+    _this33.product_totalRows = response.data.totalRows;
     // Capture backend server time as the baseline for incremental delta
     // sync. If absent (older backend), fall back to null so delta sync
     // will stay disabled until the next successful call provides one.
-    _this31.lastProductsSyncAt = response.data && response.data.server_time ? response.data.server_time : null;
-    _this31.Product_paginatePerPage();
-    var reallyOffline = _this31.offlineSyncEnabled && (!_this31.isOnline || typeof window !== 'undefined' && window.navigator && window.navigator.onLine === false);
+    _this33.lastProductsSyncAt = response.data && response.data.server_time ? response.data.server_time : null;
+    _this33.Product_paginatePerPage();
+    var reallyOffline = _this33.offlineSyncEnabled && (!_this33.isOnline || typeof window !== 'undefined' && window.navigator && window.navigator.onLine === false);
     if (reallyOffline) {
       try {
-        if (_utils__WEBPACK_IMPORTED_MODULE_4__["default"] && _utils__WEBPACK_IMPORTED_MODULE_4__["default"].shadowStock && _utils__WEBPACK_IMPORTED_MODULE_4__["default"].shadowStock.applyToList && _this31.sale.warehouse_id) {
-          _utils__WEBPACK_IMPORTED_MODULE_4__["default"].shadowStock.applyToList(_this31.sale.warehouse_id, _this31.products);
+        if (_utils__WEBPACK_IMPORTED_MODULE_4__["default"] && _utils__WEBPACK_IMPORTED_MODULE_4__["default"].shadowStock && _utils__WEBPACK_IMPORTED_MODULE_4__["default"].shadowStock.applyToList && _this33.sale.warehouse_id) {
+          _utils__WEBPACK_IMPORTED_MODULE_4__["default"].shadowStock.applyToList(_this33.sale.warehouse_id, _this33.products);
         }
       } catch (e) {}
     }
-    _this31.productsReady = true;
+    _this33.productsReady = true;
     // Cache grid products for offline usage (per warehouse) using RAW server data
     try {
-      if (_utils__WEBPACK_IMPORTED_MODULE_4__["default"] && _utils__WEBPACK_IMPORTED_MODULE_4__["default"].offlinePos && _utils__WEBPACK_IMPORTED_MODULE_4__["default"].offlinePos.cacheWarehouseSnapshot && _this31.sale.warehouse_id) {
-        _utils__WEBPACK_IMPORTED_MODULE_4__["default"].offlinePos.cacheWarehouseSnapshot(_this31.sale.warehouse_id, {
+      if (_utils__WEBPACK_IMPORTED_MODULE_4__["default"] && _utils__WEBPACK_IMPORTED_MODULE_4__["default"].offlinePos && _utils__WEBPACK_IMPORTED_MODULE_4__["default"].offlinePos.cacheWarehouseSnapshot && _this33.sale.warehouse_id) {
+        _utils__WEBPACK_IMPORTED_MODULE_4__["default"].offlinePos.cacheWarehouseSnapshot(_this33.sale.warehouse_id, {
           products: rawProducts,
           products_pos: rawProducts,
-          product_totalRows: _this31.product_totalRows,
+          product_totalRows: _this33.product_totalRows,
           lastLoadedPage: 1,
-          category_id: _this31.category_id,
-          brand_id: _this31.brand_id,
-          lastSyncAt: _this31.lastProductsSyncAt
+          category_id: _this33.category_id,
+          brand_id: _this33.brand_id,
+          lastSyncAt: _this33.lastProductsSyncAt
         });
       }
     } catch (e) {}
@@ -4867,45 +4940,45 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
   })["catch"](function () {
     // Offline/failed request: try to hydrate from cached snapshot
     try {
-      if (_utils__WEBPACK_IMPORTED_MODULE_4__["default"] && _utils__WEBPACK_IMPORTED_MODULE_4__["default"].offlinePos && _utils__WEBPACK_IMPORTED_MODULE_4__["default"].offlinePos.getWarehouseSnapshot && _this31.sale.warehouse_id) {
-        var snap = _utils__WEBPACK_IMPORTED_MODULE_4__["default"].offlinePos.getWarehouseSnapshot(_this31.sale.warehouse_id);
+      if (_utils__WEBPACK_IMPORTED_MODULE_4__["default"] && _utils__WEBPACK_IMPORTED_MODULE_4__["default"].offlinePos && _utils__WEBPACK_IMPORTED_MODULE_4__["default"].offlinePos.getWarehouseSnapshot && _this33.sale.warehouse_id) {
+        var snap = _utils__WEBPACK_IMPORTED_MODULE_4__["default"].offlinePos.getWarehouseSnapshot(_this33.sale.warehouse_id);
         if (snap && Array.isArray(snap.products)) {
           var baseProducts = snap.products;
-          _this31.products = baseProducts.map(function (p) {
+          _this33.products = baseProducts.map(function (p) {
             return _objectSpread({}, p);
           });
           // Hydrate scan/search list from cached unified products if available
           if (Array.isArray(snap.products_pos)) {
-            _this31.products_pos = snap.products_pos.map(function (p) {
+            _this33.products_pos = snap.products_pos.map(function (p) {
               return _objectSpread({}, p);
             });
           } else {
-            _this31.products_pos = baseProducts.map(function (p) {
+            _this33.products_pos = baseProducts.map(function (p) {
               return _objectSpread({}, p);
             });
           }
-          _this31.product_totalRows = snap.product_totalRows || baseProducts.length;
+          _this33.product_totalRows = snap.product_totalRows || baseProducts.length;
           // Restore last delta-sync baseline so when we regain connectivity
           // we can resume incremental sync from where we left off instead
           // of re-fetching the whole catalog.
-          _this31.lastProductsSyncAt = snap.lastSyncAt || null;
-          _this31.Product_paginatePerPage();
-          var reallyOffline = _this31.offlineSyncEnabled && (!_this31.isOnline || typeof window !== 'undefined' && window.navigator && window.navigator.onLine === false);
+          _this33.lastProductsSyncAt = snap.lastSyncAt || null;
+          _this33.Product_paginatePerPage();
+          var reallyOffline = _this33.offlineSyncEnabled && (!_this33.isOnline || typeof window !== 'undefined' && window.navigator && window.navigator.onLine === false);
           if (reallyOffline) {
             // When truly offline, apply shadow stock on top of cached data
             try {
               if (_utils__WEBPACK_IMPORTED_MODULE_4__["default"] && _utils__WEBPACK_IMPORTED_MODULE_4__["default"].shadowStock && _utils__WEBPACK_IMPORTED_MODULE_4__["default"].shadowStock.applyToList) {
-                _utils__WEBPACK_IMPORTED_MODULE_4__["default"].shadowStock.applyToList(_this31.sale.warehouse_id, _this31.products);
+                _utils__WEBPACK_IMPORTED_MODULE_4__["default"].shadowStock.applyToList(_this33.sale.warehouse_id, _this33.products);
               }
             } catch (e2) {}
           }
         }
       }
     } catch (e) {}
-    _this31.productsReady = true; // avoid blocking UI forever on error
+    _this33.productsReady = true; // avoid blocking UI forever on error
     nprogress__WEBPACK_IMPORTED_MODULE_0___default().done();
   })["finally"](function () {
-    _this31.productsLoading = false;
+    _this33.productsLoading = false;
   });
 }), "applyStockUpdate", function applyStockUpdate(updates, serverTime) {
   var list = Array.isArray(updates) ? updates : [];
@@ -4967,43 +5040,43 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
     }
   } catch (e) {}
 }), "syncProductsDelta", function syncProductsDelta() {
-  var _this32 = this;
+  var _this34 = this;
   return _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee12() {
     var resp, data, updates, serverTime, _t9;
     return _regenerator().w(function (_context12) {
       while (1) switch (_context12.p = _context12.n) {
         case 0:
-          if (_this32.isOnline) {
+          if (_this34.isOnline) {
             _context12.n = 1;
             break;
           }
           return _context12.a(2);
         case 1:
-          if (!(!_this32.sale || !_this32.sale.warehouse_id)) {
+          if (!(!_this34.sale || !_this34.sale.warehouse_id)) {
             _context12.n = 2;
             break;
           }
           return _context12.a(2);
         case 2:
-          if (_this32.lastProductsSyncAt) {
+          if (_this34.lastProductsSyncAt) {
             _context12.n = 3;
             break;
           }
           return _context12.a(2);
         case 3:
-          if (!_this32._deltaSyncing) {
+          if (!_this34._deltaSyncing) {
             _context12.n = 4;
             break;
           }
           return _context12.a(2);
         case 4:
-          _this32._deltaSyncing = true;
+          _this34._deltaSyncing = true;
           _context12.p = 5;
           _context12.n = 6;
           return axios.get('pos/get_products_pos_changes', {
             params: {
-              warehouse_id: _this32.sale.warehouse_id,
-              since: _this32.lastProductsSyncAt
+              warehouse_id: _this34.sale.warehouse_id,
+              since: _this34.lastProductsSyncAt
             }
           });
         case 6:
@@ -5011,7 +5084,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
           data = resp && resp.data || {};
           updates = Array.isArray(data.products) ? data.products : [];
           serverTime = data.server_time || null;
-          _this32.applyStockUpdate(updates, serverTime);
+          _this34.applyStockUpdate(updates, serverTime);
           _context12.n = 8;
           break;
         case 7:
@@ -5019,7 +5092,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
           _t9 = _context12.v;
         case 8:
           _context12.p = 8;
-          _this32._deltaSyncing = false;
+          _this34._deltaSyncing = false;
           return _context12.f(8);
         case 9:
           return _context12.a(2);
@@ -5070,7 +5143,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
     }
   }
 }), "fetch_batches_for_detail", function fetch_batches_for_detail(detail) {
-  var _this33 = this;
+  var _this35 = this;
   if (!detail) return;
   // Make sure all batch-related fields exist reactively on the cart line.
   if (!("batches_loading" in detail)) this.$set(detail, "batches_loading", false);
@@ -5097,17 +5170,17 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
     timeout: 15000
   }).then(function (response) {
     var list = response && response.data && Array.isArray(response.data.batches) ? response.data.batches : [];
-    _this33.$set(detail, "available_batches", list);
-    if (!Array.isArray(detail.batches)) _this33.$set(detail, "batches", []);
+    _this35.$set(detail, "available_batches", list);
+    if (!Array.isArray(detail.batches)) _this35.$set(detail, "batches", []);
     // Auto-seed the first batch row with the full line qty so the cashier only has
     // to pick a batch — keeps the strict-validation flow fast on the happy path.
     if (detail.batches.length === 0 && list.length > 0) {
-      _this33.add_batch_to_detail(detail);
+      _this35.add_batch_to_detail(detail);
     }
   })["catch"](function () {
-    _this33.$set(detail, "available_batches", []);
+    _this35.$set(detail, "available_batches", []);
   }).then(function () {
-    _this33.$set(detail, "batches_loading", false);
+    _this35.$set(detail, "batches_loading", false);
   });
 }), "add_batch_to_detail", function add_batch_to_detail(detail) {
   if (!Array.isArray(detail.batches)) this.$set(detail, "batches", []);
@@ -5308,7 +5381,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
   this.onlineReloadModalVisible = false;
   this.onlineReloadAfterSale = false;
 }), "get_units", function get_units(value) {
-  var _this34 = this;
+  var _this36 = this;
   var UNITS_CACHE_KEY = 'pos_units_by_product';
   var loadUnitsCache = function loadUnitsCache() {
     try {
@@ -5383,63 +5456,63 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
   return axios.get("get_units?id=" + value).then(function (_ref7) {
     var data = _ref7.data;
     var units = Array.isArray(data) ? data : [];
-    _this34.units = units;
-    var map = Object.assign({}, _this34.unitsByProductId || {}, _defineProperty({}, pid, units));
-    _this34.unitsByProductId = map;
+    _this36.units = units;
+    var map = Object.assign({}, _this36.unitsByProductId || {}, _defineProperty({}, pid, units));
+    _this36.unitsByProductId = map;
     var stored = loadUnitsCache();
     stored[pid] = units;
     saveUnitsCache(stored);
     return units;
   });
 }), "Modal_Updat_Detail", function Modal_Updat_Detail(detail) {
-  var _this35 = this;
+  var _this37 = this;
   this.detailLoading = true;
   this.detail = {};
   this.detail.name = detail.name;
   this.$bvModal.show("form_Update_Detail");
   this.get_units(detail.product_id)["catch"](function () {})["finally"](function () {
-    _this35.detail.detail_id = detail.detail_id;
-    _this35.detail.sale_unit_id = detail.sale_unit_id;
-    _this35.detail.product_type = detail.product_type;
-    _this35.detail.Unit_price = detail.Unit_price;
-    _this35.detail.price_type = detail.price_type || 'retail';
+    _this37.detail.detail_id = detail.detail_id;
+    _this37.detail.sale_unit_id = detail.sale_unit_id;
+    _this37.detail.product_type = detail.product_type;
+    _this37.detail.Unit_price = detail.Unit_price;
+    _this37.detail.price_type = detail.price_type || 'retail';
     var baseRetail = detail.retail_unit_price !== undefined && detail.retail_unit_price !== null ? detail.retail_unit_price : detail.Unit_price;
     var baseWholesale = detail.wholesale_unit_price !== undefined && detail.wholesale_unit_price !== null ? detail.wholesale_unit_price : detail.Unit_price_wholesale;
     if (baseWholesale === undefined || baseWholesale === null || baseWholesale === 0) {
       baseWholesale = baseRetail;
     }
-    _this35.detail.retail_unit_price = baseRetail;
-    _this35.detail.wholesale_unit_price = baseWholesale;
-    _this35.detail.min_price = detail.min_price !== undefined ? detail.min_price : 0;
-    _this35.detail.fix_price = detail.fix_price;
-    _this35.detail.fix_stock = detail.fix_stock;
-    _this35.detail.current = detail.current;
+    _this37.detail.retail_unit_price = baseRetail;
+    _this37.detail.wholesale_unit_price = baseWholesale;
+    _this37.detail.min_price = detail.min_price !== undefined ? detail.min_price : 0;
+    _this37.detail.fix_price = detail.fix_price;
+    _this37.detail.fix_stock = detail.fix_stock;
+    _this37.detail.current = detail.current;
     // Normalize tax_method so v-select shows the correct label in both
     // online and offline modes (1 => Exclusive, 2 => Inclusive).
     var rawTaxMethod = detail.tax_method;
-    _this35.detail.tax_method = rawTaxMethod === 2 || rawTaxMethod === '2' ? 2 : 1;
-    _this35.detail.discount_Method = detail.discount_Method;
-    _this35.detail.discount = detail.discount;
-    _this35.detail.quantity = detail.quantity;
-    _this35.detail.tax_percent = detail.tax_percent;
-    _this35.detail.is_imei = detail.is_imei;
-    _this35.detail.imei_number = detail.imei_number;
-    _this35.detailLoading = false;
+    _this37.detail.tax_method = rawTaxMethod === 2 || rawTaxMethod === '2' ? 2 : 1;
+    _this37.detail.discount_Method = detail.discount_Method;
+    _this37.detail.discount = detail.discount;
+    _this37.detail.quantity = detail.quantity;
+    _this37.detail.tax_percent = detail.tax_percent;
+    _this37.detail.is_imei = detail.is_imei;
+    _this37.detail.imei_number = detail.imei_number;
+    _this37.detailLoading = false;
   });
 }), "submit_Update_Detail", function submit_Update_Detail() {
-  var _this36 = this;
+  var _this38 = this;
   this.$refs.Update_Detail && this.$refs.Update_Detail.validate().then(function (success) {
     if (!success) {
       return;
     } else {
-      _this36.Update_Detail();
+      _this38.Update_Detail();
     }
   })["catch"](function () {
     // Fallback: proceed without form validation if ref is absent in new design
-    _this36.Update_Detail();
+    _this38.Update_Detail();
   });
 }), _defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_objectSpread2, "Update_Detail", function Update_Detail() {
-  var _this37 = this;
+  var _this39 = this;
   for (var i = 0; i < this.details.length; i++) {
     if (this.details[i].detail_id === this.detail.detail_id) {
       // Min price validation (unit and net)
@@ -5501,42 +5574,42 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
   }
   this.CalculTotal();
   setTimeout(function () {
-    _this37.$bvModal.hide("form_Update_Detail");
+    _this39.$bvModal.hide("form_Update_Detail");
   }, 1000);
 }), "onClientSelected", function onClientSelected(selectedClientId) {
-  var _this38 = this;
+  var _this40 = this;
   return _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee13() {
     var client, response, data, briefResponse, briefData, _t0, _t1;
     return _regenerator().w(function (_context13) {
       while (1) switch (_context13.p = _context13.n) {
         case 0:
-          _this38.client_name = '';
-          _this38.selectedClientPoints = 0;
-          _this38.points_to_convert = 0;
-          _this38.discount_from_points = 0;
-          _this38.used_points = 0;
-          _this38.clientIsEligible = false;
-          _this38.pointsConverted = false;
-          _this38.sale.discount = 0;
-          _this38.selectedClientCreditLimit = 0;
-          _this38.selectedClientNetBalance = 0;
+          _this40.client_name = '';
+          _this40.selectedClientPoints = 0;
+          _this40.points_to_convert = 0;
+          _this40.discount_from_points = 0;
+          _this40.used_points = 0;
+          _this40.clientIsEligible = false;
+          _this40.pointsConverted = false;
+          _this40.sale.discount = 0;
+          _this40.selectedClientCreditLimit = 0;
+          _this40.selectedClientNetBalance = 0;
           if (selectedClientId) {
             _context13.n = 1;
             break;
           }
-          _this38.selectedClientId = "";
-          _this38.CalculTotal();
+          _this40.selectedClientId = "";
+          _this40.CalculTotal();
           return _context13.a(2);
         case 1:
-          client = _this38.clients.find(function (c) {
+          client = _this40.clients.find(function (c) {
             return c.id === selectedClientId;
           });
           if (!client) {
             _context13.n = 9;
             break;
           }
-          _this38.client_name = client.name;
-          _this38.selectedClientId = selectedClientId;
+          _this40.client_name = client.name;
+          _this40.selectedClientId = selectedClientId;
           _context13.p = 2;
           _context13.n = 3;
           return axios.get("/get_points_client/".concat(selectedClientId));
@@ -5544,11 +5617,11 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
           response = _context13.v;
           data = response.data;
           if (data.is_royalty_eligible) {
-            _this38.selectedClientPoints = data.points;
-            _this38.clientIsEligible = true;
+            _this40.selectedClientPoints = data.points;
+            _this40.clientIsEligible = true;
           } else {
-            _this38.selectedClientPoints = 0;
-            _this38.clientIsEligible = false;
+            _this40.selectedClientPoints = 0;
+            _this40.clientIsEligible = false;
           }
           _context13.n = 5;
           break;
@@ -5563,25 +5636,25 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
         case 6:
           briefResponse = _context13.v;
           briefData = briefResponse.data;
-          _this38.selectedClientCreditLimit = parseFloat(briefData.credit_limit || 0);
-          _this38.selectedClientNetBalance = parseFloat(briefData.netBalance || 0);
+          _this40.selectedClientCreditLimit = parseFloat(briefData.credit_limit || 0);
+          _this40.selectedClientNetBalance = parseFloat(briefData.netBalance || 0);
           _context13.n = 8;
           break;
         case 7:
           _context13.p = 7;
           _t1 = _context13.v;
           console.error('Error fetching client credit limit:', _t1);
-          _this38.selectedClientCreditLimit = 0;
-          _this38.selectedClientNetBalance = 0;
+          _this40.selectedClientCreditLimit = 0;
+          _this40.selectedClientNetBalance = 0;
         case 8:
           _context13.n = 10;
           break;
         case 9:
-          _this38.selectedClientId = "";
-          _this38.selectedClientCreditLimit = 0;
-          _this38.selectedClientNetBalance = 0;
+          _this40.selectedClientId = "";
+          _this40.selectedClientCreditLimit = 0;
+          _this40.selectedClientNetBalance = 0;
         case 10:
-          _this38.CalculTotal();
+          _this40.CalculTotal();
         case 11:
           return _context13.a(2);
       }
@@ -5628,7 +5701,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
   }
   this.points_to_convert = val;
 }), "Invoice_POS", function Invoice_POS(id) {
-  var _this39 = this;
+  var _this41 = this;
   // Determine preferred invoice format from settings; default to thermal
   var format = 'thermal';
   try {
@@ -5855,23 +5928,23 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
 
   // Default: thermal POS invoice (existing behavior)
   axios.get("sales_print_invoice/".concat(id)).then(function (response) {
-    _this39.invoice_pos.sale = response.data.sale || {};
+    _this41.invoice_pos.sale = response.data.sale || {};
     // Backward compatibility: ensure discount_Method defaults to '2' (fixed) if not present
-    if (_this39.invoice_pos.sale && !_this39.invoice_pos.sale.discount_Method) {
-      _this39.invoice_pos.sale.discount_Method = '2';
+    if (_this41.invoice_pos.sale && !_this41.invoice_pos.sale.discount_Method) {
+      _this41.invoice_pos.sale.discount_Method = '2';
     }
-    _this39.invoice_pos.details = response.data.details;
-    _this39.invoice_pos.setting = response.data.setting;
-    _this39.invoice_pos.symbol = response.data.symbol;
-    _this39.invoice_pos.zatca_qr = response.data.zatca_qr;
-    _this39.public_invoice_url = response.data.public_invoice_url || '';
-    _this39.payments = response.data.payments;
+    _this41.invoice_pos.details = response.data.details;
+    _this41.invoice_pos.setting = response.data.setting;
+    _this41.invoice_pos.symbol = response.data.symbol;
+    _this41.invoice_pos.zatca_qr = response.data.zatca_qr;
+    _this41.public_invoice_url = response.data.public_invoice_url || '';
+    _this41.payments = response.data.payments;
     if (response.data.pos_settings) {
       // Merge with existing pos_settings to preserve defaults
-      _this39.pos_settings = _objectSpread(_objectSpread({}, _this39.pos_settings), response.data.pos_settings);
+      _this41.pos_settings = _objectSpread(_objectSpread({}, _this41.pos_settings), response.data.pos_settings);
       // Convert integer values to boolean for proper condition checking
-      if (typeof _this39.pos_settings.quick_add_customer === 'number') {
-        _this39.pos_settings.quick_add_customer = _this39.pos_settings.quick_add_customer === 1;
+      if (typeof _this41.pos_settings.quick_add_customer === 'number') {
+        _this41.pos_settings.quick_add_customer = _this41.pos_settings.quick_add_customer === 1;
       }
     }
     // Mirror index_sale behavior: show modal first, then optionally auto-print.
@@ -5880,22 +5953,22 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
     // canvas pixels are lost on innerHTML clone and the QR prints blank.
     var autoPrintable = false;
     try {
-      var rawPrintable = _this39.pos_settings && _this39.pos_settings.is_printable !== undefined ? _this39.pos_settings.is_printable : response.data.pos_settings && response.data.pos_settings.is_printable !== undefined ? response.data.pos_settings.is_printable : 1;
+      var rawPrintable = _this41.pos_settings && _this41.pos_settings.is_printable !== undefined ? _this41.pos_settings.is_printable : response.data.pos_settings && response.data.pos_settings.is_printable !== undefined ? response.data.pos_settings.is_printable : 1;
       autoPrintable = rawPrintable === true || rawPrintable === 1 || rawPrintable === '1';
     } catch (e) {}
     setTimeout(function () {
       try {
-        _this39.$bvModal.show('Show_invoice');
+        _this41.$bvModal.show('Show_invoice');
       } catch (e) {}
-      _this39.$nextTick(function () {
-        var qrReady = _this39.awaitQrReady();
+      _this41.$nextTick(function () {
+        var qrReady = _this41.awaitQrReady();
         if (autoPrintable) {
           qrReady.then(function () {
             // Always go through print_pos so Direct Network Printing
             // is honored on mobile too. print_pos itself falls back to
             // print_pos_mobile when DNP is disabled / not applicable.
             try {
-              _this39.print_pos();
+              _this41.print_pos();
             } catch (_) {}
           });
         }
@@ -5943,7 +6016,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
     return false;
   }
 }), "loadQRCodeLib", function loadQRCodeLib() {
-  var _this40 = this;
+  var _this42 = this;
   if (window.QRCode && this._qrLibIsWorking()) return Promise.resolve();
   // window.QRCode may be the old broken local lib cached from a
   // previous page visit — discard it so a known-good source replaces it.
@@ -5978,8 +6051,8 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
   // corrupted CDN response or any future broken minimal build.
   var validateOrFalse = function validateOrFalse() {
     if (!window.QRCode) return false;
-    _this40._qrLibVerified = false;
-    return _this40._qrLibIsWorking();
+    _this42._qrLibVerified = false;
+    return _this42._qrLibIsWorking();
   };
   var discardBroken = function discardBroken() {
     try {
@@ -5987,7 +6060,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
     } catch (e) {
       window.QRCode = undefined;
     }
-    _this40._qrLibVerified = false;
+    _this42._qrLibVerified = false;
   };
   this._qrLoaderPromise = new Promise(function (resolve) {
     tryLoad('https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js', function (ok) {
@@ -6004,7 +6077,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
   }).then(function () {
     // Allow a future retry if no working library was ever obtained.
     if (!window.QRCode) {
-      _this40._qrLoaderPromise = null;
+      _this42._qrLoaderPromise = null;
       return;
     }
     // Runtime-patch QRCode.prototype.makeImage to remove the legacy
@@ -6028,22 +6101,22 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
   });
   return this._qrLoaderPromise;
 }), "renderInvoiceUrlQr", function renderInvoiceUrlQr() {
-  var _this41 = this;
+  var _this43 = this;
   return new Promise(function (resolve) {
     try {
-      if (_this41.pos_settings && Number(_this41.pos_settings.show_barcode) === 0) return resolve();
-      if (!_this41.invoice_pos || !_this41.invoice_pos.sale || !_this41.invoice_pos.sale.Ref) return resolve();
-      if (!_this41.$refs.invoiceUrlQr) return resolve();
-      var text = String(_this41.invoiceBarcodeUrl || _this41.invoice_pos.sale.Ref || '');
+      if (_this43.pos_settings && Number(_this43.pos_settings.show_barcode) === 0) return resolve();
+      if (!_this43.invoice_pos || !_this43.invoice_pos.sale || !_this43.invoice_pos.sale.Ref) return resolve();
+      if (!_this43.$refs.invoiceUrlQr) return resolve();
+      var text = String(_this43.invoiceBarcodeUrl || _this43.invoice_pos.sale.Ref || '');
       if (!text) return resolve();
 
       // Per-mount render token: each call wins, older pending draws bail.
-      _this41._invoiceQrToken = (_this41._invoiceQrToken || 0) + 1;
-      var myToken = _this41._invoiceQrToken;
-      _this41.loadQRCodeLib().then(function () {
-        if (myToken !== _this41._invoiceQrToken) return resolve();
+      _this43._invoiceQrToken = (_this43._invoiceQrToken || 0) + 1;
+      var myToken = _this43._invoiceQrToken;
+      _this43.loadQRCodeLib().then(function () {
+        if (myToken !== _this43._invoiceQrToken) return resolve();
         if (!window.QRCode) return resolve();
-        var m = _this41.$refs.invoiceUrlQr;
+        var m = _this43.$refs.invoiceUrlQr;
         if (!m) return resolve();
         m.innerHTML = '';
         try {
@@ -6064,9 +6137,9 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
           } catch (e2) {}
         }
         setTimeout(function () {
-          if (myToken !== _this41._invoiceQrToken) return resolve();
+          if (myToken !== _this43._invoiceQrToken) return resolve();
           try {
-            _this41.ensureQrImg(m);
+            _this43.ensureQrImg(m);
           } catch (e) {}
           resolve();
         }, 150);
@@ -6115,19 +6188,19 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
     } catch (e) {}
   }
 }), _defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_objectSpread2, "renderZatcaQrPos", function renderZatcaQrPos() {
-  var _this42 = this;
+  var _this44 = this;
   return new Promise(function (resolve) {
     try {
-      if (!_this42.invoice_pos || !_this42.invoice_pos.setting || !_this42.invoice_pos.setting.zatca_enabled || !_this42.invoice_pos.zatca_qr) return resolve();
-      if (!_this42.$refs.zatcaQrcodePos) return resolve();
-      var text = String(_this42.invoice_pos.zatca_qr || '');
+      if (!_this44.invoice_pos || !_this44.invoice_pos.setting || !_this44.invoice_pos.setting.zatca_enabled || !_this44.invoice_pos.zatca_qr) return resolve();
+      if (!_this44.$refs.zatcaQrcodePos) return resolve();
+      var text = String(_this44.invoice_pos.zatca_qr || '');
       if (!text) return resolve();
-      _this42._zatcaQrToken = (_this42._zatcaQrToken || 0) + 1;
-      var myToken = _this42._zatcaQrToken;
-      _this42.loadQRCodeLib().then(function () {
-        if (myToken !== _this42._zatcaQrToken) return resolve();
+      _this44._zatcaQrToken = (_this44._zatcaQrToken || 0) + 1;
+      var myToken = _this44._zatcaQrToken;
+      _this44.loadQRCodeLib().then(function () {
+        if (myToken !== _this44._zatcaQrToken) return resolve();
         if (!window.QRCode) return resolve();
-        var m = _this42.$refs.zatcaQrcodePos;
+        var m = _this44.$refs.zatcaQrcodePos;
         if (!m) return resolve();
         m.innerHTML = '';
         try {
@@ -6147,16 +6220,16 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
             new window.QRCode(m, text);
           } catch (e2) {}
         }
-        _this42.zatcaRenderedPos = true;
+        _this44.zatcaRenderedPos = true;
         setTimeout(function () {
-          if (myToken !== _this42._zatcaQrToken) return resolve();
+          if (myToken !== _this44._zatcaQrToken) return resolve();
           if (m && !m.childNodes.length && window.QRCode) {
             try {
               new window.QRCode(m, text);
             } catch (e) {}
           }
           try {
-            _this42.ensureQrImg(m);
+            _this44.ensureQrImg(m);
           } catch (e) {}
           resolve();
         }, 150);
@@ -6168,17 +6241,17 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
     }
   });
 }), "awaitQrReady", function awaitQrReady() {
-  var _this43 = this;
+  var _this45 = this;
   var a = function () {
     try {
-      return _this43.renderInvoiceUrlQr();
+      return _this45.renderInvoiceUrlQr();
     } catch (e) {
       return Promise.resolve();
     }
   }();
   var b = function () {
     try {
-      return _this43.renderZatcaQrPos();
+      return _this45.renderZatcaQrPos();
     } catch (e) {
       return Promise.resolve();
     }
@@ -6191,22 +6264,22 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
     valid = _ref8$valid === void 0 ? null : _ref8$valid;
   return dirty || validated ? valid : null;
 }), "Submit_Customer", function Submit_Customer() {
-  var _this44 = this;
+  var _this46 = this;
   nprogress__WEBPACK_IMPORTED_MODULE_0___default().start();
   nprogress__WEBPACK_IMPORTED_MODULE_0___default().set(0.1);
   this.$refs.Create_Customer && this.$refs.Create_Customer.validate().then(function (success) {
     if (!success) {
       nprogress__WEBPACK_IMPORTED_MODULE_0___default().done();
-      _this44.makeToast("danger", _this44.$t("Please_fill_the_form_correctly"), _this44.$t("Failed"));
+      _this46.makeToast("danger", _this46.$t("Please_fill_the_form_correctly"), _this46.$t("Failed"));
     } else {
-      _this44.Create_Client();
+      _this46.Create_Client();
     }
   })["catch"](function () {
     // Fallback when ref not present in new design
     nprogress__WEBPACK_IMPORTED_MODULE_0___default().done();
   });
 }), "Create_Client", function Create_Client() {
-  var _this45 = this;
+  var _this47 = this;
   axios.post("clients", {
     name: this.client.name,
     email: this.client.email,
@@ -6219,70 +6292,70 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
   }).then(function (response) {
     nprogress__WEBPACK_IMPORTED_MODULE_0___default().done();
     var newClient = response.data;
-    _this45.clients.push({
+    _this47.clients.push({
       id: newClient.id,
       name: newClient.name
     });
-    _this45.selectedClientId = newClient.id;
-    _this45.client_name = newClient.name;
-    _this45.onClientSelected(newClient.id);
-    _this45.makeToast("success", _this45.$t("Successfully_Created"), _this45.$t("Success"));
-    _this45.Get_Client_Without_Paginate();
-    _this45.$bvModal.hide("New_Customer");
+    _this47.selectedClientId = newClient.id;
+    _this47.client_name = newClient.name;
+    _this47.onClientSelected(newClient.id);
+    _this47.makeToast("success", _this47.$t("Successfully_Created"), _this47.$t("Success"));
+    _this47.Get_Client_Without_Paginate();
+    _this47.$bvModal.hide("New_Customer");
   })["catch"](function () {
     nprogress__WEBPACK_IMPORTED_MODULE_0___default().done();
-    _this45.makeToast("danger", _this45.$t("InvalidData"), _this45.$t("Failed"));
+    _this47.makeToast("danger", _this47.$t("InvalidData"), _this47.$t("Failed"));
   });
 }), "Submit_Quick_Add_Customer", function Submit_Quick_Add_Customer() {
-  var _this46 = this;
+  var _this48 = this;
   nprogress__WEBPACK_IMPORTED_MODULE_0___default().start();
   nprogress__WEBPACK_IMPORTED_MODULE_0___default().set(0.1);
   this.SubmitProcessing = true;
   this.$refs.Quick_Add_Customer_Form && this.$refs.Quick_Add_Customer_Form.validate().then(function (success) {
     if (!success) {
       nprogress__WEBPACK_IMPORTED_MODULE_0___default().done();
-      _this46.SubmitProcessing = false;
-      _this46.makeToast("danger", _this46.$t("Please_fill_the_form_correctly"), _this46.$t("Failed"));
+      _this48.SubmitProcessing = false;
+      _this48.makeToast("danger", _this48.$t("Please_fill_the_form_correctly"), _this48.$t("Failed"));
       return;
     }
     axios.post("clients", {
-      name: _this46.client.name,
-      email: _this46.client.email || '',
-      phone: _this46.client.phone || '',
-      tax_number: _this46.client.tax_number || '',
-      country: _this46.client.country || '',
-      city: _this46.client.city || '',
-      adresse: _this46.client.adresse || '',
-      is_royalty_eligible: _this46.client.is_royalty_eligible || false
+      name: _this48.client.name,
+      email: _this48.client.email || '',
+      phone: _this48.client.phone || '',
+      tax_number: _this48.client.tax_number || '',
+      country: _this48.client.country || '',
+      city: _this48.client.city || '',
+      adresse: _this48.client.adresse || '',
+      is_royalty_eligible: _this48.client.is_royalty_eligible || false
     }).then(function (response) {
       var _newClient$client;
       var newClient = response.data;
 
       // If there are custom field values from the quick-add form, persist them
       var clientId = newClient.id || ((_newClient$client = newClient.client) === null || _newClient$client === void 0 ? void 0 : _newClient$client.id);
-      var hasCustoms = clientId && _this46.quickAddCustomFieldValues && Object.keys(_this46.quickAddCustomFieldValues).length > 0;
+      var hasCustoms = clientId && _this48.quickAddCustomFieldValues && Object.keys(_this48.quickAddCustomFieldValues).length > 0;
       var afterCustoms = function afterCustoms() {
         nprogress__WEBPACK_IMPORTED_MODULE_0___default().done();
-        _this46.SubmitProcessing = false;
-        _this46.clients.push({
+        _this48.SubmitProcessing = false;
+        _this48.clients.push({
           id: newClient.id,
           name: newClient.name,
           phone: newClient.phone || ''
         });
-        _this46.selectedClientId = newClient.id;
-        _this46.client_name = newClient.name;
-        _this46.onClientSelected(newClient.id);
-        _this46.makeToast("success", _this46.$t("Successfully_Created"), _this46.$t("Success"));
-        _this46.Get_Client_Without_Paginate();
-        _this46.$bvModal.hide("Quick_Add_Customer");
-        _this46.reset_Form_client();
-        _this46.quickAddCustomFieldValues = {};
+        _this48.selectedClientId = newClient.id;
+        _this48.client_name = newClient.name;
+        _this48.onClientSelected(newClient.id);
+        _this48.makeToast("success", _this48.$t("Successfully_Created"), _this48.$t("Success"));
+        _this48.Get_Client_Without_Paginate();
+        _this48.$bvModal.hide("Quick_Add_Customer");
+        _this48.reset_Form_client();
+        _this48.quickAddCustomFieldValues = {};
       };
       if (hasCustoms) {
         axios.post("custom-field-values", {
           entity_type: "App\\Models\\Client",
           entity_id: clientId,
-          values: _this46.quickAddCustomFieldValues
+          values: _this48.quickAddCustomFieldValues
         }).then(afterCustoms)["catch"](function () {
           return afterCustoms();
         });
@@ -6291,8 +6364,8 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
       }
     })["catch"](function () {
       nprogress__WEBPACK_IMPORTED_MODULE_0___default().done();
-      _this46.SubmitProcessing = false;
-      _this46.makeToast("danger", _this46.$t("InvalidData"), _this46.$t("Failed"));
+      _this48.SubmitProcessing = false;
+      _this48.makeToast("danger", _this48.$t("InvalidData"), _this48.$t("Failed"));
     });
   });
 }), "New_Client", function New_Client() {
@@ -6314,19 +6387,19 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
     is_royalty_eligible: false
   };
 }), "Get_Client_Without_Paginate", function Get_Client_Without_Paginate() {
-  var _this47 = this;
+  var _this49 = this;
   axios.get("get_clients_without_paginate").then(function (_ref9) {
     var data = _ref9.data;
-    return _this47.clients = data;
+    return _this49.clients = data;
   });
 }), _defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_objectSpread2, "get_today_sales", function get_today_sales() {
-  var _this48 = this;
+  var _this50 = this;
   nprogress__WEBPACK_IMPORTED_MODULE_0___default().start();
   nprogress__WEBPACK_IMPORTED_MODULE_0___default().set(0.1);
   axios.get("get_today_sales").then(function (response) {
-    _this48.today_sales = response.data;
+    _this50.today_sales = response.data;
     setTimeout(function () {
-      _this48.$bvModal.show("modal_today_sales");
+      _this50.$bvModal.show("modal_today_sales");
       nprogress__WEBPACK_IMPORTED_MODULE_0___default().done();
     }, 1000);
   })["catch"](function () {});
@@ -6358,45 +6431,45 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
   var n = Number(id) || 0;
   return palette[Math.abs(n) % palette.length];
 }), "open_pos_settings_modal", function open_pos_settings_modal() {
-  var _this49 = this;
+  var _this51 = this;
   this.ps_loading = true;
   this.$bvModal.show("modal_pos_settings");
   // Refresh from server so the modal always shows authoritative state
   // (and so we have the row id needed for the PUT request).
   axios.get("get_pos_Settings_api").then(function (response) {
     if (response && response.data && response.data.pos_settings) {
-      _this49.pos_settings = _objectSpread(_objectSpread({}, _this49.pos_settings), response.data.pos_settings);
+      _this51.pos_settings = _objectSpread(_objectSpread({}, _this51.pos_settings), response.data.pos_settings);
       // Normalize integer 0/1 → boolean for toggles
       var boolKeys = ['quick_add_customer', 'barcode_scanning_sound', 'show_product_images', 'show_stock_quantity', 'enable_hold_sales', 'enable_customer_points', 'show_categories', 'show_brands', 'allow_overselling', 'cash_drawer_auto_open'];
       boolKeys.forEach(function (k) {
-        if (typeof _this49.pos_settings[k] === 'number') {
-          _this49.pos_settings[k] = _this49.pos_settings[k] === 1;
+        if (typeof _this51.pos_settings[k] === 'number') {
+          _this51.pos_settings[k] = _this51.pos_settings[k] === 1;
         }
       });
     }
   })["catch"](function () {
-    _this49.makeToast('danger', _this49.$t('Failed_to_load_settings') || 'Failed to load settings', _this49.$t('Failed'));
+    _this51.makeToast('danger', _this51.$t('Failed_to_load_settings') || 'Failed to load settings', _this51.$t('Failed'));
   })["finally"](function () {
     // Pull invoice_format from global settings as well
     axios.get("get_Settings_data").then(function (r) {
       var settings = r && r.data && r.data.settings || {};
       var raw = settings.invoice_format;
-      _this49.invoice_format = typeof raw === 'string' && ['thermal', 'a4'].includes(raw) ? raw : 'thermal';
+      _this51.invoice_format = typeof raw === 'string' && ['thermal', 'a4'].includes(raw) ? raw : 'thermal';
     })["catch"](function () {})["finally"](function () {
-      _this49.ps_loading = false;
+      _this51.ps_loading = false;
     });
   });
 }), "Submit_Pos_Settings_Modal", function Submit_Pos_Settings_Modal() {
-  var _this50 = this;
+  var _this52 = this;
   this.$refs.Submit_Pos_Settings_Modal.validate().then(function (success) {
     if (!success) {
-      _this50.makeToast('danger', _this50.$t('Please_fill_the_form_correctly'), _this50.$t('Failed'));
+      _this52.makeToast('danger', _this52.$t('Please_fill_the_form_correctly'), _this52.$t('Failed'));
       return;
     }
-    _this50.Update_Pos_Settings_Modal();
+    _this52.Update_Pos_Settings_Modal();
   });
 }), "Update_Pos_Settings_Modal", function Update_Pos_Settings_Modal() {
-  var _this51 = this;
+  var _this53 = this;
   if (!this.pos_settings || !this.pos_settings.id) {
     this.makeToast('danger', this.$t('Failed_to_load_settings') || 'Failed to load settings', this.$t('Failed'));
     return;
@@ -6443,15 +6516,15 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
     cash_drawer_printer_name: this.pos_settings.cash_drawer_printer_name || null,
     invoice_format: this.invoice_format
   }).then(function () {
-    _this51.makeToast('success', _this51.$t('Successfully_Updated'), _this51.$t('Success'));
+    _this53.makeToast('success', _this53.$t('Successfully_Updated'), _this53.$t('Success'));
     try {
       Fire.$emit('Event_Pos_Settings');
     } catch (e) {}
-    _this51.$bvModal.hide('modal_pos_settings');
+    _this53.$bvModal.hide('modal_pos_settings');
   })["catch"](function () {
-    _this51.makeToast('danger', _this51.$t('InvalidData'), _this51.$t('Failed'));
+    _this53.makeToast('danger', _this53.$t('InvalidData'), _this53.$t('Failed'));
   })["finally"](function () {
-    _this51.ps_saving = false;
+    _this53.ps_saving = false;
     nprogress__WEBPACK_IMPORTED_MODULE_0___default().done();
   });
 }), _defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_objectSpread2, "getResultValue", function getResultValue(result) {
@@ -6484,7 +6557,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
     this.makeToast("warning", this.$t("Please_wait_until_the_product_is_loaded"), this.$t("Warning"));
   }
 }), "tryDirectNetworkPrint", function tryDirectNetworkPrint() {
-  var _this52 = this;
+  var _this54 = this;
   try {
     var ps = this.pos_settings || {};
     var enabled = ps.direct_network_printing === true || ps.direct_network_printing === 1 || ps.direct_network_printing === '1';
@@ -6497,7 +6570,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
     return axios.post('direct_network_print/' + saleId).then(function (response) {
       if (response && response.data && response.data.success) {
         try {
-          _this52.makeToast && _this52.makeToast('success', _this52.$t ? _this52.$t('Sent_to_network_printer') || 'Sent to network printer' : 'Sent to network printer', _this52.$t ? _this52.$t('Success') : 'Success');
+          _this54.makeToast && _this54.makeToast('success', _this54.$t ? _this54.$t('Sent_to_network_printer') || 'Sent to network printer' : 'Sent to network printer', _this54.$t ? _this54.$t('Success') : 'Success');
         } catch (_) {}
         return {
           ok: true
@@ -6524,7 +6597,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
     });
   }
 }), "print_pos", function print_pos() {
-  var _this53 = this;
+  var _this55 = this;
   var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
   // Direct Network Printing: when enabled, ALWAYS go through the network
   // printer and never fall back to the browser print popup. On failure
@@ -6535,9 +6608,9 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
   if (dnpEnabled && !opts.__skipDirectNetwork) {
     this.tryDirectNetworkPrint().then(function (result) {
       if (result && result.ok) {
-        if (_this53.onlineReloadAfterSale && typeof window !== 'undefined' && window.location && typeof window.location.reload === 'function') {
-          _this53.onlineReloadAfterSale = false;
-          _this53.onlineReloadModalVisible = false;
+        if (_this55.onlineReloadAfterSale && typeof window !== 'undefined' && window.location && typeof window.location.reload === 'function') {
+          _this55.onlineReloadAfterSale = false;
+          _this55.onlineReloadModalVisible = false;
           try {
             window.location.reload();
           } catch (e) {}
@@ -6546,12 +6619,12 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
       }
       if (result && result.configured) {
         try {
-          _this53.makeToast && _this53.makeToast('danger', (_this53.$t ? _this53.$t('Network_print_failed') || 'Network print failed' : 'Network print failed') + ': ' + (result.message || ''), _this53.$t ? _this53.$t('Failed') : 'Failed');
+          _this55.makeToast && _this55.makeToast('danger', (_this55.$t ? _this55.$t('Network_print_failed') || 'Network print failed' : 'Network print failed') + ': ' + (result.message || ''), _this55.$t ? _this55.$t('Failed') : 'Failed');
         } catch (_) {}
         // Honor post-print reload even when print failed, to match prior UX.
-        if (_this53.onlineReloadAfterSale && typeof window !== 'undefined' && window.location && typeof window.location.reload === 'function') {
-          _this53.onlineReloadAfterSale = false;
-          _this53.onlineReloadModalVisible = false;
+        if (_this55.onlineReloadAfterSale && typeof window !== 'undefined' && window.location && typeof window.location.reload === 'function') {
+          _this55.onlineReloadAfterSale = false;
+          _this55.onlineReloadModalVisible = false;
           try {
             window.location.reload();
           } catch (e) {}
@@ -6559,7 +6632,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
         return;
       }
       // DNP not actually configured (no IP / no saleId): fall back to browser.
-      _this53.print_pos(_objectSpread(_objectSpread({}, opts), {}, {
+      _this55.print_pos(_objectSpread(_objectSpread({}, opts), {}, {
         __skipDirectNetwork: true
       }));
     });
@@ -6576,7 +6649,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
   // Gate the browser-print snapshot on QR readiness: canvas pixel data
   // is lost on innerHTML clone; only the data-URL <img> survives.
   this.awaitQrReady().then(function () {
-    _this53._writePrintWindow(el);
+    _this55._writePrintWindow(el);
   });
 }), "_writePrintWindow", function _writePrintWindow(el) {
   var divContents = el.innerHTML;
@@ -6625,9 +6698,9 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
     }
   }, 300);
 }), "print_pos_mobile", function print_pos_mobile() {
-  var _this54 = this;
+  var _this56 = this;
   this.awaitQrReady().then(function () {
-    return _this54._print_pos_mobile_impl();
+    return _this56._print_pos_mobile_impl();
   });
 }), "_print_pos_mobile_impl", function _print_pos_mobile_impl() {
   try {
@@ -6745,7 +6818,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
     setTimeout(waitForReady, 50);
   } catch (e) {}
 }), "printInvoiceFromData", function printInvoiceFromData(data) {
-  var _this55 = this;
+  var _this57 = this;
   try {
     var s = data && data.sale ? data.sale : {};
     var set = data && data.setting ? data.setting : {};
@@ -6815,7 +6888,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
     }
     var doPrint = function doPrint() {
       try {
-        _this55.print_pos({
+        _this57.print_pos({
           reloadAfterPrint: false
         });
       } catch (e) {}
@@ -6829,7 +6902,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
       // Still kick off QR rendering so the on-screen modal shows the codes.
       try {
         this.$nextTick(function () {
-          _this55.awaitQrReady();
+          _this57.awaitQrReady();
         });
       } catch (e) {}
     } else {
@@ -6843,14 +6916,14 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
           if (!el) {
             // As a fallback, show the modal once so its DOM is guaranteed to exist, then print.
             try {
-              _this55.$bvModal && _this55.$bvModal.show && _this55.$bvModal.show('Show_invoice');
+              _this57.$bvModal && _this57.$bvModal.show && _this57.$bvModal.show('Show_invoice');
             } catch (e) {}
-            _this55.$nextTick(function () {
-              _this55.awaitQrReady().then(doPrint);
+            _this57.$nextTick(function () {
+              _this57.awaitQrReady().then(doPrint);
             });
             return;
           }
-          _this55.awaitQrReady().then(doPrint);
+          _this57.awaitQrReady().then(doPrint);
         });
       } catch (e) {
         doPrint();
@@ -6860,52 +6933,52 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
     // In offline mode, do not reload the main page; just ignore print failures.
   }
 }), "GetElementsPos", function GetElementsPos() {
-  var _this56 = this;
+  var _this58 = this;
   axios.get("pos/data_create_pos").then(function (response) {
     var _response$data$defaul, _response$data$defaul2;
-    _this56.clients = response.data.clients;
-    _this56.accounts = response.data.accounts;
-    _this56.warehouses = response.data.warehouses;
-    _this56.categories = response.data.categories;
-    _this56.brands = response.data.brands;
-    _this56.payment_methods = response.data.payment_methods;
-    _this56.default_account_id = (_response$data$defaul = response.data.default_account_id) !== null && _response$data$defaul !== void 0 ? _response$data$defaul : null;
-    _this56.default_payment_method_id = (_response$data$defaul2 = response.data.default_payment_method_id) !== null && _response$data$defaul2 !== void 0 ? _response$data$defaul2 : null;
-    _this56.sale.warehouse_id = response.data.defaultWarehouse;
-    _this56.selectedClientId = response.data.defaultClient;
-    _this56.client_name = response.data.default_client_name;
-    _this56.clientIsEligible = response.data.default_client_eligible === true || response.data.default_client_eligible === 1;
-    _this56.selectedClientPoints = _this56.clientIsEligible ? parseFloat(response.data.default_client_points) : 0;
-    _this56.point_to_amount_rate = response.data.point_to_amount_rate;
+    _this58.clients = response.data.clients;
+    _this58.accounts = response.data.accounts;
+    _this58.warehouses = response.data.warehouses;
+    _this58.categories = response.data.categories;
+    _this58.brands = response.data.brands;
+    _this58.payment_methods = response.data.payment_methods;
+    _this58.default_account_id = (_response$data$defaul = response.data.default_account_id) !== null && _response$data$defaul !== void 0 ? _response$data$defaul : null;
+    _this58.default_payment_method_id = (_response$data$defaul2 = response.data.default_payment_method_id) !== null && _response$data$defaul2 !== void 0 ? _response$data$defaul2 : null;
+    _this58.sale.warehouse_id = response.data.defaultWarehouse;
+    _this58.selectedClientId = response.data.defaultClient;
+    _this58.client_name = response.data.default_client_name;
+    _this58.clientIsEligible = response.data.default_client_eligible === true || response.data.default_client_eligible === 1;
+    _this58.selectedClientPoints = _this58.clientIsEligible ? parseFloat(response.data.default_client_points) : 0;
+    _this58.point_to_amount_rate = response.data.point_to_amount_rate;
 
     // Set default tax from settings
     if (response.data.default_tax !== undefined && response.data.default_tax !== null) {
-      _this56.sale.tax_rate = parseFloat(response.data.default_tax) || 0;
-      _this56.default_tax = parseFloat(response.data.default_tax) || 0;
-      _this56.CalculTotal();
+      _this58.sale.tax_rate = parseFloat(response.data.default_tax) || 0;
+      _this58.default_tax = parseFloat(response.data.default_tax) || 0;
+      _this58.CalculTotal();
     }
-    _this56.product_perPage = response.data.products_per_page;
-    _this56.languages_available = response.data.languages_available;
+    _this58.product_perPage = response.data.products_per_page;
+    _this58.languages_available = response.data.languages_available;
 
     // Hydrate company/receipt header info (also used for offline printing)
     try {
       if (response.data && response.data.setting) {
-        var merged = _objectSpread(_objectSpread({}, _this56.invoice_pos && _this56.invoice_pos.setting ? _this56.invoice_pos.setting : {}), response.data.setting);
-        _this56.invoice_pos.setting = merged;
+        var merged = _objectSpread(_objectSpread({}, _this58.invoice_pos && _this58.invoice_pos.setting ? _this58.invoice_pos.setting : {}), response.data.setting);
+        _this58.invoice_pos.setting = merged;
         // Cache preferred invoice format for POS printing
         if (merged && typeof merged.invoice_format === 'string' && ['thermal', 'a4'].includes(merged.invoice_format)) {
-          _this56.invoice_format = merged.invoice_format;
+          _this58.invoice_format = merged.invoice_format;
         } else {
-          _this56.invoice_format = 'thermal';
+          _this58.invoice_format = 'thermal';
         }
         // Offline sync toggle (System Settings → System tab). When the admin
         // disables it, the POS always behaves as online and skips the
         // offline UI/queue.
         if (typeof merged.offline_sync_enabled !== 'undefined') {
-          _this56.offlineSyncEnabled = merged.offline_sync_enabled === true || merged.offline_sync_enabled === 1 || merged.offline_sync_enabled === '1';
+          _this58.offlineSyncEnabled = merged.offline_sync_enabled === true || merged.offline_sync_enabled === 1 || merged.offline_sync_enabled === '1';
         }
-        if (!_this56.offlineSyncEnabled) {
-          _this56.isOnline = true;
+        if (!_this58.offlineSyncEnabled) {
+          _this58.isOnline = true;
         }
         // Cache for offline usage even if the page later goes offline
         try {
@@ -6916,95 +6989,95 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
 
     // Ensure we always have a currency symbol fallback for receipts
     try {
-      var sym = _this56.currentUser && _this56.currentUser.currency ? _this56.currentUser.currency : '';
-      if (!_this56.invoice_pos.symbol) {
+      var sym = _this58.currentUser && _this58.currentUser.currency ? _this58.currentUser.currency : '';
+      if (!_this58.invoice_pos.symbol) {
         try {
-          _this56.$set(_this56.invoice_pos, 'symbol', sym);
+          _this58.$set(_this58.invoice_pos, 'symbol', sym);
         } catch (e) {
-          _this56.invoice_pos.symbol = sym;
+          _this58.invoice_pos.symbol = sym;
         }
       }
     } catch (e) {}
 
     // Load POS settings if available
     if (response.data.pos_settings) {
-      _this56.pos_settings = response.data.pos_settings;
+      _this58.pos_settings = response.data.pos_settings;
       // Convert integer values (0/1) to boolean for proper condition checking
-      if (typeof _this56.pos_settings.quick_add_customer === 'number') {
-        _this56.pos_settings.quick_add_customer = _this56.pos_settings.quick_add_customer === 1;
+      if (typeof _this58.pos_settings.quick_add_customer === 'number') {
+        _this58.pos_settings.quick_add_customer = _this58.pos_settings.quick_add_customer === 1;
       }
-      if (typeof _this56.pos_settings.barcode_scanning_sound === 'number') {
-        _this56.pos_settings.barcode_scanning_sound = _this56.pos_settings.barcode_scanning_sound === 1;
+      if (typeof _this58.pos_settings.barcode_scanning_sound === 'number') {
+        _this58.pos_settings.barcode_scanning_sound = _this58.pos_settings.barcode_scanning_sound === 1;
       }
-      if (typeof _this56.pos_settings.show_product_images === 'number') {
-        _this56.pos_settings.show_product_images = _this56.pos_settings.show_product_images === 1;
+      if (typeof _this58.pos_settings.show_product_images === 'number') {
+        _this58.pos_settings.show_product_images = _this58.pos_settings.show_product_images === 1;
       }
-      if (typeof _this56.pos_settings.show_stock_quantity === 'number') {
-        _this56.pos_settings.show_stock_quantity = _this56.pos_settings.show_stock_quantity === 1;
+      if (typeof _this58.pos_settings.show_stock_quantity === 'number') {
+        _this58.pos_settings.show_stock_quantity = _this58.pos_settings.show_stock_quantity === 1;
       }
-      if (typeof _this56.pos_settings.enable_hold_sales === 'number') {
-        _this56.pos_settings.enable_hold_sales = _this56.pos_settings.enable_hold_sales === 1;
+      if (typeof _this58.pos_settings.enable_hold_sales === 'number') {
+        _this58.pos_settings.enable_hold_sales = _this58.pos_settings.enable_hold_sales === 1;
       }
-      if (typeof _this56.pos_settings.enable_customer_points === 'number') {
-        _this56.pos_settings.enable_customer_points = _this56.pos_settings.enable_customer_points === 1;
+      if (typeof _this58.pos_settings.enable_customer_points === 'number') {
+        _this58.pos_settings.enable_customer_points = _this58.pos_settings.enable_customer_points === 1;
       }
-      if (typeof _this56.pos_settings.show_categories === 'number') {
-        _this56.pos_settings.show_categories = _this56.pos_settings.show_categories === 1;
+      if (typeof _this58.pos_settings.show_categories === 'number') {
+        _this58.pos_settings.show_categories = _this58.pos_settings.show_categories === 1;
       }
-      if (typeof _this56.pos_settings.show_brands === 'number') {
-        _this56.pos_settings.show_brands = _this56.pos_settings.show_brands === 1;
+      if (typeof _this58.pos_settings.show_brands === 'number') {
+        _this58.pos_settings.show_brands = _this58.pos_settings.show_brands === 1;
       }
     }
-    _this56.getProducts();
-    _this56.paginate_Brands(_this56.brand_perPage, 0);
-    _this56.paginate_Category(_this56.category_perPage, 0);
-    _this56.stripe_key = response.data.stripe_key;
+    _this58.getProducts();
+    _this58.paginate_Brands(_this58.brand_perPage, 0);
+    _this58.paginate_Category(_this58.category_perPage, 0);
+    _this58.stripe_key = response.data.stripe_key;
     // Cache bootstrap payload for offline usage
     try {
       if (_utils__WEBPACK_IMPORTED_MODULE_4__["default"] && _utils__WEBPACK_IMPORTED_MODULE_4__["default"].offlinePos && _utils__WEBPACK_IMPORTED_MODULE_4__["default"].offlinePos.cacheBootstrap) {
         _utils__WEBPACK_IMPORTED_MODULE_4__["default"].offlinePos.cacheBootstrap(response.data);
       }
     } catch (e) {}
-    _this56.isLoading = false;
+    _this58.isLoading = false;
   })["catch"](function () {
     // Offline/failed bootstrap: hydrate from cached data where possible
     try {
       var cached = _utils__WEBPACK_IMPORTED_MODULE_4__["default"] && _utils__WEBPACK_IMPORTED_MODULE_4__["default"].offlinePos && _utils__WEBPACK_IMPORTED_MODULE_4__["default"].offlinePos.getCachedBootstrap ? _utils__WEBPACK_IMPORTED_MODULE_4__["default"].offlinePos.getCachedBootstrap() : null;
       if (cached) {
         var _cached$default_accou, _cached$default_payme;
-        _this56.clients = cached.clients || [];
-        _this56.accounts = cached.accounts || [];
-        _this56.warehouses = cached.warehouses || [];
-        _this56.categories = cached.categories || [];
-        _this56.brands = cached.brands || [];
-        _this56.payment_methods = cached.payment_methods || [];
-        _this56.default_account_id = (_cached$default_accou = cached.default_account_id) !== null && _cached$default_accou !== void 0 ? _cached$default_accou : null;
-        _this56.default_payment_method_id = (_cached$default_payme = cached.default_payment_method_id) !== null && _cached$default_payme !== void 0 ? _cached$default_payme : null;
-        if (!_this56.sale.warehouse_id && cached.defaultWarehouse) {
-          _this56.sale.warehouse_id = cached.defaultWarehouse;
+        _this58.clients = cached.clients || [];
+        _this58.accounts = cached.accounts || [];
+        _this58.warehouses = cached.warehouses || [];
+        _this58.categories = cached.categories || [];
+        _this58.brands = cached.brands || [];
+        _this58.payment_methods = cached.payment_methods || [];
+        _this58.default_account_id = (_cached$default_accou = cached.default_account_id) !== null && _cached$default_accou !== void 0 ? _cached$default_accou : null;
+        _this58.default_payment_method_id = (_cached$default_payme = cached.default_payment_method_id) !== null && _cached$default_payme !== void 0 ? _cached$default_payme : null;
+        if (!_this58.sale.warehouse_id && cached.defaultWarehouse) {
+          _this58.sale.warehouse_id = cached.defaultWarehouse;
         }
-        if (!_this56.selectedClientId && cached.defaultClient) {
-          _this56.selectedClientId = cached.defaultClient;
+        if (!_this58.selectedClientId && cached.defaultClient) {
+          _this58.selectedClientId = cached.defaultClient;
         }
-        if (!_this56.client_name && cached.default_client_name) {
-          _this56.client_name = cached.default_client_name;
+        if (!_this58.client_name && cached.default_client_name) {
+          _this58.client_name = cached.default_client_name;
         }
-        _this56.clientIsEligible = cached.default_client_eligible === true || cached.default_client_eligible === 1;
-        _this56.selectedClientPoints = _this56.clientIsEligible ? parseFloat(cached.default_client_points || 0) : 0;
-        _this56.point_to_amount_rate = cached.point_to_amount_rate || _this56.point_to_amount_rate;
+        _this58.clientIsEligible = cached.default_client_eligible === true || cached.default_client_eligible === 1;
+        _this58.selectedClientPoints = _this58.clientIsEligible ? parseFloat(cached.default_client_points || 0) : 0;
+        _this58.point_to_amount_rate = cached.point_to_amount_rate || _this58.point_to_amount_rate;
         if (cached.default_tax !== undefined && cached.default_tax !== null) {
-          _this56.sale.tax_rate = parseFloat(cached.default_tax) || 0;
-          _this56.default_tax = parseFloat(cached.default_tax) || 0;
-          _this56.CalculTotal();
+          _this58.sale.tax_rate = parseFloat(cached.default_tax) || 0;
+          _this58.default_tax = parseFloat(cached.default_tax) || 0;
+          _this58.CalculTotal();
         }
         if (cached.products_per_page) {
-          _this56.product_perPage = cached.products_per_page;
+          _this58.product_perPage = cached.products_per_page;
         }
         if (Array.isArray(cached.languages_available)) {
-          _this56.languages_available = cached.languages_available;
+          _this58.languages_available = cached.languages_available;
         }
         if (cached.stripe_key) {
-          _this56.stripe_key = cached.stripe_key;
+          _this58.stripe_key = cached.stripe_key;
         }
 
         // Hydrate cached company/receipt header info for offline receipts
@@ -7018,42 +7091,42 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
             } catch (e) {}
           }
           if (setting) {
-            _this56.invoice_pos.setting = _objectSpread(_objectSpread({}, _this56.invoice_pos && _this56.invoice_pos.setting ? _this56.invoice_pos.setting : {}), setting);
+            _this58.invoice_pos.setting = _objectSpread(_objectSpread({}, _this58.invoice_pos && _this58.invoice_pos.setting ? _this58.invoice_pos.setting : {}), setting);
             if (typeof setting.offline_sync_enabled !== 'undefined') {
-              _this56.offlineSyncEnabled = setting.offline_sync_enabled === true || setting.offline_sync_enabled === 1 || setting.offline_sync_enabled === '1';
+              _this58.offlineSyncEnabled = setting.offline_sync_enabled === true || setting.offline_sync_enabled === 1 || setting.offline_sync_enabled === '1';
             }
           }
         } catch (e) {}
 
         // Ensure receipt symbol exists offline too
         try {
-          var sym = _this56.currentUser && _this56.currentUser.currency ? _this56.currentUser.currency : '';
-          if (!_this56.invoice_pos.symbol) {
+          var sym = _this58.currentUser && _this58.currentUser.currency ? _this58.currentUser.currency : '';
+          if (!_this58.invoice_pos.symbol) {
             try {
-              _this56.$set(_this56.invoice_pos, 'symbol', sym);
+              _this58.$set(_this58.invoice_pos, 'symbol', sym);
             } catch (e) {
-              _this56.invoice_pos.symbol = sym;
+              _this58.invoice_pos.symbol = sym;
             }
           }
         } catch (e) {}
-        _this56.paginate_Brands(_this56.brand_perPage, 0);
-        _this56.paginate_Category(_this56.category_perPage, 0);
-        if (_this56.sale.warehouse_id) {
+        _this58.paginate_Brands(_this58.brand_perPage, 0);
+        _this58.paginate_Category(_this58.category_perPage, 0);
+        if (_this58.sale.warehouse_id) {
           // This call will fall back to cached snapshots in offline mode
-          _this56.getProducts();
+          _this58.getProducts();
         } else {
-          _this56.productsReady = true;
+          _this58.productsReady = true;
         }
       } else {
-        _this56.productsReady = true;
+        _this58.productsReady = true;
       }
     } catch (e) {
-      _this56.productsReady = true;
+      _this58.productsReady = true;
     }
-    _this56.isLoading = false;
+    _this58.isLoading = false;
   });
 }), "onModernPaymentSuccess", function onModernPaymentSuccess(evt) {
-  var _this57 = this;
+  var _this59 = this;
   // For ONLINE sales through ModernPaymentModal, the sale response carries
   // authoritative stock for the items just sold. Patch it into the grid
   // immediately so the cashier sees correct quantities without waiting
@@ -7130,7 +7203,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
 
       // Map payments into invoice shape
       var payments = Array.isArray(payload.payments) ? payload.payments.map(function (p) {
-        var method = (_this57.payment_methods || []).find(function (m) {
+        var method = (_this59.payment_methods || []).find(function (m) {
           return String(m.id) === String(p.payment_method_id);
         });
         return {
@@ -7187,7 +7260,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
     var _ps = this.pos_settings || {};
     if (_ps.cash_drawer_auto_open && _payments.length > 0 && this.payment_methods && this.payment_methods.length) {
       var hasCash = _payments.some(function (p) {
-        var method = _this57.payment_methods.find(function (m) {
+        var method = _this59.payment_methods.find(function (m) {
           return String(m.id) === String(p.payment_method_id);
         });
         return method && method.name && String(method.name).toLowerCase().includes('cash');
@@ -7213,7 +7286,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
     this.refreshOfflineSalesCount();
   } catch (e) {}
 }), _defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_objectSpread2, "initOfflineStatus", function initOfflineStatus() {
-  var _this58 = this;
+  var _this60 = this;
   // If the admin disabled offline sync in System Settings, force the POS
   // to always report online so the offline UI / sale queueing is skipped.
   if (!this.offlineSyncEnabled) {
@@ -7246,17 +7319,17 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
       this._posOnlineSignalPollTimer = setInterval(function () {
         try {
           var browserOnline = !window.navigator || window.navigator.onLine !== false;
-          if (browserOnline && !_this58.isOnline) {
-            _this58.isOnline = true;
+          if (browserOnline && !_this60.isOnline) {
+            _this60.isOnline = true;
             // Ensure reconnect flow runs (ping + modal/sync gating).
             try {
-              _this58.handleOnline();
+              _this60.handleOnline();
             } catch (e) {}
-          } else if (!browserOnline && _this58.isOnline) {
+          } else if (!browserOnline && _this60.isOnline) {
             try {
-              _this58.handleOffline();
+              _this60.handleOffline();
             } catch (e) {
-              _this58.isOnline = false;
+              _this60.isOnline = false;
             }
           }
         } catch (e) {}
@@ -7265,7 +7338,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
   } catch (e) {}
   this.refreshOfflineSalesCount();
 }), "handleOnline", function handleOnline() {
-  var _this59 = this;
+  var _this61 = this;
   return _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee14() {
     var hadActiveCart, confirmedOnline, queue, pendingCount, msg, _t10;
     return _regenerator().w(function (_context14) {
@@ -7274,21 +7347,21 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
           // When the browser reports that we're back online, check if there is an
           // active checkout. If so, we'll offer the user a non-blocking choice to
           // reload now or after completing the sale.
-          hadActiveCart = _this59.details && _this59.details.length > 0; // Keep UI "online" driven by the browser signal (fast UX), but confirm
+          hadActiveCart = _this61.details && _this61.details.length > 0; // Keep UI "online" driven by the browser signal (fast UX), but confirm
           // backend reachability before showing the "Internet restored" modal or
           // performing reconnect actions (reload / sync triggers).
-          _this59.isOnline = true;
-          if (!_this59._posOnlineProbeInProgress) {
+          _this61.isOnline = true;
+          if (!_this61._posOnlineProbeInProgress) {
             _context14.n = 1;
             break;
           }
           return _context14.a(2);
         case 1:
-          _this59._posOnlineProbeInProgress = true;
+          _this61._posOnlineProbeInProgress = true;
           confirmedOnline = true;
           _context14.p = 2;
           _context14.n = 3;
-          return _this59.pingBackend();
+          return _this61.pingBackend();
         case 3:
           confirmedOnline = _context14.v;
           _context14.n = 5;
@@ -7299,7 +7372,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
           confirmedOnline = false;
         case 5:
           _context14.p = 5;
-          _this59._posOnlineProbeInProgress = false;
+          _this61._posOnlineProbeInProgress = false;
           return _context14.f(5);
         case 6:
           if (confirmedOnline) {
@@ -7319,13 +7392,13 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
                   return s && (s.status === 'pending' || s.status === 'syncing');
                 }).length;
                 if (pendingCount > 0) {
-                  msg = pendingCount === 1 ? _this59.$t ? _this59.$t('pos.Syncing_offline_sales') : 'Syncing offline sales' : _this59.$t ? "".concat(_this59.$t('pos.Syncing_offline_sales'), " (").concat(pendingCount, ")") : "Syncing ".concat(pendingCount, " offline sales...");
-                  _this59.makeToast && _this59.makeToast('info', msg, _this59.$t ? _this59.$t('Notice') : 'Notice');
+                  msg = pendingCount === 1 ? _this61.$t ? _this61.$t('pos.Syncing_offline_sales') : 'Syncing offline sales' : _this61.$t ? "".concat(_this61.$t('pos.Syncing_offline_sales'), " (").concat(pendingCount, ")") : "Syncing ".concat(pendingCount, " offline sales...");
+                  _this61.makeToast && _this61.makeToast('info', msg, _this61.$t ? _this61.$t('Notice') : 'Notice');
                   // Ask POS to reload after global offline sync completes successfully.
-                  _this59.reloadAfterOfflineSync = true;
+                  _this61.reloadAfterOfflineSync = true;
                 } else {
                   // No pending offline sales: nothing to sync, so reload immediately.
-                  _this59.reloadAfterOfflineSync = false;
+                  _this61.reloadAfterOfflineSync = false;
                   if (typeof window !== 'undefined' && window.location && typeof window.location.reload === 'function') {
                     try {
                       window.location.reload();
@@ -7339,8 +7412,8 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
           // non-blocking confirmation modal offering to reload now or after
           // completing the current sale.
           if (hadActiveCart) {
-            _this59.onlineReloadModalVisible = true;
-            _this59.onlineReloadAfterSale = false;
+            _this61.onlineReloadModalVisible = true;
+            _this61.onlineReloadAfterSale = false;
           }
           // Do NOT call this.trySyncOfflineSales() here; globalOfflineSync will run
           // the sync once per online event, which prevents duplicate submissions.
@@ -7446,13 +7519,13 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
     this.makeToast('danger', fullMsg, this.$t ? this.$t('Failed') : 'Failed');
   }
 }), "trySyncOfflineSales", function trySyncOfflineSales() {
-  var _this60 = this;
+  var _this62 = this;
   return _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee15() {
     var ok, syncedCount, queue, i, sale, basePayload, normalizedDetails, payload, response, isNetworkError, msg, _t11, _t12, _t13;
     return _regenerator().w(function (_context15) {
       while (1) switch (_context15.p = _context15.n) {
         case 0:
-          if (!_this60.offlineSyncInProgress) {
+          if (!_this62.offlineSyncInProgress) {
             _context15.n = 1;
             break;
           }
@@ -7467,7 +7540,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
             _context15.n = 3;
             break;
           }
-          if (_this60.offlineSyncEnabled) _this60.isOnline = false;
+          if (_this62.offlineSyncEnabled) _this62.isOnline = false;
           return _context15.a(2);
         case 3:
           _context15.n = 5;
@@ -7478,7 +7551,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
         case 5:
           _context15.p = 5;
           _context15.n = 6;
-          return _this60.pingBackend();
+          return _this62.pingBackend();
         case 6:
           ok = _context15.v;
           if (ok) {
@@ -7494,14 +7567,14 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
           _t12 = _context15.v;
           return _context15.a(2);
         case 9:
-          _this60.offlineSyncInProgress = true;
+          _this62.offlineSyncInProgress = true;
           // Notify UI (via global event bus) that POS offline sync has started
           try {
             if (typeof window !== 'undefined' && window.Fire && window.Fire.$emit) {
               window.Fire.$emit('offline-sync:start');
             }
           } catch (e) {}
-          _this60.offlineLastSyncError = null;
+          _this62.offlineLastSyncError = null;
           syncedCount = 0;
           _context15.p = 10;
           if (!(!_utils__WEBPACK_IMPORTED_MODULE_4__["default"] || !_utils__WEBPACK_IMPORTED_MODULE_4__["default"].offlinePos || !_utils__WEBPACK_IMPORTED_MODULE_4__["default"].offlinePos.getOfflineSales)) {
@@ -7577,11 +7650,11 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
           if (typeof window !== 'undefined') {
             try {
               if (window.navigator && window.navigator.onLine === false) {
-                if (_this60.offlineSyncEnabled) _this60.isOnline = false;
+                if (_this62.offlineSyncEnabled) _this62.isOnline = false;
               }
             } catch (e) {}
           }
-          if (!(isNetworkError && !_this60.isOnline)) {
+          if (!(isNetworkError && !_this62.isOnline)) {
             _context15.n = 16;
             break;
           }
@@ -7589,7 +7662,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
         case 16:
           msg = _t13.response && _t13.response.data && (_t13.response.data.message || _t13.response.data.error) || _t13.message || 'Unknown error';
           _utils__WEBPACK_IMPORTED_MODULE_4__["default"].offlinePos.markSaleAsFailed(sale.id, msg, _t13.response && _t13.response.status);
-          _this60.offlineLastSyncError = msg;
+          _this62.offlineLastSyncError = msg;
           // For non-network errors, rollback local shadow stock to keep UI consistent
           if (!isNetworkError) {
             try {
@@ -7604,21 +7677,21 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
           break;
         case 18:
           _context15.p = 18;
-          _this60.offlineSyncInProgress = false;
-          _this60.refreshOfflineSalesCount();
+          _this62.offlineSyncInProgress = false;
+          _this62.refreshOfflineSalesCount();
           // Notify UI that POS offline sync has finished
           try {
             if (typeof window !== 'undefined' && window.Fire && window.Fire.$emit) {
               window.Fire.$emit('offline-sync:end', {
                 syncedCount: syncedCount,
-                lastError: _this60.offlineLastSyncError
+                lastError: _this62.offlineLastSyncError
               });
             }
           } catch (e) {}
           // Show same feedback as auto-sync handler
-          _this60.handleAutoOfflineSyncResult({
+          _this62.handleAutoOfflineSyncResult({
             syncedCount: syncedCount,
-            lastError: _this60.offlineLastSyncError
+            lastError: _this62.offlineLastSyncError
           });
           return _context15.f(18);
         case 19:
@@ -7791,7 +7864,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
     }
   } catch (e) {}
 })))), "created", function created() {
-  var _this61 = this;
+  var _this63 = this;
   // Clear cached POS data on page reload when online to avoid stale/outdated data
   // Fresh data will be fetched and cache rebuilt via GetElementsPos()
   // Only clear when online - when offline, preserve cache as it's needed for offline functionality
@@ -7829,9 +7902,9 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
       // Only react to offline -> online transitions.
       if (val === true && oldVal === false) {
         // Avoid double work while handleOnline() itself is already probing.
-        if (_this61._posOnlineProbeInProgress) return;
+        if (_this63._posOnlineProbeInProgress) return;
         try {
-          _this61.handleOnline();
+          _this63.handleOnline();
         } catch (e) {}
       }
     });
@@ -7842,16 +7915,16 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
   try {
     this.$watch('backendReachable', function (val, oldVal) {
       if (val === true && oldVal !== true) {
-        var hadActiveCart = _this61.details && _this61.details.length > 0;
-        if (hadActiveCart && _this61.isOnline && !_this61.onlineReloadModalVisible) {
+        var hadActiveCart = _this63.details && _this63.details.length > 0;
+        if (hadActiveCart && _this63.isOnline && !_this63.onlineReloadModalVisible) {
           try {
-            _this61.$nextTick(function () {
-              _this61.onlineReloadModalVisible = true;
-              _this61.onlineReloadAfterSale = false;
+            _this63.$nextTick(function () {
+              _this63.onlineReloadModalVisible = true;
+              _this63.onlineReloadAfterSale = false;
             });
           } catch (e) {
-            _this61.onlineReloadModalVisible = true;
-            _this61.onlineReloadAfterSale = false;
+            _this63.onlineReloadModalVisible = true;
+            _this63.onlineReloadAfterSale = false;
           }
         }
       }
@@ -7866,65 +7939,65 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
   this.addPaymentLine();
   // Initialize warehouse options and sync selection once data is loaded
   this.$watch('warehouses', function (ws) {
-    _this61.warehouseOptions = (ws || []).map(function (w) {
+    _this63.warehouseOptions = (ws || []).map(function (w) {
       return {
         value: w.id,
         text: w.name
       };
     });
-    if (!_this61.registerForm.warehouse_id && _this61.sale && _this61.sale.warehouse_id) {
-      _this61.registerForm.warehouse_id = _this61.sale.warehouse_id;
+    if (!_this63.registerForm.warehouse_id && _this63.sale && _this63.sale.warehouse_id) {
+      _this63.registerForm.warehouse_id = _this63.sale.warehouse_id;
     }
     // Always check current register after initial data load
-    _this61.refreshCurrentRegister();
+    _this63.refreshCurrentRegister();
   });
   // refresh register when warehouse changes
   this.$watch(function () {
-    return _this61.sale.warehouse_id;
+    return _this63.sale.warehouse_id;
   }, function () {
-    _this61.registerForm.warehouse_id = _this61.sale.warehouse_id || '';
-    _this61.refreshCurrentRegister();
+    _this63.registerForm.warehouse_id = _this63.sale.warehouse_id || '';
+    _this63.refreshCurrentRegister();
   });
   // Reset POS after successful payment from ModernPaymentModal
   if (this.$refs && this.$refs.modernPaymentModal) {
     try {
       this.$refs.modernPaymentModal.$on('payment-success', function () {
-        _this61.Reset_Pos();
+        _this63.Reset_Pos();
       });
     } catch (e) {}
   }
   Fire.$on("pay_now", function () {
     setTimeout(function () {
       // Guard: prevent opening legacy payment modal if total is negative
-      if (Number(_this61.GrandTotal) < 0) {
-        var msg = _this61.$t ? "".concat(_this61.$t('pos.Total_Payable'), " cannot be negative") : 'Total Payable cannot be negative';
-        _this61.makeToast('warning', msg, _this61.$t ? _this61.$t('Warning') : 'Warning');
+      if (Number(_this63.GrandTotal) < 0) {
+        var msg = _this63.$t ? "".concat(_this63.$t('pos.Total_Payable'), " cannot be negative") : 'Total Payable cannot be negative';
+        _this63.makeToast('warning', msg, _this63.$t ? _this63.$t('Warning') : 'Warning');
         // Complete the animation of the progress bar.
         nprogress__WEBPACK_IMPORTED_MODULE_0___default().done();
         return;
       }
-      _this61.paymentLines = [{
-        amount: parseFloat(_this61.GrandTotal.toFixed(_this61.priceDecimals)),
+      _this63.paymentLines = [{
+        amount: parseFloat(_this63.GrandTotal.toFixed(_this63.priceDecimals)),
         payment_method_id: 2
       }];
-      _this61.globalPaymentNote = '';
-      _this61.selectedAccount = null;
-      _this61.$bvModal.show("Add_Payment");
+      _this63.globalPaymentNote = '';
+      _this63.selectedAccount = null;
+      _this63.$bvModal.show("Add_Payment");
       // Complete the animation of theprogress bar.
       nprogress__WEBPACK_IMPORTED_MODULE_0___default().done();
     }, 500);
   });
   Fire.$on("event_delete_draft_sale", function () {
     // Calculate if current page would be empty after deletion
-    var itemsOnCurrentPage = _this61.draft_sales.length;
-    var pageToLoad = _this61.draft_sales_page;
+    var itemsOnCurrentPage = _this63.draft_sales.length;
+    var pageToLoad = _this63.draft_sales_page;
 
     // If we're deleting the last item on a page that's not page 1, go to previous page
-    if (itemsOnCurrentPage === 1 && _this61.draft_sales_page > 1) {
-      pageToLoad = _this61.draft_sales_page - 1;
-      _this61.draft_sales_page = pageToLoad;
+    if (itemsOnCurrentPage === 1 && _this63.draft_sales_page > 1) {
+      pageToLoad = _this63.draft_sales_page - 1;
+      _this63.draft_sales_page = pageToLoad;
     }
-    _this61.get_Draft_Sales(pageToLoad);
+    _this63.get_Draft_Sales(pageToLoad);
     // Complete the animation of theprogress bar.
     setTimeout(function () {
       return nprogress__WEBPACK_IMPORTED_MODULE_0___default().done();
@@ -7947,13 +8020,13 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
     if (typeof window !== 'undefined') {
       this._productsDeltaTimer = setInterval(function () {
         try {
-          _this61.syncProductsDelta();
+          _this63.syncProductsDelta();
         } catch (e) {}
       }, 30000);
       this._onProductsDeltaVisibility = function () {
         try {
           if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
-            _this61.syncProductsDelta();
+            _this63.syncProductsDelta();
           }
         } catch (e) {}
       };
@@ -9757,7 +9830,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   render: () => (/* binding */ render),
 /* harmony export */   staticRenderFns: () => (/* binding */ staticRenderFns)
 /* harmony export */ });
-var render=function render(){var _vm=this,_c=_vm._self._c;return _c("div",{staticClass:"pos-codecanyon",staticStyle:{display:"flex","flex-direction":"column",height:"100vh",background:"#f7f7fb",color:"#1f1f2c","font-family":"'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif","-webkit-font-smoothing":"antialiased",overflow:"hidden"}},[_vm.productsReady?_c("nav",{staticClass:"pos-shell-header",staticStyle:{display:"flex","align-items":"center",gap:"8px",padding:"0 16px","flex-shrink":"0","flex-grow":"0","border-bottom":"1px solid #e6e6ec",background:"#ffffff"}},[_c("div",{staticClass:"pos-shell-brand-block",staticStyle:{display:"flex","align-items":"center",gap:"10px","padding-right":"12px","border-right":"1px solid #e6e6ec",height:"32px"}},[_c("div",{staticClass:"pos-shell-brand-mark",staticStyle:{width:"28px",height:"28px","border-radius":"8px",background:"transparent",display:"grid","place-items":"center",color:"#1f1f2c","font-weight":"700","font-size":"13px","font-family":"'JetBrains Mono', monospace",overflow:"hidden","flex-shrink":"0"}},[_vm.currentUser&&_vm.currentUser.logo?_c("img",{staticStyle:{width:"100%",height:"100%","object-fit":"cover"},attrs:{src:_vm.$imgUrl("settings",_vm.currentUser.logo),alt:"logo"}}):_c("span",[_vm._v(_vm._s(_vm.currentUser&&_vm.currentUser.company?_vm.currentUser.company[0]||"P":"P"))])])]),_vm._v(" "),_vm.registerEnabled?_c("div",{staticClass:"pos-shell-register-status",staticStyle:{display:"inline-flex","align-items":"center",gap:"10px"}},[_c("div",{staticStyle:{"font-size":"13px","font-weight":"600",color:"#1f1f2c","white-space":"nowrap"}},[_vm._v("\n        "+_vm._s(_vm.$t("Register")||"Register")),_vm.currentRegister&&_vm.currentRegister.id?_c("span",[_vm._v(" #"+_vm._s(_vm.currentRegister.id))]):_vm._e()]),_vm._v(" "),_vm.isOnline?_c("button",{staticClass:"pos-shell-register-pill",staticStyle:{display:"inline-flex","align-items":"center",gap:"6px",padding:"4px 8px","border-radius":"6px","font-size":"11px","font-weight":"600","font-family":"inherit","text-transform":"uppercase",cursor:"pointer",border:"0"},style:{background:_vm.currentRegister&&_vm.currentRegister.status==="open"?"#eaf7ef":"#fdecec",color:_vm.currentRegister&&_vm.currentRegister.status==="open"?"#1e7a44":"#a83232"},attrs:{type:"button",title:_vm.currentRegister&&_vm.currentRegister.status==="open"?_vm.$t("Close Register"):_vm.$t("Open Register")},on:{click:function click($event){_vm.currentRegister&&_vm.currentRegister.status==="open"?_vm.$bvModal.show("CloseRegisterModal"):_vm.$bvModal.show("OpenRegisterModal");}}},[_c("span",{staticStyle:{width:"6px",height:"6px","border-radius":"99px",background:"currentColor"}}),_vm._v(" "),_vm.currentRegister&&_vm.currentRegister.status==="open"?_c("span",[_vm._v("OPEN")]):_c("span",[_vm._v("CLOSED")])]):_vm._e()]):_vm._e(),_vm._v(" "),_c("div",{staticClass:"pos-wh-trigger","class":{"is-active":_vm.sale.warehouse_id},attrs:{role:"button",tabindex:"0",title:_vm.$t("Select_Warehouse")},on:{click:function click($event){_vm.whDrawerOpen=true;},keydown:[function($event){if(!$event.type.indexOf("key")&&_vm._k($event.keyCode,"enter",13,$event.key,"Enter"))return null;$event.preventDefault();_vm.whDrawerOpen=true;},function($event){if(!$event.type.indexOf("key")&&_vm._k($event.keyCode,"space",32,$event.key,[" ","Spacebar"]))return null;$event.preventDefault();_vm.whDrawerOpen=true;}]}},[_c("span",{staticClass:"pos-wh-trigger-icon"},[_c("lucide-icon",{attrs:{name:"warehouse"}}),_vm._v(" "),_vm.sale.warehouse_id?_c("span",{staticClass:"pos-wh-trigger-icon-pulse"}):_vm._e()],1),_vm._v(" "),_c("span",{staticClass:"pos-wh-trigger-body"},[_c("span",{staticClass:"pos-wh-trigger-eyebrow"},[_vm._v(_vm._s(_vm.$t("Warehouse")||"Warehouse"))]),_vm._v(" "),_c("span",{staticClass:"pos-wh-trigger-label"},[_vm._v(_vm._s(_vm.selectedWarehouseLabel))])]),_vm._v(" "),_c("lucide-icon",{staticClass:"pos-wh-trigger-caret",attrs:{name:"chevron-down"}})],1),_vm._v(" "),_vm.pos_settings.show_categories&&_vm.isOnline?_c("div",{staticClass:"pos-cat-trigger","class":{"is-active":_vm.category_id},attrs:{role:"button",tabindex:"0",title:_vm.$t("pos.All_Categories")},on:{click:function click($event){_vm.catDrawerOpen=true;},keydown:[function($event){if(!$event.type.indexOf("key")&&_vm._k($event.keyCode,"enter",13,$event.key,"Enter"))return null;$event.preventDefault();_vm.catDrawerOpen=true;},function($event){if(!$event.type.indexOf("key")&&_vm._k($event.keyCode,"space",32,$event.key,[" ","Spacebar"]))return null;$event.preventDefault();_vm.catDrawerOpen=true;}]}},[_c("span",{staticClass:"pos-cat-trigger-icon"},[_c("lucide-icon",{attrs:{name:"folder"}})],1),_vm._v(" "),_c("span",{staticClass:"pos-cat-trigger-label"},[_vm._v(_vm._s(_vm.selectedCategoryLabel))]),_vm._v(" "),_vm.category_id?_c("span",{staticClass:"pos-cat-trigger-clear",attrs:{role:"button",tabindex:"0",title:_vm.$t("Clear")},on:{click:function click($event){$event.stopPropagation();return _vm.selectCategory(null);},keydown:[function($event){if(!$event.type.indexOf("key")&&_vm._k($event.keyCode,"enter",13,$event.key,"Enter"))return null;$event.stopPropagation();$event.preventDefault();return _vm.selectCategory(null);},function($event){if(!$event.type.indexOf("key")&&_vm._k($event.keyCode,"space",32,$event.key,[" ","Spacebar"]))return null;$event.stopPropagation();$event.preventDefault();return _vm.selectCategory(null);}]}},[_c("lucide-icon",{attrs:{name:"x"}})],1):_c("lucide-icon",{staticClass:"pos-cat-trigger-caret",attrs:{name:"chevron-down"}})],1):_vm._e(),_vm._v(" "),_vm.pos_settings.show_brands&&_vm.isOnline?_c("div",{staticClass:"pos-cat-trigger pos-brand-trigger","class":{"is-active":_vm.brand_id},attrs:{role:"button",tabindex:"0",title:_vm.$t("pos.All_Brands")},on:{click:function click($event){_vm.brandDrawerOpen=true;},keydown:[function($event){if(!$event.type.indexOf("key")&&_vm._k($event.keyCode,"enter",13,$event.key,"Enter"))return null;$event.preventDefault();_vm.brandDrawerOpen=true;},function($event){if(!$event.type.indexOf("key")&&_vm._k($event.keyCode,"space",32,$event.key,[" ","Spacebar"]))return null;$event.preventDefault();_vm.brandDrawerOpen=true;}]}},[_c("span",{staticClass:"pos-cat-trigger-icon"},[_c("lucide-icon",{attrs:{name:"tag"}})],1),_vm._v(" "),_c("span",{staticClass:"pos-cat-trigger-label"},[_vm._v(_vm._s(_vm.selectedBrandLabel))]),_vm._v(" "),_vm.brand_id?_c("span",{staticClass:"pos-cat-trigger-clear",attrs:{role:"button",tabindex:"0",title:_vm.$t("Clear")},on:{click:function click($event){$event.stopPropagation();return _vm.selectBrand(null);},keydown:[function($event){if(!$event.type.indexOf("key")&&_vm._k($event.keyCode,"enter",13,$event.key,"Enter"))return null;$event.stopPropagation();$event.preventDefault();return _vm.selectBrand(null);},function($event){if(!$event.type.indexOf("key")&&_vm._k($event.keyCode,"space",32,$event.key,[" ","Spacebar"]))return null;$event.stopPropagation();$event.preventDefault();return _vm.selectBrand(null);}]}},[_c("lucide-icon",{attrs:{name:"x"}})],1):_c("lucide-icon",{staticClass:"pos-cat-trigger-caret",attrs:{name:"chevron-down"}})],1):_vm._e(),_vm._v(" "),_c("div",{staticStyle:{flex:"1"}}),_vm._v(" "),_c("div",{staticClass:"pos-cust-trigger","class":{"is-active":_vm.selectedClientId},attrs:{role:"button",tabindex:"0",title:_vm.$t("Select_Customer")},on:{click:function click($event){_vm.custDrawerOpen=true;},keydown:[function($event){if(!$event.type.indexOf("key")&&_vm._k($event.keyCode,"enter",13,$event.key,"Enter"))return null;$event.preventDefault();_vm.custDrawerOpen=true;},function($event){if(!$event.type.indexOf("key")&&_vm._k($event.keyCode,"space",32,$event.key,[" ","Spacebar"]))return null;$event.preventDefault();_vm.custDrawerOpen=true;}]}},[_c("span",{staticClass:"pos-cust-trigger-avatar",style:_vm.selectedClientId?{background:_vm.catColor(_vm.selectedClientId)}:{}},[_vm.selectedClientId?_c("span",[_vm._v(_vm._s(_vm.catInitial(_vm.selectedCustomerLabel)))]):_c("lucide-icon",{attrs:{name:"user"}})],1),_vm._v(" "),_c("span",{staticClass:"pos-cust-trigger-body"},[_c("span",{staticClass:"pos-cust-trigger-eyebrow"},[_vm._v(_vm._s(_vm.$t("Customer")||"Customer"))]),_vm._v(" "),_c("span",{staticClass:"pos-cust-trigger-label"},[_vm._v(_vm._s(_vm.selectedCustomerLabel))])]),_vm._v(" "),_c("lucide-icon",{staticClass:"pos-cust-trigger-caret",attrs:{name:"chevron-down"}})],1),_vm._v(" "),_vm.isQuickAddCustomerEnabled&&_vm.isOnline?_c("button",{staticClass:"pos-shell-icon-btn",staticStyle:{width:"32px",height:"32px","border-radius":"8px",border:"1px solid #ece9fb",background:"#f5f3fd",color:"#6f53d9",display:"inline-flex","align-items":"center","justify-content":"center",padding:"0",cursor:"pointer",transition:"all 120ms ease"},attrs:{title:_vm.$t("Quick_Add_Customer")},on:{click:_vm.Quick_Add_Client}},[_c("lucide-icon",{staticStyle:{"font-size":"15px"},attrs:{name:"user-plus"}})],1):_vm._e(),_vm._v(" "),_c("div",{staticStyle:{width:"1px",height:"24px",background:"#e6e6ec",margin:"0 4px"}}),_vm._v(" "),_vm.isOnline?_c("button",{staticClass:"pos-shell-icon-btn",staticStyle:{width:"32px",height:"32px","border-radius":"8px",border:"1px solid #e6e6ec",background:"#ffffff",color:"#54546a",display:"inline-flex","align-items":"center","justify-content":"center",padding:"0",cursor:"pointer",transition:"all 120ms ease"},attrs:{title:_vm.$t("Today_Sales")},on:{click:_vm.get_today_sales}},[_c("lucide-icon",{staticStyle:{"font-size":"15px"},attrs:{name:"receipt"}})],1):_vm._e(),_vm._v(" "),_vm.isOnline&&_vm.currentUserPermissions&&_vm.currentUserPermissions.includes("Sale_Returns_add")?_c("button",{staticClass:"pos-shell-icon-btn pos-shell-return-btn",staticStyle:{width:"32px",height:"32px","border-radius":"8px",border:"1px solid #e6e6ec",background:"#ffffff",color:"#54546a",display:"inline-flex","align-items":"center","justify-content":"center",padding:"0",cursor:"pointer",transition:"all 120ms ease"},attrs:{title:_vm.$t("POS_Return")||"Product Return"},on:{click:_vm.openReturnModal}},[_c("lucide-icon",{staticStyle:{"font-size":"15px"},attrs:{name:"undo"}})],1):_vm._e(),_vm._v(" "),!_vm.isOnline||_vm.offlineSalesCount>0?_c("button",{staticClass:"pos-shell-icon-btn",style:{width:"32px",height:"32px",borderRadius:"8px",border:"1px solid "+(!_vm.isOnline?"#fecaca":"#e6e6ec"),background:!_vm.isOnline?"#fef2f2":"#ffffff",color:!_vm.isOnline?"#a83232":"#54546a",display:"inline-flex",alignItems:"center",justifyContent:"center",padding:0,cursor:"pointer",position:"relative"},attrs:{title:_vm.offlineStatusTitle},on:{click:_vm.syncOfflineSales}},[_c("lucide-icon",{staticStyle:{"font-size":"15px"},attrs:{name:"cloud"}}),_vm._v(" "),_vm.offlineSalesCount>0?_c("span",{staticStyle:{position:"absolute",top:"-4px",right:"-4px","min-width":"16px",height:"16px",padding:"0 4px",background:"#d64545",color:"#fff","font-size":"10px","font-weight":"700","border-radius":"99px",display:"inline-flex","align-items":"center","justify-content":"center","font-family":"'JetBrains Mono', monospace"}},[_vm._v(_vm._s(_vm.offlineSalesCount))]):_vm._e()],1):_vm._e(),_vm._v(" "),_vm.currentUserPermissions&&_vm.currentUserPermissions.includes("pos_settings")&&_vm.isOnline?_c("button",{staticClass:"pos-shell-icon-btn pos-shell-settings-btn",staticStyle:{width:"32px",height:"32px","border-radius":"8px",border:"1px solid #e6e6ec",background:"#ffffff",color:"#54546a",display:"inline-flex","align-items":"center","justify-content":"center",padding:"0"},attrs:{type:"button",title:_vm.$t("Pos_Settings")},on:{click:_vm.open_pos_settings_modal}},[_c("lucide-icon",{staticStyle:{"font-size":"15px"},attrs:{name:"settings"}})],1):_vm._e(),_vm._v(" "),_vm.show_language&&_vm.isOnline?_c("b-dropdown",{attrs:{id:"lang-dd",right:"",offset:"8",boundary:"window","toggle-class":"dropdown-toggle-no-caret p-0 bg-transparent border-0","menu-class":"pos-shell-dropdown-menu","no-caret":"",variant:"link"},scopedSlots:_vm._u([{key:"button-content",fn:function fn(){return[_c("span",{staticStyle:{width:"32px",height:"32px","border-radius":"8px",border:"1px solid #e6e6ec",background:"#ffffff",color:"#54546a",display:"inline-flex","align-items":"center","justify-content":"center"},attrs:{title:_vm.$t("Languages")||"Languages"}},[_c("lucide-icon",{staticStyle:{"font-size":"15px"},attrs:{name:"globe"}})],1)];},proxy:true}],null,false,3662148854)},[_vm._v(" "),_c("div",{staticStyle:{display:"grid","grid-template-columns":"repeat(2, 1fr)",gap:"4px",padding:"8px","min-width":"220px"}},_vm._l(_vm.languages_available,function(lang){return _c("button",{key:lang.locale,staticStyle:{display:"flex","align-items":"center",gap:"8px",padding:"6px 8px",background:"transparent",border:"0","border-radius":"6px",cursor:"pointer",color:"#1f1f2c","font-size":"12px","text-align":"left"},on:{click:function click($event){return _vm.SetLocal(lang.locale);}}},[_c("img",{staticStyle:{width:"18px",height:"18px","border-radius":"99px","object-fit":"cover"},attrs:{src:"/flags/".concat(lang.flag),alt:lang.name}}),_vm._v(" "),_c("span",[_vm._v(_vm._s(lang.name))])]);}),0)]):_vm._e(),_vm._v(" "),_c("b-dropdown",{attrs:{id:"display-screen-dd",right:"",offset:"8",boundary:"window","toggle-class":"dropdown-toggle-no-caret p-0 bg-transparent border-0","menu-class":"pos-shell-dropdown-menu","no-caret":"",variant:"link"},scopedSlots:_vm._u([{key:"button-content",fn:function fn(){return[_c("span",{staticStyle:{width:"32px",height:"32px","border-radius":"8px",border:"1px solid #e6e6ec",background:"#ffffff",color:"#54546a",display:"inline-flex","align-items":"center","justify-content":"center"},attrs:{title:_vm.$t("Display")}},[_c("lucide-icon",{staticStyle:{"font-size":"15px"},attrs:{name:"monitor"}})],1)];},proxy:true}],null,false,2371902051)},[_vm._v(" "),_c("div",{staticStyle:{padding:"6px","min-width":"160px"}},_vm._l(_vm.customerDisplayScreenOptions,function(opt){return _c("button",{key:opt.value,style:{display:"block",width:"100%",textAlign:"left",padding:"6px 10px",fontSize:"12px",borderRadius:"6px",background:_vm.customer_display_screen_id===opt.value?"#f5f3fd":"transparent",color:_vm.customer_display_screen_id===opt.value?"#6f53d9":"#1f1f2c",border:0,cursor:"pointer"},attrs:{type:"button"},on:{click:function click($event){return _vm.onCustomerDisplayScreenChange(opt.value);}}},[_vm._v("\n          "+_vm._s(opt.label)+"\n        ")]);}),0)]),_vm._v(" "),_c("button",{staticClass:"pos-shell-icon-btn pos-shell-calc-btn",staticStyle:{width:"32px",height:"32px","border-radius":"8px",border:"1px solid #e6e6ec",background:"#ffffff",color:"#54546a",display:"inline-flex","align-items":"center","justify-content":"center",padding:"0",cursor:"pointer",transition:"all 120ms ease"},attrs:{title:_vm.$t("Calculator")||"Calculator"},on:{click:_vm.openCalculator}},[_c("lucide-icon",{staticStyle:{"font-size":"15px"},attrs:{name:"calculator"}})],1),_vm._v(" "),_c("button",{staticClass:"pos-shell-icon-btn",staticStyle:{width:"32px",height:"32px","border-radius":"8px",border:"1px solid #e6e6ec",background:"#ffffff",color:"#54546a",display:"inline-flex","align-items":"center","justify-content":"center",padding:"0",cursor:"pointer"},attrs:{title:_vm.$t("Fullscreen")},on:{click:_vm.handleFullScreen}},[_c("lucide-icon",{staticStyle:{"font-size":"15px"},attrs:{name:"maximize"}})],1),_vm._v(" "),_c("div",{staticStyle:{width:"1px",height:"24px",background:"#e6e6ec",margin:"0 4px"}}),_vm._v(" "),_c("div",{staticClass:"pos-shell-user-dd-wrapper",staticStyle:{display:"inline-flex"}},[_c("b-dropdown",{attrs:{id:"user-dd",right:"","toggle-class":"dropdown-toggle-no-caret p-0 bg-transparent border-0","no-caret":"",variant:"link"},scopedSlots:_vm._u([{key:"button-content",fn:function fn(){return[_vm.currentUser&&_vm.currentUser.avatar?_c("img",{staticStyle:{width:"32px",height:"32px","border-radius":"99px","object-fit":"cover",display:"block"},attrs:{src:"/images/avatar/"+_vm.currentUser.avatar,alt:"avatar"}}):_c("div",{staticStyle:{width:"32px",height:"32px","border-radius":"99px",background:"linear-gradient(135deg, #6f53d9, #b65cd6)",color:"#fff",display:"inline-flex","align-items":"center","justify-content":"center","font-size":"13px","font-weight":"600"}},[_vm._v(_vm._s(_vm.currentUser&&_vm.currentUser.name?_vm.currentUser.name.charAt(0).toUpperCase():"U"))])];},proxy:true}],null,false,2451024223)},[_vm._v(" "),_c("div",{staticStyle:{padding:"6px","min-width":"200px"}},[_c("div",{staticStyle:{padding:"8px 10px","font-size":"12px",color:"#8d8da0",display:"flex","align-items":"center",gap:"6px"}},[_c("lucide-icon",{attrs:{name:"lock"}}),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.currentUser&&(_vm.currentUser.username||_vm.currentUser.name)))])],1),_vm._v(" "),_c("router-link",{staticStyle:{display:"block",padding:"8px 10px","font-size":"13px",color:"#1f1f2c","border-radius":"6px","text-decoration":"none"},attrs:{to:"/app/profile"}},[_vm._v(_vm._s(_vm.$t("profil")))]),_vm._v(" "),_vm.currentUserPermissions&&_vm.currentUserPermissions.includes("setting_system")?_c("router-link",{staticStyle:{display:"block",padding:"8px 10px","font-size":"13px",color:"#1f1f2c","border-radius":"6px","text-decoration":"none"},attrs:{to:"/app/settings/System_settings"}},[_vm._v(_vm._s(_vm.$t("Settings")))]):_vm._e(),_vm._v(" "),_c("a",{staticStyle:{display:"block",padding:"8px 10px","font-size":"13px",color:"#d64545","border-radius":"6px","text-decoration":"none"},attrs:{href:"#"},on:{click:function click($event){$event.preventDefault();return _vm.logoutUser.apply(null,arguments);}}},[_vm._v(_vm._s(_vm.$t("logout")))])],1)])],1)],1):_c("div",{staticStyle:{flex:"1",display:"grid","place-items":"center",background:"#f7f7fb"}},[_c("div",{staticStyle:{"text-align":"center"}},[_c("div",{staticClass:"spinner lg spinner-primary"}),_vm._v(" "),_c("div",{staticStyle:{"margin-top":"8px",color:"#54546a","font-size":"13px"}},[_vm._v(_vm._s(_vm.$t("Loading"))+"...")])])]),_vm._v(" "),_vm.productsReady?_c("div",{staticClass:"pos-shell-main",staticStyle:{flex:"1 1 auto",display:"flex","flex-direction":"row","align-items":"stretch","min-height":"0",overflow:"hidden"}},[_c("aside",{staticClass:"pos-shell-cart-aside","class":{"is-resizing":_vm.cartAsideResizing},staticStyle:{display:"grid","grid-template-rows":"1fr auto","border-right":"1px solid #e6e6ec",background:"#ffffff","min-height":"0",overflow:"hidden"},style:{"--pos-cart-w":_vm.cartAsideWidth+"px"}},[_c("div",{staticClass:"pos-shell-mobile-cart-header"},[_c("svg",{staticStyle:{width:"16px",height:"16px",color:"#6f53d9"},attrs:{viewBox:"0 0 24 24",fill:"none",stroke:"currentColor","stroke-width":"2","stroke-linecap":"round","stroke-linejoin":"round"}},[_c("circle",{attrs:{cx:"9",cy:"21",r:"1"}}),_c("circle",{attrs:{cx:"20",cy:"21",r:"1"}}),_c("path",{attrs:{d:"M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"}})]),_vm._v(" "),_c("span",{staticClass:"pos-shell-mobile-cart-title"},[_vm._v(_vm._s(_vm.$t("pos.Cart")||"Cart")+" ("+_vm._s(_vm.details.length)+" "+_vm._s(_vm.$t("pos.items")||"items")+")")])]),_vm._v(" "),_c("div",{staticClass:"pos-shell-cart-scroll",staticStyle:{"overflow-y":"auto","overflow-x":"hidden",padding:"8px","min-height":"0",height:"100%"}},[_c("div",{staticClass:"pos-cart-header"},[_c("div",{staticClass:"pos-cart-header-left"},[_c("span",{staticClass:"pos-cart-header-icon"},[_c("lucide-icon",{attrs:{name:"shopping-cart"}})],1),_vm._v(" "),_c("div",{staticClass:"pos-cart-header-text"},[_c("div",{staticClass:"pos-cart-header-title"},[_vm._v(_vm._s(_vm.$t("Current_Cart")||"Current Cart"))]),_vm._v(" "),_c("div",{staticClass:"pos-cart-header-sub"},[_vm._v("\n                "+_vm._s(_vm.details.length)+" "+_vm._s(_vm.details.length===1?_vm.$t("item")||"item":_vm.$t("items")||"items")+"\n              ")])])]),_vm._v(" "),_c("div",{staticClass:"pos-cart-header-right"},[_c("div",{staticClass:"pos-cart-header-total"},[_c("span",{staticClass:"pos-cart-header-total-label"},[_vm._v(_vm._s(_vm.$t("Total")||"Total"))]),_vm._v(" "),_c("span",{staticClass:"pos-cart-header-total-value"},[_vm._v("\n                "+_vm._s(_vm.formatPriceWithCurrentCurrency(_vm.GrandTotal||0,2))+"\n              ")])]),_vm._v(" "),_c("button",{staticClass:"pos-cart-header-clear-btn","class":{"is-disabled":!_vm.details.length},attrs:{type:"button",disabled:!_vm.details.length,title:_vm.$t("pos.Clear_all_items")||"Clear cart"},on:{click:_vm.Reset_Pos}},[_c("lucide-icon",{attrs:{name:"trash-2"}})],1)])]),_vm._v(" "),_vm.details.length===0?_c("div",{staticClass:"pos-shell-empty-state",staticStyle:{padding:"32px 16px","text-align":"center",color:"#8d8da0"}},[_c("svg",{staticStyle:{width:"32px",height:"32px",opacity:"0.3",margin:"0 auto 8px"},attrs:{viewBox:"0 0 20 20",fill:"none",stroke:"currentColor","stroke-width":"1.5","stroke-linecap":"round","stroke-linejoin":"round"}},[_c("path",{attrs:{d:"M3 4h2l2 9h9l1.5-6H6"}}),_c("circle",{attrs:{cx:"8",cy:"16.5",r:"1"}}),_c("circle",{attrs:{cx:"15",cy:"16.5",r:"1"}})]),_vm._v(" "),_c("div",{staticClass:"pos-shell-empty-title",staticStyle:{"font-size":"13px","font-weight":"500","margin-bottom":"4px",color:"#54546a"}},[_vm._v(_vm._s(_vm.$t("pos.No_items_added")||"Cart is empty"))]),_vm._v(" "),_c("div",{staticClass:"pos-shell-empty-desc",staticStyle:{"font-size":"11px",color:"#8d8da0"}},[_vm._v(_vm._s(_vm.$t("pos.Select_products_from_right_panel")||"Scan or click a product to begin"))])]):_c("div",{staticStyle:{display:"flex","flex-direction":"column"}},_vm._l(_vm.details,function(item,index){return _c("div",{key:index,staticClass:"pos-shell-cart-row",staticStyle:{display:"grid","grid-template-columns":"32px 1fr auto",gap:"8px",padding:"6px 8px","border-radius":"8px","margin-bottom":"2px",transition:"background 120ms ease"}},[_c("div",{staticClass:"pos-shell-cart-thumb",staticStyle:{width:"32px",height:"32px","border-radius":"6px","align-self":"center",display:"grid","place-items":"center","font-family":"'JetBrains Mono', monospace","font-weight":"700","font-size":"10px",color:"rgba(31,31,44,0.55)","letter-spacing":"0.02em","text-transform":"uppercase"},style:{background:_vm.pos_settings.show_product_images&&item.image?"#ffffff":"repeating-linear-gradient(135deg, #ece9fb, #ece9fb 6px, #f5f3fd 6px, #f5f3fd 12px)",backgroundImage:_vm.pos_settings.show_product_images&&item.image?"url("+_vm.resolveProductImage(item.image)+")":null,backgroundRepeat:"no-repeat",backgroundPosition:"center",backgroundSize:"contain",border:_vm.pos_settings.show_product_images&&item.image?"1px solid #e6e6ec":"0"}},[!(_vm.pos_settings.show_product_images&&item.image)?_c("span",[_vm._v("\n                "+_vm._s((item.name||"P").split(/[ ·]/).filter(Boolean).slice(0,2).map(function(w){return w[0];}).join(""))+"\n              ")]):_vm._e()]),_vm._v(" "),_c("div",{staticClass:"pos-shell-cart-body",staticStyle:{"min-width":"0",display:"flex","flex-direction":"column","justify-content":"center",gap:"2px"}},[_c("div",{staticClass:"pos-shell-cart-name",staticStyle:{"font-size":"13px","font-weight":"600",color:"#1f1f2c","line-height":"1.2","white-space":"nowrap",overflow:"hidden","text-overflow":"ellipsis"}},[_vm._v(_vm._s(item.name))]),_vm._v(" "),item.code?_c("div",{staticClass:"pos-shell-cart-sku",staticStyle:{"font-size":"10px",color:"#8d8da0","font-family":"'JetBrains Mono', monospace","letter-spacing":"0.02em","white-space":"nowrap",overflow:"hidden","text-overflow":"ellipsis"}},[_vm._v("SKU · "+_vm._s(item.code))]):_vm._e(),_vm._v(" "),item.is_jewelry_item?_c("div",{staticClass:"pos-shell-cart-jewelry",staticStyle:{"font-size":"10px",color:"#8d6a1e",background:"#fdf6e8","border-radius":"5px",padding:"3px 6px","margin-top":"2px","line-height":"1.5"}},[_c("div",[item.metal_type?_c("span",[_vm._v(_vm._s(item.metal_type))]):_vm._e(),_vm._v(" "),item.karat?_c("span",[_vm._v(" · "+_vm._s(item.karat))]):_vm._e(),_vm._v(" "),item.jewelry_gross_weight?_c("span",[_vm._v(" · Gross "+_vm._s(_vm.formatNumber(item.jewelry_gross_weight,3))+_vm._s(item.jewelry_weight_uom))]):_vm._e(),_vm._v(" "),item.jewelry_pricing_breakdown&&item.jewelry_pricing_breakdown.metal_weight?_c("span",[_vm._v(" · Metal "+_vm._s(_vm.formatNumber(item.jewelry_pricing_breakdown.metal_weight,3))+_vm._s(item.jewelry_weight_uom))]):_vm._e(),_vm._v(" "),item.stone_summary?_c("span",[_vm._v(" · "+_vm._s(item.stone_summary))]):_vm._e()]),_vm._v(" "),item.jewelry_pricing_breakdown?_c("div",[item.jewelry_pricing_breakdown.gold_rate?_c("span",[_vm._v("Rate "+_vm._s(_vm.formatPriceWithCurrentCurrency(item.jewelry_pricing_breakdown.gold_rate,2)))]):_vm._e(),_vm._v(" "),item.jewelry_pricing_breakdown.metal_value?_c("span",[_vm._v(" · Metal Value "+_vm._s(_vm.formatPriceWithCurrentCurrency(item.jewelry_pricing_breakdown.metal_value,2)))]):_vm._e(),_vm._v(" "),item.jewelry_pricing_breakdown.making_charge?_c("span",[_vm._v(" · Making "+_vm._s(_vm.formatPriceWithCurrentCurrency(item.jewelry_pricing_breakdown.making_charge,2)))]):_vm._e(),_vm._v(" "),item.jewelry_pricing_breakdown.wastage?_c("span",[_vm._v(" · Wastage "+_vm._s(_vm.formatPriceWithCurrentCurrency(item.jewelry_pricing_breakdown.wastage,2)))]):_vm._e(),_vm._v(" "),item.jewelry_pricing_breakdown.stone_value?_c("span",[_vm._v(" · Stones "+_vm._s(_vm.formatPriceWithCurrentCurrency(item.jewelry_pricing_breakdown.stone_value,2)))]):_vm._e(),_vm._v(" "),item.jewelry_pricing_breakdown.discount?_c("span",[_vm._v(" · Discount "+_vm._s(_vm.formatPriceWithCurrentCurrency(item.jewelry_pricing_breakdown.discount,2)))]):_vm._e(),_vm._v(" "),item.jewelry_pricing_breakdown.tax?_c("span",[_vm._v(" · Tax "+_vm._s(_vm.formatPriceWithCurrentCurrency(item.jewelry_pricing_breakdown.tax,2)))]):_vm._e()]):_vm._e()]):_vm._e(),_vm._v(" "),_c("div",{staticClass:"pos-shell-cart-controls",staticStyle:{display:"flex","align-items":"center",gap:"8px","margin-top":"2px"}},[_c("div",{staticClass:"pos-shell-cart-stepper",staticStyle:{display:"inline-flex","align-items":"center",border:"1px solid #e6e6ec","border-radius":"5px",height:"24px",background:"#ffffff","flex-shrink":"0"}},[_c("button",{staticStyle:{width:"22px",height:"22px",background:"transparent",border:"0",color:"#54546a","font-size":"14px",cursor:"pointer",padding:"0"},attrs:{title:_vm.$t("pos.Decrease")},on:{click:function click($event){return _vm.decrement(item,item.detail_id);}}},[_vm._v("−")]),_vm._v(" "),_c("input",{directives:[{name:"model",rawName:"v-model.number",value:item.quantity,expression:"item.quantity",modifiers:{number:true}}],staticStyle:{width:"32px",height:"100%",border:"0","text-align":"center","font-size":"12px","font-family":"'JetBrains Mono', monospace",background:"transparent",color:"#1f1f2c",outline:"none",padding:"0"},attrs:{type:"text"},domProps:{value:item.quantity},on:{change:function change($event){return _vm.Verified_Qty(item,item.detail_id);},input:function input($event){if($event.target.composing)return;_vm.$set(item,"quantity",_vm._n($event.target.value));},blur:function blur($event){return _vm.$forceUpdate();}}}),_vm._v(" "),_c("button",{staticStyle:{width:"22px",height:"22px",background:"transparent",border:"0",color:"#54546a","font-size":"14px",cursor:"pointer",padding:"0"},attrs:{title:_vm.$t("pos.Increase")},on:{click:function click($event){return _vm.increment(item.detail_id);}}},[_vm._v("+")])]),_vm._v(" "),_c("span",{staticClass:"pos-shell-cart-unit",staticStyle:{"font-size":"12px",color:"#54546a","font-weight":"500","font-family":"'JetBrains Mono', monospace","white-space":"nowrap"}},[_vm._v("× "+_vm._s(_vm.formatPriceWithCurrentCurrency(item.Total_price,2)))]),_vm._v(" "),_c("select",{directives:[{name:"model",rawName:"v-model",value:item.price_type,expression:"item.price_type"}],staticClass:"pos-shell-cart-select",staticStyle:{height:"24px",padding:"0 6px","font-size":"11px","font-weight":"500",border:"1px solid #d8d8e0","border-radius":"5px",background:"#ffffff",color:"#1f1f2c",outline:"none",cursor:"pointer","flex-shrink":"0"},on:{change:[function($event){var $$selectedVal=Array.prototype.filter.call($event.target.options,function(o){return o.selected;}).map(function(o){var val="_value"in o?o._value:o.value;return val;});_vm.$set(item,"price_type",$event.target.multiple?$$selectedVal:$$selectedVal[0]);},function($event){return _vm.onChangePriceType(item);}]}},[_c("option",{attrs:{value:"retail"}},[_vm._v(_vm._s(_vm.$t("Retail Price")))]),_vm._v(" "),_c("option",{attrs:{value:"wholesale"}},[_vm._v(_vm._s(_vm.$t("Wholesale Price")))])]),_vm._v(" "),item.packs&&item.packs.length?_c("select",{directives:[{name:"model",rawName:"v-model",value:item.product_pack_id,expression:"item.product_pack_id"}],staticClass:"pos-shell-cart-select pos-shell-cart-pack-select",staticStyle:{height:"24px",padding:"0 6px","font-size":"11px","font-weight":"500",border:"1px solid #d8d8e0","border-radius":"5px",background:"#ffffff",color:"#1f1f2c",outline:"none",cursor:"pointer","flex-shrink":"0"},attrs:{title:_vm.$t("Pack")},on:{change:[function($event){var $$selectedVal=Array.prototype.filter.call($event.target.options,function(o){return o.selected;}).map(function(o){var val="_value"in o?o._value:o.value;return val;});_vm.$set(item,"product_pack_id",$event.target.multiple?$$selectedVal:$$selectedVal[0]);},function($event){return _vm.onChangePack(item);}]}},_vm._l(item.packs,function(pack){return _c("option",{key:"pk-"+item.detail_id+"-"+pack.id,attrs:{disabled:!_vm.isOversellingAllowed&&item.product_type!=="is_service"&&Number(pack.multiplier)>1&&Number(pack.multiplier)>Number(item.current)},domProps:{value:pack.id}},[_vm._v(_vm._s(pack.name)+" (×"+_vm._s(pack.multiplier)+")"),!_vm.isOversellingAllowed&&item.product_type!=="is_service"&&Number(pack.multiplier)>1&&Number(pack.multiplier)>Number(item.current)?[_vm._v(" — "+_vm._s(_vm.$t("Out_of_Stock")||"out of stock"))]:_vm._e()],2);}),0):_vm._e()])]),_vm._v(" "),_c("div",{staticClass:"pos-shell-cart-side",staticStyle:{display:"flex","flex-direction":"column","align-items":"flex-end","justify-content":"space-between",gap:"4px"}},[_c("div",{staticClass:"pos-shell-cart-actions",staticStyle:{display:"inline-flex",gap:"2px"}},[_vm.currentUserPermissions&&_vm.currentUserPermissions.includes("edit_product_sale")?_c("button",{staticClass:"pos-shell-cart-action",staticStyle:{background:"transparent",border:"0",padding:"4px","border-radius":"4px",cursor:"pointer",color:"#8d8da0",display:"inline-flex","align-items":"center","justify-content":"center"},attrs:{type:"button",title:_vm.$t("pos.Edit")},on:{mousedown:function mousedown($event){$event.preventDefault();},click:function click($event){return _vm.Modal_Updat_Detail(item);}}},[_c("svg",{staticStyle:{width:"13px",height:"13px"},attrs:{viewBox:"0 0 20 20",fill:"none",stroke:"currentColor","stroke-width":"1.5","stroke-linecap":"round","stroke-linejoin":"round"}},[_c("path",{attrs:{d:"M14 3l3 3-9 9H5v-3z"}})])]):_vm._e(),_vm._v(" "),_c("button",{staticClass:"pos-shell-cart-action",staticStyle:{background:"transparent",border:"0",padding:"4px","border-radius":"4px",cursor:"pointer",color:"#8d8da0",display:"inline-flex","align-items":"center","justify-content":"center"},attrs:{type:"button",title:_vm.$t("pos.Remove")},on:{mousedown:function mousedown($event){$event.preventDefault();},click:function click($event){return _vm.delete_Product_Detail(item.detail_id);}}},[_c("svg",{staticStyle:{width:"14px",height:"14px"},attrs:{viewBox:"0 0 20 20",fill:"none",stroke:"currentColor","stroke-width":"1.5","stroke-linecap":"round"}},[_c("path",{attrs:{d:"m5 5 10 10M15 5 5 15"}})])])]),_vm._v(" "),_c("div",{staticClass:"pos-shell-cart-line-total",staticStyle:{"font-size":"13px","font-weight":"600","font-family":"'JetBrains Mono', monospace",color:"#1f1f2c"}},[_vm._v(_vm._s(_vm.formatPriceWithCurrentCurrency(item.subtotal,2)))])]),_vm._v(" "),item.is_batch_tracked?_c("div",{staticStyle:{"grid-column":"1 / -1","margin-top":"6px",padding:"8px",background:"#f3f3f7","border-radius":"8px"}},[_c("div",{staticStyle:{display:"flex","align-items":"center","justify-content":"space-between","margin-bottom":"6px"}},[_c("div",{staticStyle:{"font-size":"11px","font-weight":"600",color:"#54546a",display:"inline-flex","align-items":"center",gap:"4px"}},[_c("svg",{attrs:{viewBox:"0 0 24 24",width:"13",height:"13",fill:"currentColor"}},[_c("path",{attrs:{d:"M12 2L2 7v10l10 5 10-5V7L12 2zm0 2.24L19.53 8 12 11.76 4.47 8 12 4.24zM4 9.51l7 3.5V20l-7-3.5V9.51zm16 0V16.5L13 20v-7l7-3.49z"}})]),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.$t("Batches")||"Batches"))]),_vm._v(" "),_c("span",{staticStyle:{"font-size":"10px",color:"#8d8da0","font-family":"'JetBrains Mono', monospace","font-weight":"400","margin-left":"4px"}},[_vm._v("\n                    "+_vm._s((item.batches||[]).length)+" "+_vm._s(_vm.$t("items")||"items")+"\n                    "),(item.batches||[]).length?[_vm._v("· "+_vm._s(_vm.formatNumber(_vm.batch_total_qty(item),2))+" / "+_vm._s(_vm.formatNumber(Number(item.quantity)||0,2)))]:_vm._e()],2)]),_vm._v(" "),_c("button",{staticStyle:{height:"24px",padding:"0 8px",background:"#f5f3fd",color:"#6f53d9",border:"0","border-radius":"5px","font-size":"11px","font-weight":"600",cursor:"pointer"},attrs:{type:"button"},on:{click:function click($event){return _vm.add_batch_to_detail(item);}}},[_vm._v("+ "+_vm._s(_vm.$t("Add")||"Add"))])]),_vm._v(" "),item.batches_loading?_c("div",{staticStyle:{"font-size":"11px",color:"#8d8da0",padding:"4px 0"}},[_vm._v(_vm._s(_vm.$t("Loading")||"Loading..."))]):!(item.available_batches&&item.available_batches.length)?_c("div",{staticStyle:{"font-size":"11px",color:"#d64545",padding:"4px 0"}},[_vm._v(_vm._s(_vm.$t("No_Batches_Available")||"No available batches for this product in the selected warehouse"))]):!item.batches||item.batches.length===0?_c("div",{staticStyle:{"font-size":"11px",color:"#d64545",padding:"4px 0"}},[_vm._v(_vm._s(_vm.$t("Choose_Batch")||"Choose a batch"))]):_c("div",{staticStyle:{display:"flex","flex-direction":"column",gap:"6px"}},_vm._l(item.batches,function(b,bIdx){return _c("div",{key:"pb-"+item.detail_id+"-"+bIdx,staticStyle:{display:"grid","grid-template-columns":"1fr 80px 24px",gap:"6px","align-items":"center"}},[_c("v-select",{attrs:{value:b.product_batch_id,options:item.available_batches.map(function(ab){return{label:ab.batch_no+(ab.expiry_date?" · "+(_vm.$t("Exp")||"Exp")+" "+ab.expiry_date:"")+" · "+ab.qty_available,value:ab.id};}),reduce:function reduce(opt){return opt.value;},placeholder:_vm.$t("Choose_Batch")||"Choose batch","append-to-body":true},on:{input:function input(val){return _vm.on_batch_select(item,bIdx,val);}}}),_vm._v(" "),_c("input",{staticStyle:{height:"32px",padding:"0 8px","border-radius":"6px",background:"#ffffff","font-size":"12px","font-family":"'JetBrains Mono', monospace",color:"#1f1f2c",outline:"none",width:"100%"},style:{border:"1px solid "+(Number(b.qty)>(Number(b.qty_available)||0)?"#fca5a5":"#e6e6ec")},attrs:{type:"text",inputmode:"decimal",placeholder:_vm.$t("Quantity")},domProps:{value:b.qty},on:{input:function input(evt){return _vm.on_batch_qty_input(b,evt.target.value);}}}),_vm._v(" "),_c("button",{staticStyle:{width:"24px",height:"24px",background:"transparent",border:"0",color:"#8d8da0",cursor:"pointer",padding:"0","border-radius":"5px",display:"inline-flex","align-items":"center","justify-content":"center","font-size":"16px"},attrs:{type:"button",title:_vm.$t("pos.Remove")},on:{click:function click($event){return _vm.remove_batch_from_detail(item,bIdx);}}},[_vm._v("×")])],1);}),0),_vm._v(" "),!item.batches_loading&&_vm.batch_line_error(item)?_c("div",{staticStyle:{"margin-top":"6px","font-size":"11px",color:"#d64545"}},[_vm._v(_vm._s(_vm.batch_line_error(item)))]):_vm._e()]):_vm._e(),_vm._v(" "),item.is_imei?_c("div",{staticStyle:{"grid-column":"1 / -1","margin-top":"6px",padding:"8px",background:"#f3f3f7","border-radius":"8px"}},[_c("serial-numbers-field",{attrs:{mode:"select","required-count":item.quantity,"product-id":item.product_id,"product-variant-id":item.product_variant_id,"warehouse-id":_vm.sale.warehouse_id},model:{value:item.serial_numbers,callback:function callback($$v){_vm.$set(item,"serial_numbers",$$v);},expression:"item.serial_numbers"}})],1):_vm._e()]);}),0)]),_vm._v(" "),_c("div",{staticClass:"pos-shell-totals",staticStyle:{"border-top":"1px solid #e6e6ec",padding:"8px 12px",background:"#f7f7fb"}},[_c("div",{staticClass:"pos-shell-totals-hero"},[_c("div",{staticClass:"pos-shell-totals-copy"},[_c("div",{staticClass:"pos-shell-totals-eyebrow"},[_vm._v("Order Summary")]),_vm._v(" "),_c("div",{staticClass:"pos-shell-totals-title"},[_vm._v(_vm._s(_vm.details.length)+" "+_vm._s(_vm.details.length===1?"item":"items")+" ready for checkout")])]),_vm._v(" "),_c("div",{staticClass:"pos-shell-totals-amount"},[_vm._v(_vm._s(_vm.formatPriceWithCurrentCurrency(_vm.GrandTotal||0,2)))])]),_vm._v(" "),_c("div",{staticClass:"pos-shell-charges-row",staticStyle:{display:"grid","grid-template-columns":"1fr 1fr 1fr",gap:"6px","margin-bottom":"8px"}},[_c("label",{staticStyle:{display:"block"}},[_c("div",{staticStyle:{"font-size":"9px","font-weight":"700","letter-spacing":"0.08em",color:"#8d8da0","margin-bottom":"4px"}},[_vm._v(_vm._s(_vm.$t("pos.Tax"))+" %")]),_vm._v(" "),_c("div",{staticStyle:{display:"flex","align-items":"center",height:"28px",border:"1px solid #e6e6ec","border-radius":"6px",background:"#ffffff"}},[_c("input",{directives:[{name:"model",rawName:"v-model.number",value:_vm.sale.tax_rate,expression:"sale.tax_rate",modifiers:{number:true}}],staticStyle:{width:"100%",border:"0",padding:"0 8px",background:"transparent","font-size":"12px","font-family":"'JetBrains Mono', monospace",color:"#1f1f2c",outline:"none","min-width":"0"},attrs:{type:"text",placeholder:"0"},domProps:{value:_vm.sale.tax_rate},on:{keyup:_vm.keyup_OrderTax,input:function input($event){if($event.target.composing)return;_vm.$set(_vm.sale,"tax_rate",_vm._n($event.target.value));},blur:function blur($event){return _vm.$forceUpdate();}}}),_vm._v(" "),_c("span",{staticStyle:{"padding-right":"8px",color:"#8d8da0","font-size":"12px","font-family":"'JetBrains Mono', monospace"}},[_vm._v("%")])])]),_vm._v(" "),_c("label",{staticStyle:{display:"block"}},[_c("div",{staticStyle:{"font-size":"9px","font-weight":"700","letter-spacing":"0.08em",color:"#8d8da0","margin-bottom":"4px"}},[_vm._v(_vm._s(_vm.$t("Discount")))]),_vm._v(" "),_c("div",{staticStyle:{display:"flex","align-items":"center",height:"28px",border:"1px solid #e6e6ec","border-radius":"6px",background:"#ffffff"}},[_c("button",{staticStyle:{"padding-left":"8px","padding-right":"0",background:"transparent",border:"0",color:"#8d8da0","font-size":"12px",cursor:"pointer","font-family":"'JetBrains Mono', monospace"},attrs:{type:"button",title:_vm.sale.discount_Method==="1"?_vm.$t("Switch_to_Fixed"):_vm.$t("Switch_to_Percentage")},on:{click:_vm.toggleDiscountType}},[_vm._v(_vm._s(_vm.sale.discount_Method==="1"?"%":_vm.currentUser.currency))]),_vm._v(" "),_c("input",{directives:[{name:"model",rawName:"v-model.number",value:_vm.sale.discount,expression:"sale.discount",modifiers:{number:true}}],staticStyle:{width:"100%",border:"0",padding:"0 8px",background:"transparent","font-size":"12px","font-family":"'JetBrains Mono', monospace",color:"#1f1f2c",outline:"none","min-width":"0"},attrs:{type:"text",placeholder:"0"},domProps:{value:_vm.sale.discount},on:{keyup:_vm.keyup_Discount,input:function input($event){if($event.target.composing)return;_vm.$set(_vm.sale,"discount",_vm._n($event.target.value));},blur:function blur($event){return _vm.$forceUpdate();}}})])]),_vm._v(" "),_c("label",{staticStyle:{display:"block"}},[_c("div",{staticStyle:{"font-size":"9px","font-weight":"700","letter-spacing":"0.08em",color:"#8d8da0","margin-bottom":"4px"}},[_vm._v(_vm._s(_vm.$t("Shipping")))]),_vm._v(" "),_c("div",{staticStyle:{display:"flex","align-items":"center",height:"28px",border:"1px solid #e6e6ec","border-radius":"6px",background:"#ffffff"}},[_c("span",{staticStyle:{"padding-left":"8px",color:"#8d8da0","font-size":"12px","font-family":"'JetBrains Mono', monospace"}},[_vm._v(_vm._s(_vm.currentUser.currency))]),_vm._v(" "),_c("input",{directives:[{name:"model",rawName:"v-model.number",value:_vm.sale.shipping,expression:"sale.shipping",modifiers:{number:true}}],staticStyle:{width:"100%",border:"0",padding:"0 8px",background:"transparent","font-size":"12px","font-family":"'JetBrains Mono', monospace",color:"#1f1f2c",outline:"none","min-width":"0"},attrs:{type:"text",placeholder:"0"},domProps:{value:_vm.sale.shipping},on:{keyup:_vm.keyup_Shipping,input:function input($event){if($event.target.composing)return;_vm.$set(_vm.sale,"shipping",_vm._n($event.target.value));},blur:function blur($event){return _vm.$forceUpdate();}}})])])]),_vm._v(" "),_vm.isOnline&&_vm.pos_settings.enable_customer_points&&_vm.clientIsEligible&&_vm.currentUserPermissions&&_vm.currentUserPermissions.includes("edit_tax_discount_shipping_sale")?_c("div",{staticClass:"pos-shell-points-bar",style:{display:"flex",alignItems:"center",justifyContent:"space-between",gap:"10px",padding:"10px",background:_vm.pointsConverted?"#eaf7ef":"#f5f3fd",borderRadius:"8px",marginBottom:"10px"}},[_c("div",{staticStyle:{"min-width":"0"}},[_c("div",{staticStyle:{display:"inline-flex","align-items":"center",gap:"6px","font-size":"11px",color:"#54546a"}},[_vm.pointsConverted?_c("lucide-icon",{attrs:{name:"check"}}):_vm._e(),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.$t("Available_Points")))]),_vm._v(" "),_c("span",{staticStyle:{"font-size":"14px","font-weight":"700",color:"#6f53d9","font-family":"'JetBrains Mono', monospace","margin-left":"4px"}},[_vm._v(_vm._s(_vm.selectedClientPoints))])],1),_vm._v(" "),_vm.discount_from_points>0?_c("div",{staticStyle:{"font-size":"10px",color:"#1e7a44","margin-top":"2px"}},[_vm._v("✅ "+_vm._s(_vm.$t("Discount"))+" "+_vm._s(_vm.discount_from_points)+" "+_vm._s(_vm.currentUser.currency)+" "+_vm._s(_vm.$t("pos.will_be_applied")))]):_vm._e()]),_vm._v(" "),_c("div",{staticStyle:{display:"inline-flex","align-items":"center",gap:"6px"}},[_c("input",{directives:[{name:"model",rawName:"v-model.number",value:_vm.points_to_convert,expression:"points_to_convert",modifiers:{number:true}}],staticStyle:{width:"60px",height:"28px",padding:"0 8px",border:"1px solid #e6e6ec","border-radius":"6px",background:"#ffffff","font-size":"12px","font-family":"'JetBrains Mono', monospace",color:"#1f1f2c",outline:"none","text-align":"center"},attrs:{type:"text",min:"0",max:_vm.selectedClientPoints,step:"1",disabled:_vm.selectedClientPoints===0||_vm.pointsConverted,inputmode:"numeric",pattern:"[0-9]*",placeholder:"0"},domProps:{value:_vm.points_to_convert},on:{input:[function($event){if($event.target.composing)return;_vm.points_to_convert=_vm._n($event.target.value);},_vm.onPointsToConvertInput],blur:function blur($event){return _vm.$forceUpdate();}}}),_vm._v(" "),_c("button",{style:{height:"28px",padding:"0 10px",background:_vm.pointsConverted?"#2fae5e":"#6f53d9",color:"#fff",border:0,borderRadius:"6px",fontSize:"11px",fontWeight:600,cursor:"pointer",display:"inline-flex",alignItems:"center",gap:"4px"},attrs:{disabled:_vm.selectedClientPoints===0},on:{click:_vm.convertPointsToDiscount}},[!_vm.pointsConverted?[_c("lucide-icon",{attrs:{name:"banknote"}}),_vm._v(" "+_vm._s(_vm.$t("Convert")))]:[_c("lucide-icon",{attrs:{name:"check"}}),_vm._v(" "+_vm._s(_vm.$t("Unconverted")))]],2)])]):_vm._e(),_vm._v(" "),_c("div",{staticClass:"pos-shell-summary"},[_c("div",{staticStyle:{display:"flex","justify-content":"space-between",padding:"4px 0","font-size":"12px"}},[_c("span",{staticStyle:{color:"#54546a"}},[_vm._v(_vm._s(_vm.$t("pos.Subtotal")))]),_vm._v(" "),_c("span",{staticStyle:{color:"#1f1f2c","font-family":"'JetBrains Mono', monospace","font-weight":"500"}},[_vm._v(_vm._s(_vm.formatPriceWithCurrentCurrency(_vm.total,2)))])]),_vm._v(" "),_c("div",{staticStyle:{display:"flex","justify-content":"space-between",padding:"4px 0","font-size":"12px"}},[_c("span",{staticStyle:{color:"#8d8da0"}},[_vm._v(_vm._s(_vm.$t("pos.Tax")))]),_vm._v(" "),_c("span",{staticStyle:{color:"#54546a","font-family":"'JetBrains Mono', monospace","font-weight":"500"}},[_vm._v(_vm._s(_vm.formatPriceWithCurrentCurrency(_vm.sale.TaxNet,2)))])]),_vm._v(" "),_vm.getCurrentSaleDiscountAmount()>0?_c("div",{staticStyle:{display:"flex","justify-content":"space-between",padding:"4px 0","font-size":"12px"}},[_c("span",{staticStyle:{color:"#54546a"}},[_vm._v(_vm._s(_vm.$t("pos.Discount")))]),_vm._v(" "),_c("span",{staticStyle:{color:"#d64545","font-family":"'JetBrains Mono', monospace","font-weight":"500"}},[_vm._v("−"+_vm._s(_vm.formatPriceWithCurrentCurrency(_vm.getCurrentSaleDiscountAmount(),2)))])]):_vm._e(),_vm._v(" "),Number(_vm.sale.shipping)>0?_c("div",{staticStyle:{display:"flex","justify-content":"space-between",padding:"4px 0","font-size":"12px"}},[_c("span",{staticStyle:{color:"#8d8da0"}},[_vm._v(_vm._s(_vm.$t("pos.Shipping")))]),_vm._v(" "),_c("span",{staticStyle:{color:"#54546a","font-family":"'JetBrains Mono', monospace","font-weight":"500"}},[_vm._v(_vm._s(_vm.formatPriceWithCurrentCurrency(_vm.sale.shipping,2)))])]):_vm._e()]),_vm._v(" "),_c("button",{staticClass:"pos-shell-mobile-pay-btn",attrs:{disabled:_vm.paymentProcessing||_vm.details.length===0||_vm.payNowBatchGate.blocked,title:_vm.payNowBatchGate.blocked?_vm.payNowBatchGate.reason:_vm.$t("pos.Complete_and_process_payment")},on:{click:_vm.openModernPaymentModal}},[_c("svg",{staticStyle:{width:"18px",height:"18px"},attrs:{viewBox:"0 0 24 24",fill:"currentColor"}},[_c("path",{attrs:{d:"M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"}})]),_vm._v(" "),_c("span",{staticClass:"pos-shell-mobile-pay-btn-label"},[_vm._v(_vm._s(_vm.paymentProcessing?_vm.$t("pos.Processing"):_vm.$t("pos.Pay_Now")))]),_vm._v(" "),_c("span",{staticClass:"pos-shell-mobile-pay-btn-amount"},[_vm._v(_vm._s(_vm.formatPriceWithCurrentCurrency(_vm.GrandTotal,2)))])])])]),_vm._v(" "),_c("div",{staticClass:"pos-shell-cart-resizer","class":{"is-resizing":_vm.cartAsideResizing},attrs:{role:"separator","aria-orientation":"vertical","aria-label":_vm.$t("pos.Resize_cart_panel")||"Resize cart panel"},on:{mousedown:_vm.startCartAsideResize}},[_c("span",{staticClass:"pos-shell-cart-resizer-grip"})]),_vm._v(" "),_c("section",{staticClass:"pos-shell-section",staticStyle:{flex:"1 1 auto","min-width":"0",display:"grid","grid-template-rows":"auto 1fr auto","min-height":"0",background:"#ffffff",overflow:"hidden"}},[_c("div",{staticClass:"pos-shell-search-row",staticStyle:{padding:"4px 6px",display:"flex",gap:"8px","align-items":"center"}},[_c("div",{staticClass:"pos-shell-search-wrap",staticStyle:{flex:"1",position:"relative"}},[_c("svg",{staticStyle:{position:"absolute",left:"14px",top:"50%",transform:"translateY(-50%)",width:"18px",height:"18px",color:"#8d8da0","pointer-events":"none"},attrs:{viewBox:"0 0 20 20",fill:"none",stroke:"currentColor","stroke-width":"1.5","stroke-linecap":"round"}},[_c("path",{attrs:{d:"M3 7V4h3M14 4h3v3M17 13v3h-3M6 16H3v-3"}}),_c("path",{attrs:{d:"M5 10h10"}})]),_vm._v(" "),_c("input",{directives:[{name:"model",rawName:"v-model",value:_vm.search_input,expression:"search_input"}],staticClass:"pos-shell-search-input",staticStyle:{width:"100%",height:"36px",padding:"0 12px 0 38px",background:"#ffffff",border:"1px solid #e6e6ec","border-radius":"8px","font-size":"13px",color:"#1f1f2c",outline:"none","font-family":"inherit",transition:"border-color 120ms ease, box-shadow 120ms ease"},attrs:{type:"text",placeholder:_vm.$t("Scan_Search_Product_by_Code_Name")},domProps:{value:_vm.search_input},on:{keyup:_vm.search,input:function input($event){if($event.target.composing)return;_vm.search_input=$event.target.value;}}}),_vm._v(" "),_vm.product_filter&&_vm.product_filter.length?_c("ul",{staticStyle:{position:"absolute",top:"calc(100% + 4px)",left:"0",right:"0",margin:"0",padding:"4px","list-style":"none",background:"#ffffff",border:"1px solid #e6e6ec","border-radius":"10px","box-shadow":"0 8px 24px rgba(20,20,40,0.08)","max-height":"280px",overflow:"auto","z-index":"10"}},_vm._l(_vm.product_filter,function(product_fil){return _c("li",{key:product_fil.id,staticClass:"pos-shell-autocomplete-item",staticStyle:{padding:"8px 12px","font-size":"13px",color:"#1f1f2c",cursor:"pointer","border-radius":"6px"},on:{mousedown:function mousedown($event){return _vm.SearchProduct(product_fil);}}},[_vm._v("\n              "+_vm._s(_vm.getResultValue(product_fil))+"\n            ")]);}),0):_vm._e()]),_vm._v(" "),_c("button",{staticClass:"pos-shell-action-btn",staticStyle:{height:"36px",padding:"0 12px",background:"transparent",color:"#1f1f2c",border:"1px solid #e6e6ec","border-radius":"8px","font-size":"13px","font-weight":"500",display:"inline-flex","align-items":"center",gap:"6px",cursor:"pointer",transition:"all 120ms ease"},attrs:{title:_vm.$t("Scan")},on:{click:_vm.showModal}},[_c("svg",{staticStyle:{width:"16px",height:"16px"},attrs:{viewBox:"0 0 20 20",fill:"none",stroke:"currentColor","stroke-width":"1.5","stroke-linecap":"round"}},[_c("path",{attrs:{d:"M3 7V4h3M14 4h3v3M17 13v3h-3M6 16H3v-3"}}),_c("path",{attrs:{d:"M5 10h10"}})]),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.$t("Scan")))])])]),_vm._v(" "),_c("div",{staticClass:"pos-shell-products-scroll",style:{overflowY:"auto",overflowX:"hidden",padding:"0px 6px",minHeight:0,height:"100%",position:"relative",opacity:_vm.productsLoading?0.6:1},on:{"&touchstart":function touchstart($event){return _vm.onProductsTouchStart.apply(null,arguments);},"&touchmove":function touchmove($event){return _vm.onProductsTouchMove.apply(null,arguments);},touchend:_vm.onProductsTouchEnd,touchcancel:_vm.onProductsTouchEnd}},[_vm.paginated_Products.length===0?_c("div",{staticClass:"pos-shell-products-empty",staticStyle:{padding:"48px 16px","text-align":"center",color:"#8d8da0"}},[_c("svg",{staticStyle:{width:"40px",height:"40px",opacity:"0.3",margin:"0 auto 8px"},attrs:{viewBox:"0 0 24 24",fill:"none",stroke:"currentColor","stroke-width":"1.5"}},[_c("circle",{attrs:{cx:"11",cy:"11",r:"8"}}),_vm._v(" "),_c("path",{attrs:{d:"m21 21-4.35-4.35"}})]),_vm._v(" "),_c("div",{staticStyle:{"font-size":"13px",color:"#54546a"}},[_vm._v(_vm._s(_vm.$t("pos.No_products_found")))])]):_c("div",{staticClass:"pos-shell-products-grid"},_vm._l(_vm.paginated_Products,function(product){return _c("button",{key:product.product_variant_id?product.id+"-"+product.product_variant_id:product.id,staticClass:"pos-shell-product-card",staticStyle:{background:"#ffffff",border:"1px solid #e6e6ec","border-radius":"12px",padding:"10px","text-align":"left",cursor:"pointer",position:"relative",transition:"all 120ms ease","font-family":"inherit"},attrs:{type:"button"},on:{click:function click($event){return _vm.handleProductClick(product);}}},[_vm.uiLoadingProductId===(product.product_variant_id?product.id+"-"+product.product_variant_id:product.id)?_c("div",{staticStyle:{position:"absolute",inset:"0",background:"rgba(255,255,255,0.7)","border-radius":"12px",display:"grid","place-items":"center","z-index":"2"}},[_c("div",{staticClass:"spinner sm spinner-primary"})]):_vm._e(),_vm._v(" "),_c("div",{staticClass:"pos-shell-card-media-wrap",staticStyle:{margin:"-10px -10px 8px",position:"relative"}},[_c("div",{staticClass:"pos-shell-card-media",style:{width:"100%",height:"58px",borderRadius:"12px 12px 0 0",overflow:"hidden",position:"relative",background:_vm.pos_settings.show_product_images&&product.image?"#f1efe7":"repeating-linear-gradient(135deg, #ece9fb, #ece9fb 8px, #f5f3fd 8px, #f5f3fd 16px)",backgroundImage:_vm.pos_settings.show_product_images&&product.image?"url("+_vm.resolveProductImage(product.image)+")":null,backgroundRepeat:"no-repeat",backgroundPosition:"center",backgroundSize:"cover"}},[!(_vm.pos_settings.show_product_images&&product.image)?_c("span",{staticStyle:{position:"absolute",inset:"0",display:"flex","align-items":"center","justify-content":"center","font-family":"'JetBrains Mono', monospace","font-weight":"700","font-size":"16px",color:"rgba(31,31,44,0.6)","letter-spacing":"0.02em","text-transform":"uppercase"}},[_vm._v("\n                  "+_vm._s((product.name||"P").split(/[ ·]/).filter(Boolean).slice(0,2).map(function(w){return w[0];}).join(""))+"\n                ")]):_vm._e()]),_vm._v(" "),product.discount?_c("div",{staticClass:"pos-shell-card-badge",staticStyle:{position:"absolute",top:"6px",left:"6px",background:"rgba(255,255,255,0.9)","border-radius":"6px",padding:"2px 6px",color:"#d64545","font-family":"'JetBrains Mono', monospace","font-size":"10px","font-weight":"700"}},[_vm._v("-"+_vm._s(product.discount)+"%")]):_vm._e()]),_vm._v(" "),_c("div",{staticClass:"pos-shell-card-name",staticStyle:{"font-size":"13px","font-weight":"500","margin-bottom":"2px","line-height":"1.2",color:"#1f1f2c","white-space":"nowrap",overflow:"hidden","text-overflow":"ellipsis"}},[_vm._v(_vm._s(product.name))]),_vm._v(" "),_c("div",{staticClass:"pos-shell-card-meta",staticStyle:{"font-size":"10px",color:"#8d8da0","font-family":"'JetBrains Mono', monospace","margin-bottom":"6px","white-space":"nowrap",overflow:"hidden","text-overflow":"ellipsis"}},[product.code?_c("span",[_vm._v("SKU "+_vm._s(product.code))]):_vm._e(),_vm._v(" "),product.product_type!=="is_service"&&_vm.pos_settings.show_stock_quantity?_c("span",{staticClass:"pos-shell-card-stock"},[product.code?_c("span",[_vm._v(" · ")]):_vm._e(),_vm._v(_vm._s(_vm.formatNumber(product.qte_sale,2))+" "+_vm._s(product.unitSale)+"\n              ")]):_vm._e()]),_vm._v(" "),product.is_jewelry_item?_c("div",{staticClass:"pos-shell-card-jewelry",staticStyle:{"font-size":"10px",color:"#a8792f",background:"#fdf6e8","border-radius":"6px",padding:"3px 6px","margin-bottom":"6px","white-space":"nowrap",overflow:"hidden","text-overflow":"ellipsis"}},[product.metal_type?_c("span",[_vm._v(_vm._s(product.metal_type))]):_vm._e(),_vm._v(" "),product.karat?_c("span",[_vm._v(" · "+_vm._s(product.karat))]):_vm._e(),_vm._v(" "),product.jewelry_gross_weight?_c("span",[_vm._v(" · "+_vm._s(_vm.formatNumber(product.jewelry_gross_weight,3))+_vm._s(product.jewelry_weight_uom))]):_vm._e(),_vm._v(" "),product.stone_summary?_c("span",[_vm._v(" · "+_vm._s(product.stone_summary))]):_vm._e(),_vm._v(" "),product.jewelry_pricing_breakdown&&product.jewelry_pricing_breakdown.gold_rate?_c("span",[_vm._v(" · Rate "+_vm._s(_vm.formatNumber(product.jewelry_pricing_breakdown.gold_rate,2)))]):_vm._e()]):_vm._e(),_vm._v(" "),_c("div",{staticClass:"pos-shell-card-price-row",staticStyle:{display:"flex","align-items":"center","justify-content":"space-between"}},[_c("div",{staticClass:"pos-shell-card-price",staticStyle:{"font-size":"14px","font-weight":"700","font-family":"'JetBrains Mono', monospace",color:"#6f53d9","letter-spacing":"-0.01em"}},[_vm._v(_vm._s(_vm.formatPriceWithCurrentCurrency(product.Net_price,2)))]),_vm._v(" "),_c("span",{staticClass:"pos-shell-add-btn",style:{width:"24px",height:"24px",background:"#f0ecfb",color:"#6f53d9",borderRadius:"6px",display:"grid",placeItems:"center",opacity:!_vm.isOversellingAllowed&&product.product_type!=="is_service"&&product.qte_sale<=0?0.4:1}},[_c("svg",{staticStyle:{width:"14px",height:"14px"},attrs:{viewBox:"0 0 20 20",fill:"none",stroke:"currentColor","stroke-width":"1.5","stroke-linecap":"round"}},[_c("path",{attrs:{d:"M10 4v12M4 10h12"}})])])])]);}),0)]),_vm._v(" "),_vm.paginated_Products.length>0&&_vm.product_lastPage>1?_c("div",{staticClass:"pos-shell-mobile-pagination-dots"},_vm._l(_vm.product_lastPage,function(page){return _c("button",{key:"pdot-"+page,staticClass:"pos-shell-mobile-page-dot","class":{"pos-shell-mobile-page-dot-active":page===_vm.product_currentPage},attrs:{type:"button","aria-label":(_vm.$t("pos.Page")||"Page")+" "+page},on:{click:function click($event){return _vm.Product_onPageChanged(page);}}});}),0):_vm._e(),_vm._v(" "),_vm.paginated_Products.length>0?_c("div",{staticClass:"pos-shell-pagination",staticStyle:{padding:"0px 16px","border-top":"1px solid rgb(230, 230, 236)",background:"rgb(255, 255, 255)",display:"flex","align-items":"center","justify-content":"space-between",gap:"7px","font-size":"11px",color:"rgb(141, 141, 160)","min-height":"30px"}},[_c("button",{staticStyle:{width:"28px",height:"28px","border-radius":"6px",border:"1px solid #e6e6ec",background:"#ffffff",color:"#54546a",cursor:"pointer",display:"inline-flex","align-items":"center","justify-content":"center",padding:"0"},attrs:{disabled:_vm.product_currentPage===1,title:_vm.$t("pos.Previous_Page")},on:{click:function click($event){return _vm.Product_onPageChanged(_vm.product_currentPage-1);}}},[_c("svg",{staticStyle:{width:"14px",height:"14px"},attrs:{viewBox:"0 0 24 24",fill:"none",stroke:"currentColor","stroke-width":"2"}},[_c("polyline",{attrs:{points:"15 18 9 12 15 6"}})])]),_vm._v(" "),_c("div",{staticStyle:{display:"inline-flex","flex-direction":"column","align-items":"center","font-size":"11px",color:"#8d8da0"}},[_c("span",{staticStyle:{"font-family":"'JetBrains Mono', monospace",color:"#54546a"}},[_vm._v(_vm._s(_vm.$t("pos.Page"))+" "+_vm._s(_vm.product_currentPage))]),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.product_totalRows)+" "+_vm._s(_vm.$t("pos.products")))])]),_vm._v(" "),_c("div",{staticStyle:{display:"inline-flex",gap:"4px"}},_vm._l(_vm.product_visiblePageItems,function(item,idx){return _c("button",{key:"pp-".concat(idx,"-").concat(item),style:{width:"28px",height:"28px",borderRadius:"6px",border:item==="…"?0:"1px solid #e6e6ec",background:item===_vm.product_currentPage?"#6f53d9":item==="…"?"transparent":"#ffffff",color:item===_vm.product_currentPage?"#fff":"#54546a",fontSize:"12px",cursor:item==="…"?"default":"pointer",fontWeight:item===_vm.product_currentPage?600:400,display:"inline-flex",alignItems:"center",justifyContent:"center",padding:0},attrs:{disabled:item==="…",title:item==="…"?"":"".concat(_vm.$t("pos.Go_to_page")," ").concat(item)},on:{click:function click($event){return _vm.onProductPageItemClick(item);}}},[_vm._v("\n            "+_vm._s(item)+"\n          ")]);}),0),_vm._v(" "),_c("button",{staticStyle:{width:"28px",height:"28px","border-radius":"6px",border:"1px solid #e6e6ec",background:"#ffffff",color:"#54546a",cursor:"pointer",display:"inline-flex","align-items":"center","justify-content":"center",padding:"0"},attrs:{disabled:_vm.product_currentPage===_vm.product_lastPage,title:_vm.$t("pos.Next_Page")},on:{click:function click($event){return _vm.Product_onPageChanged(_vm.product_currentPage+1);}}},[_c("svg",{staticStyle:{width:"14px",height:"14px"},attrs:{viewBox:"0 0 24 24",fill:"none",stroke:"currentColor","stroke-width":"2"}},[_c("polyline",{attrs:{points:"9 18 15 12 9 6"}})])])]):_vm._e()])]):_vm._e(),_vm._v(" "),_vm.productsReady?_c("div",{staticClass:"pos-shell-pay-bar",staticStyle:{display:"flex",background:"rgb(255, 255, 255)","align-items":"center",gap:"8px",padding:"8px 16px 8px 20px","flex-shrink":"0","flex-grow":"0","border-top":"1px solid rgb(230, 230, 236)"}},[_c("div",{staticClass:"pos-shell-connection-status",style:{display:"inline-flex",alignItems:"center",gap:"6px",fontSize:"12px",fontWeight:500,color:_vm.isOnline?"#1e7a44":"#a83232"},attrs:{title:_vm.offlineStatusTitle}},[_c("span",{style:{width:"6px",height:"6px",borderRadius:"99px",background:_vm.isOnline?"#2fae5e":"#d64545"}}),_vm._v(" "),_vm.isOnline?_c("span",[_vm._v(_vm._s(_vm.$t("Online")||"Online")+" "),_vm.lastProductsSyncAt?_c("span",{staticStyle:{opacity:"0.7"}},[_vm._v("· "+_vm._s(_vm.$t("pos.Synced")||"synced"))]):_vm._e()]):_c("span",[_vm._v(_vm._s(_vm.$t("pos.Offline_Mode"))),_vm.offlineSalesCount>0?_c("span",{staticStyle:{opacity:"0.7"}},[_vm._v(" · "+_vm._s(_vm.offlineSalesCount)+" "+_vm._s(_vm.$t("pos.Pending")||"pending"))]):_vm._e()])]),_vm._v(" "),_c("div",{staticStyle:{width:"1px",height:"24px",background:"#e6e6ec",margin:"0 8px"}}),_vm._v(" "),_vm.isOnline?_c("router-link",{staticClass:"pos-shell-action-btn",staticStyle:{height:"36px",padding:"0 14px",background:"transparent",color:"#1f1f2c",border:"1px solid #e6e6ec","border-radius":"8px","font-size":"13px","font-weight":"500",display:"inline-flex","align-items":"center",gap:"8px",cursor:"pointer","text-decoration":"none",transition:"all 120ms ease"},attrs:{to:"/app/dashboard",title:_vm.$t("pos.Home")}},[_c("svg",{staticStyle:{width:"16px",height:"16px"},attrs:{viewBox:"0 0 24 24",fill:"none",stroke:"currentColor","stroke-width":"2"}},[_c("path",{attrs:{d:"M3 11l9-8 9 8"}}),_vm._v(" "),_c("path",{attrs:{d:"M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"}})]),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.$t("pos.Home")))])]):_vm._e(),_vm._v(" "),_vm.isOnline?_c("button",{staticClass:"pos-shell-action-btn",staticStyle:{height:"36px",padding:"0 14px",background:"transparent",color:"#1f1f2c",border:"1px solid #e6e6ec","border-radius":"8px","font-size":"13px","font-weight":"500",display:"inline-flex","align-items":"center",gap:"8px",cursor:"pointer",transition:"all 120ms ease"},attrs:{title:_vm.$t("pos.Clear_all_items")},on:{click:_vm.Reset_Pos}},[_c("svg",{staticStyle:{width:"16px",height:"16px"},attrs:{viewBox:"0 0 24 24",fill:"none",stroke:"currentColor","stroke-width":"2"}},[_c("path",{attrs:{d:"M1 4v6h6"}}),_vm._v(" "),_c("path",{attrs:{d:"M23 20v-6h-6"}}),_vm._v(" "),_c("path",{attrs:{d:"M20.49 9A9 9 0 0 0 5.64 5.64"}}),_vm._v(" "),_c("path",{attrs:{d:"M3.51 15A9 9 0 0 0 18.36 18.36"}})]),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.$t("pos.Reset")))])]):_vm._e(),_vm._v(" "),_vm.isOnline?_c("button",{staticClass:"pos-shell-action-btn",staticStyle:{height:"36px",padding:"0 14px",background:"transparent",color:"#1f1f2c",border:"1px solid #e6e6ec","border-radius":"8px","font-size":"13px","font-weight":"500",display:"inline-flex","align-items":"center",gap:"8px",cursor:"pointer",transition:"all 120ms ease"},attrs:{title:_vm.$t("pos.Drafts_list")},on:{click:_vm.Show_Draft_Sales}},[_c("svg",{staticStyle:{width:"16px",height:"16px"},attrs:{viewBox:"0 0 24 24",fill:"none",stroke:"currentColor","stroke-width":"2"}},[_c("rect",{attrs:{x:"3",y:"4",width:"18",height:"14",rx:"2",ry:"2"}}),_vm._v(" "),_c("path",{attrs:{d:"M7 8h10M7 12h8"}})]),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.$t("pos.Recent_Drafts")))]),_vm._v(" "),_vm.totalRows_draft_sales>0?_c("span",{staticStyle:{background:"#f3f3f7",color:"#54546a",padding:"1px 7px","border-radius":"99px","font-size":"11px","font-family":"'JetBrains Mono', monospace","font-weight":"600","margin-left":"2px"}},[_vm._v(_vm._s(_vm.totalRows_draft_sales))]):_vm._e()]):_vm._e(),_vm._v(" "),_vm.pos_settings.enable_hold_sales&&_vm.isOnline?_c("button",{staticClass:"pos-shell-action-btn",staticStyle:{height:"36px",padding:"0 14px",background:"transparent",color:"#1f1f2c",border:"1px solid #e6e6ec","border-radius":"8px","font-size":"13px","font-weight":"500",display:"inline-flex","align-items":"center",gap:"8px",cursor:"pointer",transition:"all 120ms ease"},attrs:{disabled:_vm.DraftProcessing,title:_vm.$t("pos.Hold_this_sale")},on:{click:_vm.Submit_Draft}},[_c("svg",{staticStyle:{width:"16px",height:"16px"},attrs:{viewBox:"0 0 24 24",fill:"none",stroke:"currentColor","stroke-width":"2"}},[_c("circle",{attrs:{cx:"12",cy:"12",r:"10"}}),_vm._v(" "),_c("path",{attrs:{d:"M10 9v6"}}),_vm._v(" "),_c("path",{attrs:{d:"M14 9v6"}})]),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.DraftProcessing?_vm.$t("pos.Saving"):_vm.$t("pos.Hold")))])]):_vm._e(),_vm._v(" "),_c("div",{staticStyle:{flex:"1"}}),_vm._v(" "),_c("div",{staticClass:"pos-shell-pay-summary",staticStyle:{display:"flex","flex-direction":"column","align-items":"flex-end","text-align":"right","margin-right":"12px"}},[_c("span",{staticClass:"pos-shell-pay-summary-label",staticStyle:{"font-size":"10px",color:"#8d8da0","font-weight":"700","letter-spacing":"0.08em","text-transform":"uppercase"}},[_vm._v(_vm._s(_vm.$t("pos.Total_Payable")))]),_vm._v(" "),_c("span",{staticClass:"pos-shell-pay-summary-value",staticStyle:{"font-size":"20px","font-weight":"700","font-family":"'JetBrains Mono', monospace",color:"#1f1f2c","letter-spacing":"-0.01em"}},[_vm._v(_vm._s(_vm.formatPriceWithCurrentCurrency(_vm.GrandTotal,2)))])]),_vm._v(" "),_c("button",{staticClass:"pos-shell-pay-btn",style:{height:"48px",padding:"0 28px",background:"#6f53d9",color:"#fff",border:0,borderRadius:"10px",fontSize:"15px",fontWeight:600,display:"inline-flex",alignItems:"center",gap:"10px",cursor:_vm.paymentProcessing||_vm.details.length===0||_vm.payNowBatchGate.blocked?"not-allowed":"pointer",opacity:_vm.paymentProcessing||_vm.details.length===0||_vm.payNowBatchGate.blocked?0.5:1,boxShadow:"0 4px 14px rgba(111,83,217,0.32)",transition:"all 120ms ease"},attrs:{disabled:_vm.paymentProcessing||_vm.details.length===0||_vm.payNowBatchGate.blocked,title:_vm.payNowBatchGate.blocked?_vm.payNowBatchGate.reason:_vm.$t("pos.Complete_and_process_payment")},on:{click:_vm.openModernPaymentModal}},[_c("svg",{staticStyle:{width:"18px",height:"18px"},attrs:{viewBox:"0 0 24 24",fill:"currentColor"}},[_c("path",{attrs:{d:"M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"}})]),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.paymentProcessing?_vm.$t("pos.Processing"):_vm.$t("pos.Pay_Now")))])])],1):_vm._e(),_vm._v(" "),_vm.productsReady?_c("nav",{staticClass:"pos-shell-mobile-tabbar"},[_c("button",{staticClass:"pos-shell-mobile-tab","class":{"pos-shell-mobile-tab-active":_vm.mobileActiveTab==="home"},attrs:{type:"button"},on:{click:function click($event){return _vm.goToMobileTab("home");}}},[_c("svg",{staticStyle:{width:"22px",height:"22px"},attrs:{viewBox:"0 0 24 24",fill:"none",stroke:"currentColor","stroke-width":"2","stroke-linecap":"round","stroke-linejoin":"round"}},[_c("path",{attrs:{d:"M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"}}),_c("polyline",{attrs:{points:"9 22 9 12 15 12 15 22"}})]),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.$t("pos.Home")||"Home"))])]),_vm._v(" "),_c("button",{staticClass:"pos-shell-mobile-tab","class":{"pos-shell-mobile-tab-active":_vm.mobileActiveTab==="cart"},attrs:{type:"button"},on:{click:function click($event){return _vm.goToMobileTab("cart");}}},[_c("span",{staticClass:"pos-shell-mobile-tab-icon-wrap"},[_c("svg",{staticStyle:{width:"22px",height:"22px"},attrs:{viewBox:"0 0 24 24",fill:"none",stroke:"currentColor","stroke-width":"2","stroke-linecap":"round","stroke-linejoin":"round"}},[_c("circle",{attrs:{cx:"9",cy:"21",r:"1"}}),_c("circle",{attrs:{cx:"20",cy:"21",r:"1"}}),_c("path",{attrs:{d:"M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"}})]),_vm._v(" "),_vm.details.length>0?_c("span",{staticClass:"pos-shell-mobile-tab-badge"},[_vm._v(_vm._s(_vm.details.length))]):_vm._e()]),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.$t("pos.Cart")||"Cart"))])]),_vm._v(" "),_vm.pos_settings.enable_hold_sales&&_vm.isOnline?_c("button",{staticClass:"pos-shell-mobile-tab","class":{"pos-shell-mobile-tab-active":_vm.mobileActiveTab==="hold"},attrs:{type:"button",disabled:_vm.DraftProcessing||_vm.details.length===0},on:{click:function click($event){_vm.mobileActiveTab="hold";_vm.Submit_Draft();}}},[_c("svg",{staticStyle:{width:"22px",height:"22px"},attrs:{viewBox:"0 0 24 24",fill:"none",stroke:"currentColor","stroke-width":"2","stroke-linecap":"round","stroke-linejoin":"round"}},[_c("circle",{attrs:{cx:"12",cy:"12",r:"10"}}),_c("path",{attrs:{d:"M10 9v6"}}),_c("path",{attrs:{d:"M14 9v6"}})]),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.$t("pos.Hold")||"Hold"))])]):_vm._e(),_vm._v(" "),_vm.isOnline?_c("button",{staticClass:"pos-shell-mobile-tab","class":{"pos-shell-mobile-tab-active":_vm.mobileActiveTab==="recent"},attrs:{type:"button"},on:{click:function click($event){_vm.mobileActiveTab="recent";_vm.Show_Draft_Sales();}}},[_c("svg",{staticStyle:{width:"22px",height:"22px"},attrs:{viewBox:"0 0 24 24",fill:"none",stroke:"currentColor","stroke-width":"2","stroke-linecap":"round","stroke-linejoin":"round"}},[_c("rect",{attrs:{x:"3",y:"4",width:"18",height:"14",rx:"2",ry:"2"}}),_c("path",{attrs:{d:"M7 8h10M7 12h8"}})]),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.$t("pos.Recent")||"Recent"))])]):_vm._e(),_vm._v(" "),_c("b-dropdown",{attrs:{dropup:"",right:"","no-caret":"",variant:"link","toggle-class":"pos-shell-mobile-tab-toggle","menu-class":"pos-shell-mobile-tab-menu"},scopedSlots:_vm._u([{key:"button-content",fn:function fn(){return[_c("span",{staticClass:"pos-shell-mobile-tab","class":{"pos-shell-mobile-tab-active":_vm.mobileActiveTab==="more"}},[_c("svg",{staticStyle:{width:"22px",height:"22px"},attrs:{viewBox:"0 0 24 24",fill:"none",stroke:"currentColor","stroke-width":"2","stroke-linecap":"round","stroke-linejoin":"round"}},[_c("line",{attrs:{x1:"3",y1:"6",x2:"21",y2:"6"}}),_c("line",{attrs:{x1:"3",y1:"12",x2:"21",y2:"12"}}),_c("line",{attrs:{x1:"3",y1:"18",x2:"21",y2:"18"}})]),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.$t("pos.More")||"More"))])])];},proxy:true}],null,false,479427509)},[_vm._v(" "),_c("router-link",{staticClass:"dropdown-item",attrs:{to:"/app/dashboard"}},[_vm._v(_vm._s(_vm.$t("pos.Home")||"Home"))]),_vm._v(" "),_c("button",{staticClass:"dropdown-item",attrs:{type:"button"},on:{click:_vm.Reset_Pos}},[_vm._v(_vm._s(_vm.$t("pos.Reset")||"Reset"))]),_vm._v(" "),_c("button",{staticClass:"dropdown-item",attrs:{type:"button"},on:{click:_vm.handleFullScreen}},[_vm._v(_vm._s(_vm.$t("Fullscreen")||"Fullscreen"))]),_vm._v(" "),_c("a",{staticClass:"dropdown-item",attrs:{href:"#"},on:{click:function click($event){$event.preventDefault();return _vm.logoutUser.apply(null,arguments);}}},[_vm._v(_vm._s(_vm.$t("logout")||"Logout"))])],1)],1):_vm._e(),_vm._v(" "),_c("b-modal",{attrs:{id:"pos_calculator","hide-footer":"",size:"sm",title:_vm.$t("Calculator")||"Calculator"}},[_c("div",{staticClass:"pos-calc"},[_c("div",{staticClass:"pos-calc-display"},[_c("div",{staticClass:"pos-calc-expr"},[_vm._v(_vm._s(_vm.calc.expression||" "))]),_vm._v(" "),_c("div",{staticClass:"pos-calc-result"},[_vm._v(_vm._s(_vm.calc.display))])]),_vm._v(" "),_c("div",{staticClass:"pos-calc-grid"},[_c("button",{staticClass:"pos-calc-key pos-calc-key-fn",attrs:{type:"button"},on:{click:_vm.calcClear}},[_vm._v("C")]),_vm._v(" "),_c("button",{staticClass:"pos-calc-key pos-calc-key-fn",attrs:{type:"button"},on:{click:_vm.calcBackspace}},[_vm._v("⌫")]),_vm._v(" "),_c("button",{staticClass:"pos-calc-key pos-calc-key-fn",attrs:{type:"button"},on:{click:_vm.calcPercent}},[_vm._v("%")]),_vm._v(" "),_c("button",{staticClass:"pos-calc-key pos-calc-key-op",attrs:{type:"button"},on:{click:function click($event){return _vm.calcOperator("/");}}},[_vm._v("÷")]),_vm._v(" "),_c("button",{staticClass:"pos-calc-key",attrs:{type:"button"},on:{click:function click($event){return _vm.calcDigit("7");}}},[_vm._v("7")]),_vm._v(" "),_c("button",{staticClass:"pos-calc-key",attrs:{type:"button"},on:{click:function click($event){return _vm.calcDigit("8");}}},[_vm._v("8")]),_vm._v(" "),_c("button",{staticClass:"pos-calc-key",attrs:{type:"button"},on:{click:function click($event){return _vm.calcDigit("9");}}},[_vm._v("9")]),_vm._v(" "),_c("button",{staticClass:"pos-calc-key pos-calc-key-op",attrs:{type:"button"},on:{click:function click($event){return _vm.calcOperator("*");}}},[_vm._v("×")]),_vm._v(" "),_c("button",{staticClass:"pos-calc-key",attrs:{type:"button"},on:{click:function click($event){return _vm.calcDigit("4");}}},[_vm._v("4")]),_vm._v(" "),_c("button",{staticClass:"pos-calc-key",attrs:{type:"button"},on:{click:function click($event){return _vm.calcDigit("5");}}},[_vm._v("5")]),_vm._v(" "),_c("button",{staticClass:"pos-calc-key",attrs:{type:"button"},on:{click:function click($event){return _vm.calcDigit("6");}}},[_vm._v("6")]),_vm._v(" "),_c("button",{staticClass:"pos-calc-key pos-calc-key-op",attrs:{type:"button"},on:{click:function click($event){return _vm.calcOperator("-");}}},[_vm._v("−")]),_vm._v(" "),_c("button",{staticClass:"pos-calc-key",attrs:{type:"button"},on:{click:function click($event){return _vm.calcDigit("1");}}},[_vm._v("1")]),_vm._v(" "),_c("button",{staticClass:"pos-calc-key",attrs:{type:"button"},on:{click:function click($event){return _vm.calcDigit("2");}}},[_vm._v("2")]),_vm._v(" "),_c("button",{staticClass:"pos-calc-key",attrs:{type:"button"},on:{click:function click($event){return _vm.calcDigit("3");}}},[_vm._v("3")]),_vm._v(" "),_c("button",{staticClass:"pos-calc-key pos-calc-key-op",attrs:{type:"button"},on:{click:function click($event){return _vm.calcOperator("+");}}},[_vm._v("+")]),_vm._v(" "),_c("button",{staticClass:"pos-calc-key pos-calc-key-zero",attrs:{type:"button"},on:{click:function click($event){return _vm.calcDigit("0");}}},[_vm._v("0")]),_vm._v(" "),_c("button",{staticClass:"pos-calc-key",attrs:{type:"button"},on:{click:_vm.calcDot}},[_vm._v(".")]),_vm._v(" "),_c("button",{staticClass:"pos-calc-key pos-calc-key-eq",attrs:{type:"button"},on:{click:_vm.calcEquals}},[_vm._v("=")])])])]),_vm._v(" "),_c("b-modal",{attrs:{id:"open_scan","hide-footer":"",title:_vm.$t("Scan")}},[_c("qrcode-scanner",{staticStyle:{width:"100%",height:"calc(100vh - 56px)"},attrs:{qrbox:250,fps:10},on:{result:_vm.onScan}}),_vm._v(" "),_c("div",{staticClass:"text-center mt-2"},[_c("b-button",{attrs:{variant:"primary"},on:{click:function click($event){return _vm.$bvModal.hide("open_scan");}}},[_vm._v(_vm._s(_vm.$t("Close")))])],1)],1),_vm._v(" "),_c("modern-payment-modal",{ref:"modernPaymentModal",attrs:{"payment-methods":_vm.payment_methods,accounts:_vm.accounts,"default-account-id":_vm.default_account_id,"default-payment-method-id":_vm.default_payment_method_id,currency:_vm.currentUser.currency,"client-id":_vm.selectedClientId,"warehouse-id":_vm.sale.warehouse_id,sale:_vm.sale,details:_vm.details,"grand-total":_vm.GrandTotal,"stripe-key":_vm.stripe_key,"discount-from-points":_vm.discount_from_points,"used-points":_vm.used_points,"draft-sale-id":_vm.draft_sale_id,"client-credit-limit":_vm.selectedClientCreditLimit,"client-net-balance":_vm.selectedClientNetBalance,"is-online":_vm.isOnline},on:{"payment-success":_vm.onModernPaymentSuccess}}),_vm._v(" "),_c("pos-return-modal",{ref:"posReturnModal",attrs:{"warehouse-id":_vm.sale.warehouse_id,currency:_vm.currentUser.currency},on:{"return-success":_vm.onReturnSuccess}}),_vm._v(" "),_c("b-modal",{attrs:{"hide-footer":"",size:"sm",scrollable:"",id:"Show_invoice",title:_vm.$t("Invoice_POS")},on:{shown:_vm.onInvoiceModalShown}},[_c("div",{attrs:{id:"invoice-POS"}},[_c("div",{staticStyle:{"max-width":"400px",margin:"0px auto"}},[_vm.currentReceiptLayout===1?_c("div",[_c("div",{staticClass:"info"},[_c("div",{staticClass:"invoice_logo text-center mb-2"},[_c("img",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_logo!==0,expression:"pos_settings.show_logo !== 0"}],attrs:{src:_vm.$imgUrl("settings",_vm.invoice_pos.setting.logo),alt:"",width:_vm.pos_settings.logo_size||60,height:_vm.pos_settings.logo_size||60}})]),_vm._v(" "),_c("p",[_c("span",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_store_name!==0,expression:"pos_settings.show_store_name !== 0"}]},[_c("strong",[_vm._v(_vm._s(_vm.invoice_pos.setting.CompanyName))]),_c("br")]),_vm._v(" "),_vm.invoice_pos.sale&&_vm.invoice_pos.sale.Ref&&_vm.pos_settings.show_reference!==0?_c("span",[_vm._v(_vm._s(_vm.$t("Reference"))+" : "+_vm._s(_vm.invoice_pos.sale.Ref)+" "),_c("br")]):_vm._e(),_vm._v(" "),_c("span",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_date!==0,expression:"pos_settings.show_date !== 0"}]},[_vm._v(_vm._s(_vm.$t("date"))+" : "+_vm._s(_vm.invoice_pos.sale.date)+" "),_c("br")]),_vm._v(" "),_c("span",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_seller!==0,expression:"pos_settings.show_seller !== 0"}]},[_vm._v(_vm._s(_vm.$t("Seller"))+" : "+_vm._s(_vm.invoice_pos.sale.seller_name)+" "),_c("br")]),_vm._v(" "),_c("span",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_address,expression:"pos_settings.show_address"}]},[_vm._v(_vm._s(_vm.$t("Adress"))+" : "+_vm._s(_vm.invoice_pos.setting.CompanyAdress)+" "),_c("br")]),_vm._v(" "),_c("span",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_email,expression:"pos_settings.show_email"}]},[_vm._v(_vm._s(_vm.$t("Email"))+" : "+_vm._s(_vm.invoice_pos.setting.email)+" "),_c("br")]),_vm._v(" "),_c("span",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_phone,expression:"pos_settings.show_phone"}]},[_vm._v(_vm._s(_vm.$t("Phone"))+" : "+_vm._s(_vm.invoice_pos.setting.CompanyPhone)+" "),_c("br")]),_vm._v(" "),_c("span",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_customer,expression:"pos_settings.show_customer"}]},[_vm._v(_vm._s(_vm.$t("Customer"))+" : "+_vm._s(_vm.invoice_pos.sale.client_name)+" "),_c("br")]),_vm._v(" "),_c("span",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_Warehouse,expression:"pos_settings.show_Warehouse"}]},[_vm._v(_vm._s(_vm.$t("warehouse"))+" : "+_vm._s(_vm.invoice_pos.sale.warehouse_name)+" "),_c("br")])])]),_vm._v(" "),_c("table",{staticClass:"table_data",staticStyle:{width:"100%"}},[_c("tbody",[_vm._l(_vm.invoice_pos.details,function(detail_invoice){return _c("tr",[_c("td",{attrs:{colspan:"3"}},[_vm._v("\n                    "+_vm._s(detail_invoice.name)+"\n                    "),_c("br",{directives:[{name:"show",rawName:"v-show",value:detail_invoice.is_imei&&detail_invoice.imei_number!==null,expression:"detail_invoice.is_imei && detail_invoice.imei_number !==null"}]}),_vm._v(" "),_c("span",{directives:[{name:"show",rawName:"v-show",value:detail_invoice.is_imei&&detail_invoice.imei_number!==null,expression:"detail_invoice.is_imei && detail_invoice.imei_number !==null "}]},[_vm._v(_vm._s(_vm.$t("IMEI_SN"))+" : "+_vm._s(detail_invoice.imei_number))]),_vm._v(" "),_c("br"),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.formatNumber(detail_invoice.quantity,2))+" "+_vm._s(_vm.packLineUnit(detail_invoice))+" x "+_vm._s(_vm.formatPriceDisplay(detail_invoice.total/detail_invoice.quantity,2)))]),_vm._v(" "),detail_invoice.pack_name&&Number(detail_invoice.pack_multiplier)>1?_c("br"):_vm._e(),_vm._v(" "),detail_invoice.pack_name&&Number(detail_invoice.pack_multiplier)>1?_c("small",{staticStyle:{color:"#666"}},[_vm._v("(×"+_vm._s(detail_invoice.pack_multiplier)+") = "+_vm._s(_vm.formatNumber(detail_invoice.quantity*detail_invoice.pack_multiplier,2))+" "+_vm._s(detail_invoice.unit_sale||_vm.$t("Pcs")||"pcs"))]):_vm._e(),_vm._v(" "),_vm.pos_settings.show_product_discount!==0&&Number(detail_invoice.DiscountNet||0)>0?_c("br"):_vm._e(),_vm._v(" "),_vm.pos_settings.show_product_discount!==0&&Number(detail_invoice.DiscountNet||0)>0?_c("small",{staticStyle:{color:"#888","font-style":"italic"}},[_vm._v(_vm._s(_vm.$t("Discount"))+": -"+_vm._s(_vm.formatPriceDisplay(Number(detail_invoice.DiscountNet)*Number(detail_invoice.quantity),2)))]):_vm._e()]),_vm._v(" "),_c("td",{staticStyle:{"text-align":"right","vertical-align":"bottom"}},[_vm._v("\n                    "+_vm._s(_vm.formatPriceDisplay(detail_invoice.total,2))+"\n                  ")])]);}),_vm._v(" "),_c("tr",{staticStyle:{"margin-top":"10px"}},[_c("td",{staticClass:"total",attrs:{colspan:"3"}},[_vm._v(_vm._s(_vm.$t("pos.Subtotal")))]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[_vm._v("\n                    "+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoiceSubtotal,2))+"\n                  ")])]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_tax,expression:"pos_settings.show_tax"}],staticStyle:{"margin-top":"10px"}},[_c("td",{staticClass:"total",attrs:{colspan:"3"}},[_vm._v(_vm._s(_vm.$t("OrderTax")))]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[_vm._v("\n                    "+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.taxe,2))+" ("+_vm._s(_vm.formatNumber(_vm.invoice_pos.sale.tax_rate,2))+" %)\n                  ")])]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_discount,expression:"pos_settings.show_discount"}],staticStyle:{"margin-top":"10px"}},[_c("td",{staticClass:"total",attrs:{colspan:"3"}},[_vm._v(_vm._s(_vm.$t("Discount")))]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[String(_vm.invoice_pos.sale.discount_Method||"2")==="1"?[_vm._v("\n                      "+_vm._s(_vm.formatNumber(_vm.invoice_pos.sale.discount,2))+"% ("+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.calculatedManualDiscountAmount,2))+")\n                    ")]:[_vm._v("\n                      "+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.calculatedManualDiscountAmount,2))+"\n                    ")]],2)]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_discount&&_vm.invoice_pos.sale.discount_from_points&&Number(_vm.invoice_pos.sale.discount_from_points)>0,expression:"pos_settings.show_discount && invoice_pos.sale.discount_from_points && Number(invoice_pos.sale.discount_from_points) > 0"}]},[_c("td",{staticClass:"total",attrs:{colspan:"3"}},[_vm._v(_vm._s(_vm.$t("Discount_from_Points")))]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[_vm._v("\n                    "+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.discount_from_points,2))+"\n                  ")])]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_shipping,expression:"pos_settings.show_shipping"}],staticStyle:{"margin-top":"10px"}},[_c("td",{staticClass:"total",attrs:{colspan:"3"}},[_vm._v(_vm._s(_vm.$t("Shipping")))]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[_vm._v("\n                    "+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.shipping,2))+"\n                  ")])]),_vm._v(" "),_c("tr",{staticStyle:{"margin-top":"10px"}},[_c("td",{staticClass:"total",attrs:{colspan:"3"}},[_vm._v(_vm._s(_vm.$t("Total")))]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[_vm._v("\n                    "+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.GrandTotal,2))+"\n                  ")])]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_paid!==0,expression:"pos_settings.show_paid !== 0"}]},[_c("td",{staticClass:"total",attrs:{colspan:"3"}},[_vm._v(_vm._s(_vm.$t("Paid")))]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[_vm._v("\n                    "+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.paid_amount,2))+"\n                  ")])]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_due!==0,expression:"pos_settings.show_due !== 0"}]},[_c("td",{staticClass:"total",attrs:{colspan:"3"}},[_vm._v(_vm._s(_vm.$t("Due")))]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[_vm._v("\n                    "+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.GrandTotal-_vm.invoice_pos.sale.paid_amount,2))+"\n                  ")])])],2)]),_vm._v(" "),_c("table",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_payments!==0&&_vm.invoice_pos.sale.paid_amount>0,expression:"pos_settings.show_payments !== 0 && invoice_pos.sale.paid_amount > 0"}],staticClass:"change mt-3",staticStyle:{"font-size":"10px",width:"100%"}},[_c("thead",[_c("tr",{staticStyle:{background:"#eee"}},[_c("th",{staticStyle:{"text-align":"left"},attrs:{colspan:"1"}},[_vm._v(_vm._s(_vm.$t("PayeBy"))+":")]),_vm._v(" "),_c("th",{staticStyle:{"text-align":"center"},attrs:{colspan:"2"}},[_vm._v(_vm._s(_vm.$t("Amount"))+":")]),_vm._v(" "),_c("th",{staticStyle:{"text-align":"right"},attrs:{colspan:"1"}},[_vm._v(_vm._s(_vm.$t("Change"))+":")])])]),_vm._v(" "),_c("tbody",[_vm._l(_vm.payments,function(payment_pos){return[_c("tr",{key:"pay-"+payment_pos.id},[_c("td",{staticStyle:{"text-align":"left"},attrs:{colspan:"1"}},[_vm._v(_vm._s(payment_pos.payment_method?payment_pos.payment_method.name:"---"))]),_vm._v(" "),_c("td",{staticStyle:{"text-align":"center"},attrs:{colspan:"2"}},[_vm._v("\n                      "+_vm._s(_vm.formatPriceDisplay(payment_pos.montant,2))+"\n                    ")]),_vm._v(" "),_c("td",{staticStyle:{"text-align":"right"},attrs:{colspan:"1"}},[_vm._v("\n                      "+_vm._s(_vm.formatPriceDisplay(payment_pos.change,2))+"\n                    ")])]),_vm._v(" "),payment_pos.notes?_c("tr",{key:"pay-note-"+payment_pos.id},[_c("td",{staticStyle:{"font-size":"9px","font-style":"italic","padding-bottom":"4px","white-space":"pre-line"},attrs:{colspan:"4"}},[_vm._v("\n                      "+_vm._s(_vm.$t("Payment_note"))+": "+_vm._s(payment_pos.notes)+"\n                    ")])]):_vm._e()];})],2)]),_vm._v(" "),_c("div",{staticClass:"ml-2",attrs:{id:"legalcopy"}},[_vm.invoice_pos.sale&&_vm.invoice_pos.sale.notes?_c("p",{staticStyle:{"font-size":"9px","font-style":"italic","padding-bottom":"4px","white-space":"pre-line",margin:"0"}},[_vm._v("\n                "+_vm._s(_vm.$t("sale_note"))+": "+_vm._s(_vm.invoice_pos.sale.notes)+"\n              ")]):_vm._e(),_vm._v(" "),_c("p",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_note,expression:"pos_settings.show_note"}],staticClass:"legal",staticStyle:{"white-space":"pre-line"}},[_c("strong",[_vm._v(_vm._s(_vm.pos_settings.note_customer))])]),_vm._v(" "),_vm.invoice_pos.setting&&_vm.invoice_pos.setting.zatca_enabled&&_vm.invoice_pos.zatca_qr&&_vm.pos_settings.show_zatca_qr!==0||_vm.pos_settings.show_barcode!==0&&_vm.invoice_pos.sale&&_vm.invoice_pos.sale.Ref?_c("div",{staticClass:"receipt-qr-row mt-2"},[_vm.invoice_pos.setting&&_vm.invoice_pos.setting.zatca_enabled&&_vm.invoice_pos.zatca_qr&&_vm.pos_settings.show_zatca_qr!==0?_c("div",{staticClass:"receipt-qr-block"},[_c("div",{staticClass:"receipt-qr-title"},[_vm._v("ZATCA QR")]),_vm._v(" "),_c("div",{ref:"zatcaQrcodePos",staticClass:"receipt-qr-canvas"})]):_vm._e(),_vm._v(" "),_vm.pos_settings.show_barcode!==0&&_vm.invoice_pos.sale&&_vm.invoice_pos.sale.Ref?_c("div",{staticClass:"receipt-qr-block"},[_c("div",{staticClass:"receipt-qr-title"},[_vm._v("Invoice QR")]),_vm._v(" "),_c("div",{ref:"invoiceUrlQr",staticClass:"receipt-qr-canvas"})]):_vm._e()]):_vm._e()])]):_vm.currentReceiptLayout===2?_c("div",[_c("div",{staticClass:"info text-center"},[_c("div",{staticClass:"invoice_logo mb-1"},[_c("img",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_logo!==0,expression:"pos_settings.show_logo !== 0"}],attrs:{src:_vm.$imgUrl("settings",_vm.invoice_pos.setting.logo),alt:"",width:_vm.pos_settings.logo_size||60,height:_vm.pos_settings.logo_size||60}})]),_vm._v(" "),_c("div",[_c("div",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_store_name!==0,expression:"pos_settings.show_store_name !== 0"}]},[_vm._v(_vm._s(_vm.invoice_pos.setting.CompanyName))]),_vm._v(" "),_c("div",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_address,expression:"pos_settings.show_address"}]},[_vm._v(_vm._s(_vm.invoice_pos.setting.CompanyAdress))]),_vm._v(" "),_c("div",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_phone,expression:"pos_settings.show_phone"}]},[_vm._v(_vm._s(_vm.invoice_pos.setting.CompanyPhone))]),_vm._v(" "),_c("div",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_email,expression:"pos_settings.show_email"}]},[_vm._v(_vm._s(_vm.invoice_pos.setting.email))])]),_vm._v(" "),_c("div",{staticClass:"mt-1"},[_vm.invoice_pos.sale&&_vm.invoice_pos.sale.Ref&&_vm.pos_settings.show_reference!==0?_c("small",[_vm._v("\n                  "+_vm._s(_vm.$t("Reference"))+" : "+_vm._s(_vm.invoice_pos.sale.Ref)+"\n                ")]):_vm._e(),_vm._v(" "),_vm.invoice_pos.sale&&_vm.invoice_pos.sale.Ref&&_vm.pos_settings.show_reference!==0?_c("br"):_vm._e(),_vm._v(" "),_c("small",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_date!==0,expression:"pos_settings.show_date !== 0"}]},[_vm._v("\n                  "+_vm._s(_vm.$t("date"))+" : "+_vm._s(_vm.invoice_pos.sale.date)+"\n                ")]),_c("br"),_vm._v(" "),_c("small",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_seller!==0,expression:"pos_settings.show_seller !== 0"}]},[_vm._v("\n                  "+_vm._s(_vm.$t("Seller"))+" : "+_vm._s(_vm.invoice_pos.sale.seller_name)+"\n                ")]),_c("br"),_vm._v(" "),_c("small",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_customer,expression:"pos_settings.show_customer"}]},[_vm._v("\n                  "+_vm._s(_vm.$t("Customer"))+" : "+_vm._s(_vm.invoice_pos.sale.client_name)+"\n                ")]),_c("br"),_vm._v(" "),_c("small",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_Warehouse,expression:"pos_settings.show_Warehouse"}]},[_vm._v("\n                  "+_vm._s(_vm.$t("warehouse"))+" : "+_vm._s(_vm.invoice_pos.sale.warehouse_name)+"\n                ")])])]),_vm._v(" "),_c("table",{staticClass:"table_data mt-2",staticStyle:{width:"100%","font-size":"11px"}},[_c("thead",[_c("tr",[_c("th",{staticStyle:{"text-align":"left"}},[_vm._v(_vm._s(_vm.$t("ProductName")))]),_vm._v(" "),_c("th",{staticStyle:{"text-align":"center"}},[_vm._v(_vm._s(_vm.$t("Quantity")))]),_vm._v(" "),_c("th",{staticStyle:{"text-align":"right"}},[_vm._v(_vm._s(_vm.$t("Price")))]),_vm._v(" "),_c("th",{staticStyle:{"text-align":"right"}},[_vm._v(_vm._s(_vm.$t("Total")))])])]),_vm._v(" "),_c("tbody",[_vm._l(_vm.invoice_pos.details,function(detail_invoice){return[_c("tr",{key:"l2-item-"+detail_invoice.detail_id},[_c("td",[_vm._v("\n                      "+_vm._s(detail_invoice.name)+"\n                      "),_c("br",{directives:[{name:"show",rawName:"v-show",value:detail_invoice.is_imei&&detail_invoice.imei_number!==null,expression:"detail_invoice.is_imei && detail_invoice.imei_number !==null"}]}),_vm._v(" "),_c("small",{directives:[{name:"show",rawName:"v-show",value:detail_invoice.is_imei&&detail_invoice.imei_number!==null,expression:"detail_invoice.is_imei && detail_invoice.imei_number !==null "}]},[_vm._v(_vm._s(_vm.$t("IMEI_SN"))+" : "+_vm._s(detail_invoice.imei_number))]),_vm._v(" "),detail_invoice.pack_name&&Number(detail_invoice.pack_multiplier)>1?_c("br"):_vm._e(),_vm._v(" "),detail_invoice.pack_name&&Number(detail_invoice.pack_multiplier)>1?_c("small",{staticStyle:{color:"#666"}},[_vm._v("(×"+_vm._s(detail_invoice.pack_multiplier)+") = "+_vm._s(_vm.formatNumber(detail_invoice.quantity*detail_invoice.pack_multiplier,2))+" "+_vm._s(detail_invoice.unit_sale||_vm.$t("Pcs")||"pcs"))]):_vm._e()]),_vm._v(" "),_c("td",{staticStyle:{"text-align":"center"}},[_vm._v("\n                      "+_vm._s(_vm.formatNumber(detail_invoice.quantity,2))+" "+_vm._s(_vm.packLineUnit(detail_invoice))+"\n                    ")]),_vm._v(" "),_c("td",{staticStyle:{"text-align":"right"}},[_vm._v("\n                      "+_vm._s(_vm.formatNumber(detail_invoice.total/detail_invoice.quantity,2))+"\n                    ")]),_vm._v(" "),_c("td",{staticStyle:{"text-align":"right"}},[_vm._v("\n                      "+_vm._s(_vm.formatNumber(detail_invoice.total,2))+"\n                    ")])]),_vm._v(" "),_vm.pos_settings.show_product_discount!==0&&Number(detail_invoice.DiscountNet||0)>0?_c("tr",{key:"l2-disc-"+detail_invoice.detail_id},[_c("td",{staticStyle:{color:"#888","font-style":"italic","font-size":"10px","padding-left":"8px"},attrs:{colspan:"4"}},[_vm._v("\n                      "+_vm._s(_vm.$t("Discount"))+": -"+_vm._s(_vm.formatPriceDisplay(Number(detail_invoice.DiscountNet)*Number(detail_invoice.quantity),2))+"\n                    ")])]):_vm._e()];})],2)]),_vm._v(" "),_c("table",{staticClass:"table_data mt-2",staticStyle:{width:"100%","font-size":"11px"}},[_c("tbody",[_c("tr",[_c("td",{staticClass:"total"},[_vm._v(_vm._s(_vm.$t("pos.Subtotal")))]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[_vm._v("\n                    "+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoiceSubtotal,2))+"\n                  ")])]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_tax,expression:"pos_settings.show_tax"}]},[_c("td",{staticClass:"total"},[_vm._v(_vm._s(_vm.$t("OrderTax")))]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[_vm._v("\n                    "+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.taxe,2))+" ("+_vm._s(_vm.formatNumber(_vm.invoice_pos.sale.tax_rate,2))+" %)\n                  ")])]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_discount,expression:"pos_settings.show_discount"}]},[_c("td",{staticClass:"total"},[_vm._v(_vm._s(_vm.$t("Discount")))]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[String(_vm.invoice_pos.sale.discount_Method||"2")==="1"?[_vm._v("\n                      "+_vm._s(_vm.formatNumber(_vm.invoice_pos.sale.discount,2))+"% ("+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.calculatedManualDiscountAmount,2))+")\n                    ")]:[_vm._v("\n                      "+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.calculatedManualDiscountAmount,2))+"\n                    ")]],2)]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_discount&&_vm.invoice_pos.sale.discount_from_points&&Number(_vm.invoice_pos.sale.discount_from_points)>0,expression:"pos_settings.show_discount && invoice_pos.sale.discount_from_points && Number(invoice_pos.sale.discount_from_points) > 0"}]},[_c("td",{staticClass:"total"},[_vm._v(_vm._s(_vm.$t("Discount_from_Points")))]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[_vm._v("\n                    "+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.discount_from_points,2))+"\n                  ")])]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_shipping,expression:"pos_settings.show_shipping"}]},[_c("td",{staticClass:"total"},[_vm._v(_vm._s(_vm.$t("Shipping")))]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[_vm._v("\n                    "+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.shipping,2))+"\n                  ")])]),_vm._v(" "),_c("tr",[_c("td",{staticClass:"total"},[_vm._v(_vm._s(_vm.$t("Total")))]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[_vm._v("\n                    "+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.GrandTotal,2))+"\n                  ")])]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_paid!==0,expression:"pos_settings.show_paid !== 0"}]},[_c("td",{staticClass:"total"},[_vm._v(_vm._s(_vm.$t("Paid")))]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[_vm._v("\n                    "+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.paid_amount,2))+"\n                  ")])]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_due!==0,expression:"pos_settings.show_due !== 0"}]},[_c("td",{staticClass:"total"},[_vm._v(_vm._s(_vm.$t("Due")))]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[_vm._v("\n                    "+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.GrandTotal-_vm.invoice_pos.sale.paid_amount,2))+"\n                  ")])])])]),_vm._v(" "),_c("table",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_payments!==0&&_vm.invoice_pos.sale.paid_amount>0,expression:"pos_settings.show_payments !== 0 && invoice_pos.sale.paid_amount > 0"}],staticClass:"change mt-2",staticStyle:{"font-size":"10px",width:"100%"}},[_c("thead",[_c("tr",{staticStyle:{background:"#eee"}},[_c("th",{staticStyle:{"text-align":"left"},attrs:{colspan:"1"}},[_vm._v(_vm._s(_vm.$t("PayeBy"))+":")]),_vm._v(" "),_c("th",{staticStyle:{"text-align":"center"},attrs:{colspan:"2"}},[_vm._v(_vm._s(_vm.$t("Amount"))+":")]),_vm._v(" "),_c("th",{staticStyle:{"text-align":"right"},attrs:{colspan:"1"}},[_vm._v(_vm._s(_vm.$t("Change"))+":")])])]),_vm._v(" "),_c("tbody",[_vm._l(_vm.payments,function(payment_pos){return[_c("tr",{key:"pay2-"+payment_pos.id},[_c("td",{staticStyle:{"text-align":"left"},attrs:{colspan:"1"}},[_vm._v(_vm._s(payment_pos.payment_method?payment_pos.payment_method.name:"---"))]),_vm._v(" "),_c("td",{staticStyle:{"text-align":"center"},attrs:{colspan:"2"}},[_vm._v("\n                      "+_vm._s(_vm.formatNumber(payment_pos.montant,2))+"\n                    ")]),_vm._v(" "),_c("td",{staticStyle:{"text-align":"right"},attrs:{colspan:"1"}},[_vm._v("\n                      "+_vm._s(_vm.formatNumber(payment_pos.change,2))+"\n                    ")])]),_vm._v(" "),payment_pos.notes?_c("tr",{key:"pay2-note-"+payment_pos.id},[_c("td",{staticStyle:{"font-size":"9px","font-style":"italic","padding-bottom":"4px","white-space":"pre-line"},attrs:{colspan:"4"}},[_vm._v("\n                      "+_vm._s(_vm.$t("Payment_note"))+": "+_vm._s(payment_pos.notes)+"\n                    ")])]):_vm._e()];})],2)]),_vm._v(" "),_c("div",{staticClass:"ml-2",attrs:{id:"legalcopy"}},[_vm.invoice_pos.sale&&_vm.invoice_pos.sale.notes?_c("p",{staticStyle:{"font-size":"9px","font-style":"italic","padding-bottom":"4px","white-space":"pre-line",margin:"0"}},[_vm._v("\n                "+_vm._s(_vm.$t("sale_note"))+": "+_vm._s(_vm.invoice_pos.sale.notes)+"\n              ")]):_vm._e(),_vm._v(" "),_c("p",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_note,expression:"pos_settings.show_note"}],staticClass:"legal",staticStyle:{"white-space":"pre-line"}},[_c("strong",[_vm._v(_vm._s(_vm.pos_settings.note_customer))])]),_vm._v(" "),_vm.invoice_pos.setting&&_vm.invoice_pos.setting.zatca_enabled&&_vm.invoice_pos.zatca_qr&&_vm.pos_settings.show_zatca_qr!==0||_vm.pos_settings.show_barcode!==0&&_vm.invoice_pos.sale&&_vm.invoice_pos.sale.Ref?_c("div",{staticClass:"receipt-qr-row mt-2"},[_vm.invoice_pos.setting&&_vm.invoice_pos.setting.zatca_enabled&&_vm.invoice_pos.zatca_qr&&_vm.pos_settings.show_zatca_qr!==0?_c("div",{staticClass:"receipt-qr-block"},[_c("div",{staticClass:"receipt-qr-title"},[_vm._v("ZATCA QR")]),_vm._v(" "),_c("div",{ref:"zatcaQrcodePos",staticClass:"receipt-qr-canvas"})]):_vm._e(),_vm._v(" "),_vm.pos_settings.show_barcode!==0&&_vm.invoice_pos.sale&&_vm.invoice_pos.sale.Ref?_c("div",{staticClass:"receipt-qr-block"},[_c("div",{staticClass:"receipt-qr-title"},[_vm._v("Invoice QR")]),_vm._v(" "),_c("div",{ref:"invoiceUrlQr",staticClass:"receipt-qr-canvas"})]):_vm._e()]):_vm._e()])]):_vm.currentReceiptLayout===3?_c("div",[_c("div",{staticClass:"info mb-2"},[_c("div",{staticClass:"d-flex justify-content-between"},[_c("div",[_c("strong",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_store_name!==0,expression:"pos_settings.show_store_name !== 0"}]},[_vm._v(_vm._s(_vm.invoice_pos.setting.CompanyName))]),_c("br"),_vm._v(" "),_c("span",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_address,expression:"pos_settings.show_address"}]},[_vm._v(_vm._s(_vm.invoice_pos.setting.CompanyAdress))]),_c("br",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_address,expression:"pos_settings.show_address"}]}),_vm._v(" "),_c("span",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_phone,expression:"pos_settings.show_phone"}]},[_vm._v(_vm._s(_vm.invoice_pos.setting.CompanyPhone))]),_c("br",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_phone,expression:"pos_settings.show_phone"}]}),_vm._v(" "),_c("span",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_email,expression:"pos_settings.show_email"}]},[_vm._v(_vm._s(_vm.invoice_pos.setting.email))])]),_vm._v(" "),_c("div",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_logo!==0,expression:"pos_settings.show_logo !== 0"}],staticClass:"invoice_logo text-center mb-2"},[_c("img",{attrs:{src:_vm.$imgUrl("settings",_vm.invoice_pos.setting.logo),alt:"",width:_vm.pos_settings.logo_size||60,height:_vm.pos_settings.logo_size||60}})])]),_vm._v(" "),_c("div",{staticClass:"mt-2",staticStyle:{"font-size":"11px"}},[_vm.invoice_pos.sale&&_vm.invoice_pos.sale.Ref&&_vm.pos_settings.show_reference!==0?_c("div",[_vm._v("\n                  "+_vm._s(_vm.$t("Reference"))+" : "+_vm._s(_vm.invoice_pos.sale.Ref)+"\n                ")]):_vm._e(),_vm._v(" "),_c("div",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_date!==0,expression:"pos_settings.show_date !== 0"}]},[_vm._v("\n                  "+_vm._s(_vm.$t("date"))+" : "+_vm._s(_vm.invoice_pos.sale.date)+"\n                ")]),_vm._v(" "),_c("div",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_seller!==0,expression:"pos_settings.show_seller !== 0"}]},[_vm._v("\n                  "+_vm._s(_vm.$t("Seller"))+" : "+_vm._s(_vm.invoice_pos.sale.seller_name)+"\n                ")]),_vm._v(" "),_c("div",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_customer,expression:"pos_settings.show_customer"}]},[_vm._v("\n                  "+_vm._s(_vm.$t("Customer"))+" : "+_vm._s(_vm.invoice_pos.sale.client_name)+"\n                ")]),_vm._v(" "),_c("div",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_Warehouse,expression:"pos_settings.show_Warehouse"}]},[_vm._v("\n                  "+_vm._s(_vm.$t("warehouse"))+" : "+_vm._s(_vm.invoice_pos.sale.warehouse_name)+"\n                ")])])]),_vm._v(" "),_c("table",{staticClass:"table_data w-100 mb-2",staticStyle:{"font-size":"11px"}},[_c("tbody",_vm._l(_vm.invoice_pos.details,function(detail_invoice){return _c("tr",[_c("td",{attrs:{colspan:"2"}},[_c("strong",[_vm._v(_vm._s(detail_invoice.name))]),_vm._v(" "),_c("br",{directives:[{name:"show",rawName:"v-show",value:detail_invoice.is_imei&&detail_invoice.imei_number!==null,expression:"detail_invoice.is_imei && detail_invoice.imei_number !==null"}]}),_vm._v(" "),_c("span",{directives:[{name:"show",rawName:"v-show",value:detail_invoice.is_imei&&detail_invoice.imei_number!==null,expression:"detail_invoice.is_imei && detail_invoice.imei_number !==null "}]},[_vm._v(_vm._s(_vm.$t("IMEI_SN"))+" : "+_vm._s(detail_invoice.imei_number))]),_vm._v(" "),_c("br"),_vm._v(" "),_c("small",[_vm._v(_vm._s(_vm.formatNumber(detail_invoice.quantity,2))+" "+_vm._s(_vm.packLineUnit(detail_invoice))+" x "+_vm._s(_vm.formatPriceDisplay(detail_invoice.total/detail_invoice.quantity,2)))]),_vm._v(" "),detail_invoice.pack_name&&Number(detail_invoice.pack_multiplier)>1?_c("br"):_vm._e(),_vm._v(" "),detail_invoice.pack_name&&Number(detail_invoice.pack_multiplier)>1?_c("small",{staticStyle:{color:"#666"}},[_vm._v("(×"+_vm._s(detail_invoice.pack_multiplier)+") = "+_vm._s(_vm.formatNumber(detail_invoice.quantity*detail_invoice.pack_multiplier,2))+" "+_vm._s(detail_invoice.unit_sale||_vm.$t("Pcs")||"pcs"))]):_vm._e(),_vm._v(" "),_vm.pos_settings.show_product_discount!==0&&Number(detail_invoice.DiscountNet||0)>0?_c("br"):_vm._e(),_vm._v(" "),_vm.pos_settings.show_product_discount!==0&&Number(detail_invoice.DiscountNet||0)>0?_c("small",{staticStyle:{color:"#888","font-style":"italic"}},[_vm._v(_vm._s(_vm.$t("Discount"))+": -"+_vm._s(_vm.formatPriceDisplay(Number(detail_invoice.DiscountNet)*Number(detail_invoice.quantity),2)))]):_vm._e()]),_vm._v(" "),_c("td",{staticStyle:{"text-align":"right","vertical-align":"bottom"}},[_vm._v("\n                    "+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,detail_invoice.total,2))+"\n                  ")])]);}),0)]),_vm._v(" "),_c("table",{staticClass:"table_data w-100 mt-2",staticStyle:{"font-size":"11px"}},[_c("tbody",[_c("tr",[_c("td",{staticClass:"total"},[_vm._v(_vm._s(_vm.$t("pos.Subtotal")))]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[_vm._v("\n                    "+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoiceSubtotal,2))+"\n                  ")])]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_tax,expression:"pos_settings.show_tax"}]},[_c("td",{staticClass:"total"},[_vm._v(_vm._s(_vm.$t("OrderTax")))]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[_vm._v("\n                    "+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.taxe,2))+" ("+_vm._s(_vm.formatNumber(_vm.invoice_pos.sale.tax_rate,2))+" %)\n                  ")])]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_discount,expression:"pos_settings.show_discount"}]},[_c("td",{staticClass:"total"},[_vm._v(_vm._s(_vm.$t("Discount")))]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[String(_vm.invoice_pos.sale.discount_Method||"2")==="1"?[_vm._v("\n                      "+_vm._s(_vm.formatNumber(_vm.invoice_pos.sale.discount,2))+"% ("+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.calculatedManualDiscountAmount,2))+")\n                    ")]:[_vm._v("\n                      "+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.calculatedManualDiscountAmount,2))+"\n                    ")]],2)]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_discount&&_vm.invoice_pos.sale.discount_from_points&&Number(_vm.invoice_pos.sale.discount_from_points)>0,expression:"pos_settings.show_discount && invoice_pos.sale.discount_from_points && Number(invoice_pos.sale.discount_from_points) > 0"}]},[_c("td",{staticClass:"total"},[_vm._v(_vm._s(_vm.$t("Discount_from_Points")))]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[_vm._v("\n                    "+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.discount_from_points,2))+"\n                  ")])]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_shipping,expression:"pos_settings.show_shipping"}]},[_c("td",{staticClass:"total"},[_vm._v(_vm._s(_vm.$t("Shipping")))]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[_vm._v("\n                    "+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.shipping,2))+"\n                  ")])]),_vm._v(" "),_c("tr",[_c("td",{staticClass:"total"},[_vm._v(_vm._s(_vm.$t("Total")))]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[_vm._v("\n                    "+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.GrandTotal,2))+"\n                  ")])]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_paid!==0,expression:"pos_settings.show_paid !== 0"}]},[_c("td",{staticClass:"total"},[_vm._v(_vm._s(_vm.$t("Paid")))]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[_vm._v("\n                    "+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.paid_amount,2))+"\n                  ")])]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_due!==0,expression:"pos_settings.show_due !== 0"}]},[_c("td",{staticClass:"total"},[_vm._v(_vm._s(_vm.$t("Due")))]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[_vm._v("\n                    "+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.GrandTotal-_vm.invoice_pos.sale.paid_amount,2))+"\n                  ")])])])]),_vm._v(" "),_c("table",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_payments!==0&&_vm.invoice_pos.sale.paid_amount>0,expression:"pos_settings.show_payments !== 0 && invoice_pos.sale.paid_amount > 0"}],staticClass:"change mt-3",staticStyle:{"font-size":"10px",width:"100%"}},[_c("thead",[_c("tr",{staticStyle:{background:"#eee"}},[_c("th",{staticStyle:{"text-align":"left"},attrs:{colspan:"1"}},[_vm._v(_vm._s(_vm.$t("PayeBy"))+":")]),_vm._v(" "),_c("th",{staticStyle:{"text-align":"center"},attrs:{colspan:"2"}},[_vm._v(_vm._s(_vm.$t("Amount"))+":")]),_vm._v(" "),_c("th",{staticStyle:{"text-align":"right"},attrs:{colspan:"1"}},[_vm._v(_vm._s(_vm.$t("Change"))+":")])])]),_vm._v(" "),_c("tbody",[_vm._l(_vm.payments,function(payment_pos){return[_c("tr",{key:"pay3-"+payment_pos.id},[_c("td",{staticStyle:{"text-align":"left"},attrs:{colspan:"1"}},[_vm._v(_vm._s(payment_pos.payment_method?payment_pos.payment_method.name:"---"))]),_vm._v(" "),_c("td",{staticStyle:{"text-align":"center"},attrs:{colspan:"2"}},[_vm._v("\n                      "+_vm._s(_vm.formatNumber(payment_pos.montant,2))+"\n                    ")]),_vm._v(" "),_c("td",{staticStyle:{"text-align":"right"},attrs:{colspan:"1"}},[_vm._v("\n                      "+_vm._s(_vm.formatNumber(payment_pos.change,2))+"\n                    ")])]),_vm._v(" "),payment_pos.notes?_c("tr",{key:"pay3-note-"+payment_pos.id},[_c("td",{staticStyle:{"font-size":"9px","font-style":"italic","padding-bottom":"4px","white-space":"pre-line"},attrs:{colspan:"4"}},[_vm._v("\n                      "+_vm._s(_vm.$t("Payment_note"))+": "+_vm._s(payment_pos.notes)+"\n                    ")])]):_vm._e()];})],2)]),_vm._v(" "),_c("div",{staticClass:"ml-2",attrs:{id:"legalcopy"}},[_vm.invoice_pos.sale&&_vm.invoice_pos.sale.notes?_c("p",{staticStyle:{"font-size":"9px","font-style":"italic","padding-bottom":"4px","white-space":"pre-line",margin:"0"}},[_vm._v("\n                "+_vm._s(_vm.$t("sale_note"))+": "+_vm._s(_vm.invoice_pos.sale.notes)+"\n              ")]):_vm._e(),_vm._v(" "),_c("p",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_note,expression:"pos_settings.show_note"}],staticClass:"legal",staticStyle:{"white-space":"pre-line"}},[_c("strong",[_vm._v(_vm._s(_vm.pos_settings.note_customer))])]),_vm._v(" "),_vm.invoice_pos.setting&&_vm.invoice_pos.setting.zatca_enabled&&_vm.invoice_pos.zatca_qr&&_vm.pos_settings.show_zatca_qr!==0||_vm.pos_settings.show_barcode!==0&&_vm.invoice_pos.sale&&_vm.invoice_pos.sale.Ref?_c("div",{staticClass:"receipt-qr-row mt-2"},[_vm.invoice_pos.setting&&_vm.invoice_pos.setting.zatca_enabled&&_vm.invoice_pos.zatca_qr&&_vm.pos_settings.show_zatca_qr!==0?_c("div",{staticClass:"receipt-qr-block"},[_c("div",{staticClass:"receipt-qr-title"},[_vm._v("ZATCA QR")]),_vm._v(" "),_c("div",{ref:"zatcaQrcodePos",staticClass:"receipt-qr-canvas"})]):_vm._e(),_vm._v(" "),_vm.pos_settings.show_barcode!==0&&_vm.invoice_pos.sale&&_vm.invoice_pos.sale.Ref?_c("div",{staticClass:"receipt-qr-block"},[_c("div",{staticClass:"receipt-qr-title"},[_vm._v("Invoice QR")]),_vm._v(" "),_c("div",{ref:"invoiceUrlQr",staticClass:"receipt-qr-canvas"})]):_vm._e()]):_vm._e()])]):_vm.currentReceiptLayout===4?_c("div",{staticClass:"receipt-layout-4"},[_c("div",{staticClass:"info text-center"},[_c("div",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_logo!==0,expression:"pos_settings.show_logo !== 0"}],staticClass:"invoice_logo mb-2"},[_c("img",{attrs:{src:_vm.$imgUrl("settings",_vm.invoice_pos.setting.logo),alt:"",width:_vm.pos_settings.logo_size||60,height:_vm.pos_settings.logo_size||60}})]),_vm._v(" "),_c("div",[_c("strong",{staticStyle:{"font-size":"13px"}},[_vm._v(_vm._s(_vm.invoice_pos.setting.company_name_ar))]),_c("br"),_vm._v(" "),_c("strong",{staticStyle:{"font-size":"12px"}},[_vm._v(_vm._s(_vm.invoice_pos.setting.CompanyName))])]),_vm._v(" "),_vm.invoice_pos.setting.CompanyAdress?_c("div",{staticStyle:{"font-size":"10px","margin-top":"2px"}},[_vm._v(_vm._s(_vm.invoice_pos.setting.CompanyAdress))]):_vm._e(),_vm._v(" "),_vm.invoice_pos.setting.CompanyPhone?_c("div",{staticStyle:{"font-size":"10px"}},[_vm._v(_vm._s(_vm.invoice_pos.setting.CompanyPhone))]):_vm._e(),_vm._v(" "),_vm.invoice_pos.setting.email?_c("div",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_email,expression:"pos_settings.show_email"}],staticStyle:{"font-size":"10px"}},[_vm._v(_vm._s(_vm.invoice_pos.setting.email))]):_vm._e(),_vm._v(" "),_vm.invoice_pos.setting.vat_number?_c("div",{staticStyle:{"font-size":"11px","font-weight":"bold","margin-top":"4px"}},[_vm._v("\n                الرقم الضريبي / TRN : "+_vm._s(_vm.invoice_pos.setting.vat_number)+"\n              ")]):_vm._e(),_vm._v(" "),_c("div",{staticClass:"mt-2 mb-2",staticStyle:{"border-top":"1px dashed #000","border-bottom":"1px dashed #000",padding:"4px 0"}},[_c("strong",[_vm._v("فاتورة ضريبية مبسطة")]),_c("br"),_vm._v(" "),_c("strong",[_vm._v("Simplified Tax Invoice")])])]),_vm._v(" "),_c("div",{staticStyle:{"font-size":"10px"}},[_vm.invoice_pos.sale&&_vm.invoice_pos.sale.Ref&&_vm.pos_settings.show_reference!==0?_c("div",{staticStyle:{display:"flex","justify-content":"space-between"}},[_c("span",[_vm._v("Invoice No")]),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.invoice_pos.sale.Ref))]),_vm._v(" "),_c("span",[_vm._v("رقم الفاتورة")])]):_vm._e(),_vm._v(" "),_c("div",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_date!==0,expression:"pos_settings.show_date !== 0"}],staticStyle:{display:"flex","justify-content":"space-between"}},[_c("span",[_vm._v("Date")]),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.invoice_pos.sale.date))]),_vm._v(" "),_c("span",[_vm._v("تاريخ")])]),_vm._v(" "),_c("div",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_seller!==0,expression:"pos_settings.show_seller !== 0"}],staticStyle:{display:"flex","justify-content":"space-between"}},[_c("span",[_vm._v("Seller")]),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.invoice_pos.sale.seller_name))]),_vm._v(" "),_c("span",[_vm._v("البائع")])]),_vm._v(" "),_c("div",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_customer,expression:"pos_settings.show_customer"}],staticStyle:{display:"flex","justify-content":"space-between"}},[_c("span",[_vm._v("Customer")]),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.invoice_pos.sale.client_name))]),_vm._v(" "),_c("span",[_vm._v("العميل")])]),_vm._v(" "),_c("div",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_Warehouse,expression:"pos_settings.show_Warehouse"}],staticStyle:{display:"flex","justify-content":"space-between"}},[_c("span",[_vm._v("Warehouse")]),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.invoice_pos.sale.warehouse_name))]),_vm._v(" "),_c("span",[_vm._v("المستودع")])])]),_vm._v(" "),_c("table",{staticStyle:{width:"100%","margin-top":"8px","font-size":"10px","border-top":"1px dashed #000"}},[_c("thead",[_c("tr",[_c("th",{staticStyle:{"text-align":"left",padding:"4px 0"}},[_vm._v("Product"),_c("br"),_vm._v("المنتج")]),_vm._v(" "),_c("th",{staticStyle:{"text-align":"center",padding:"4px 0"}},[_vm._v("Qty"),_c("br"),_vm._v("كمية")]),_vm._v(" "),_c("th",{staticStyle:{"text-align":"center",padding:"4px 0"}},[_vm._v("Rate"),_c("br"),_vm._v("معدل")]),_vm._v(" "),_c("th",{staticStyle:{"text-align":"right",padding:"4px 0"}},[_vm._v("Amount"),_c("br"),_vm._v("مجموع")])])]),_vm._v(" "),_c("tbody",_vm._l(_vm.invoice_pos.details,function(detail_invoice){return _c("tr",{staticStyle:{"border-bottom":"1px dashed #eee"}},[_c("td",[_vm._v("\n                    "+_vm._s(detail_invoice.name)+"\n                    "),Number(detail_invoice.tax_percent||detail_invoice.tax_rate||0)>0?_c("br"):_vm._e(),_vm._v(" "),Number(detail_invoice.tax_percent||detail_invoice.tax_rate||0)>0?_c("small",[_vm._v("VAT @ "+_vm._s(_vm.formatNumber(Number(detail_invoice.tax_percent||detail_invoice.tax_rate||0),2))+"% ("+_vm._s(_vm.formatPriceDisplay(detail_invoice.total*Number(detail_invoice.tax_percent||detail_invoice.tax_rate||0)/100,2))+")")]):_vm._e(),_vm._v(" "),_vm.pos_settings.show_product_discount!==0&&Number(detail_invoice.DiscountNet||0)>0?_c("br"):_vm._e(),_vm._v(" "),_vm.pos_settings.show_product_discount!==0&&Number(detail_invoice.DiscountNet||0)>0?_c("small",{staticStyle:{color:"#666","font-style":"italic"}},[_vm._v("Discount / تخفيض: -"+_vm._s(_vm.formatPriceDisplay(Number(detail_invoice.DiscountNet)*Number(detail_invoice.quantity),2)))]):_vm._e(),_vm._v(" "),_c("br",{directives:[{name:"show",rawName:"v-show",value:detail_invoice.is_imei&&detail_invoice.imei_number!==null,expression:"detail_invoice.is_imei && detail_invoice.imei_number !==null"}]}),_vm._v(" "),_c("span",{directives:[{name:"show",rawName:"v-show",value:detail_invoice.is_imei&&detail_invoice.imei_number!==null,expression:"detail_invoice.is_imei && detail_invoice.imei_number !==null "}]},[_vm._v("IMEI/SN الرقم التسلسلي : "+_vm._s(detail_invoice.imei_number))]),_vm._v(" "),detail_invoice.pack_name&&Number(detail_invoice.pack_multiplier)>1?_c("br"):_vm._e(),_vm._v(" "),detail_invoice.pack_name&&Number(detail_invoice.pack_multiplier)>1?_c("small",{staticStyle:{color:"#666"}},[_vm._v("(×"+_vm._s(detail_invoice.pack_multiplier)+") = "+_vm._s(_vm.formatNumber(detail_invoice.quantity*detail_invoice.pack_multiplier,2))+" "+_vm._s(detail_invoice.unit_sale||_vm.$t("Pcs")||"pcs"))]):_vm._e()]),_vm._v(" "),_c("td",{staticStyle:{"text-align":"center"}},[_vm._v(_vm._s(_vm.formatNumber(detail_invoice.quantity,2))+" "+_vm._s(_vm.packLineUnit(detail_invoice)))]),_vm._v(" "),_c("td",{staticStyle:{"text-align":"center"}},[_vm._v(_vm._s(_vm.formatPriceDisplay(detail_invoice.total/detail_invoice.quantity,2)))]),_vm._v(" "),_c("td",{staticStyle:{"text-align":"right"}},[_vm._v(_vm._s(_vm.formatPriceDisplay(detail_invoice.total,2)))])]);}),0)]),_vm._v(" "),_c("table",{staticStyle:{width:"100%","font-size":"10px","border-top":"1px dashed #000","margin-top":"4px"}},[_c("colgroup",[_c("col",{staticStyle:{width:"35%"}}),_c("col",{staticStyle:{width:"5%"}}),_c("col",{staticStyle:{width:"25%"}}),_c("col",{staticStyle:{width:"35%"}})]),_vm._v(" "),_c("tbody",[_c("tr",[_c("td",{staticClass:"total",staticStyle:{"text-align":"left"}},[_vm._v("Sub Total")]),_vm._v(" "),_c("td",{staticClass:"total"},[_vm._v(":")]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"center"}},[_vm._v(_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoiceSubtotal-_vm.invoiceDetailsTaxTotal,2)))]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[_vm._v("المجموع الفرعي")])]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_discount,expression:"pos_settings.show_discount"}]},[_c("td",{staticClass:"total",staticStyle:{"text-align":"left"}},[_vm._v("Discount")]),_vm._v(" "),_c("td",{staticClass:"total"},[_vm._v(":")]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"center"}},[String(_vm.invoice_pos.sale.discount_Method||"2")==="1"?[_vm._v("\n                      "+_vm._s(_vm.formatNumber(_vm.invoice_pos.sale.discount,2))+"% ("+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.calculatedManualDiscountAmount,2))+")\n                    ")]:[_vm._v("\n                      "+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.calculatedManualDiscountAmount,2))+"\n                    ")]],2),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[_vm._v("تخفيض")])]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_discount&&_vm.invoice_pos.sale.discount_from_points&&Number(_vm.invoice_pos.sale.discount_from_points)>0,expression:"pos_settings.show_discount && invoice_pos.sale.discount_from_points && Number(invoice_pos.sale.discount_from_points) > 0"}]},[_c("td",{staticClass:"total",staticStyle:{"text-align":"left"}},[_vm._v("Discount from Points")]),_vm._v(" "),_c("td",{staticClass:"total"},[_vm._v(":")]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"center"}},[_vm._v(_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.discount_from_points,2)))]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[_vm._v("خصم من النقاط")])]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_tax&&Number(_vm.invoice_pos.sale.taxe||0)>0,expression:"pos_settings.show_tax && Number(invoice_pos.sale.taxe || 0) > 0"}]},[_c("td",{staticClass:"total",staticStyle:{"text-align":"left"}},[_vm._v("VAT @ Total")]),_vm._v(" "),_c("td",{staticClass:"total"},[_vm._v(":")]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"center"}},[_vm._v(_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.taxe,2)))]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[_vm._v("قيمة الضريبة")])]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_shipping,expression:"pos_settings.show_shipping"}]},[_c("td",{staticClass:"total",staticStyle:{"text-align":"left"}},[_vm._v("Shipping")]),_vm._v(" "),_c("td",{staticClass:"total"},[_vm._v(":")]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"center"}},[_vm._v(_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.shipping,2)))]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[_vm._v("الشحن")])])])]),_vm._v(" "),_c("table",{staticStyle:{width:"100%","font-size":"10px","font-weight":"bold","border-top":"1px dashed #000","border-bottom":"1px dashed #000","margin-top":"4px",padding:"4px 0"}},[_c("colgroup",[_c("col",{staticStyle:{width:"35%"}}),_c("col",{staticStyle:{width:"5%"}}),_c("col",{staticStyle:{width:"25%"}}),_c("col",{staticStyle:{width:"35%"}})]),_vm._v(" "),_c("tbody",[_c("tr",[_c("td",{staticStyle:{"text-align":"left"}},[_vm._v("Grand Total")]),_vm._v(" "),_c("td",[_vm._v(":")]),_vm._v(" "),_c("td",{staticStyle:{"text-align":"center"}},[_vm._v(_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.GrandTotal,2)))]),_vm._v(" "),_c("td",{staticStyle:{"text-align":"right"}},[_vm._v("المبلغ الإجمالي")])])])]),_vm._v(" "),_c("table",{staticStyle:{width:"100%","font-size":"10px","margin-top":"4px"}},[_c("colgroup",[_c("col",{staticStyle:{width:"35%"}}),_c("col",{staticStyle:{width:"5%"}}),_c("col",{staticStyle:{width:"25%"}}),_c("col",{staticStyle:{width:"35%"}})]),_vm._v(" "),_c("tbody",[_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_paid!==0,expression:"pos_settings.show_paid !== 0"}]},[_c("td",{staticStyle:{"text-align":"left"}},[_c("strong",[_vm._v("Paid Amount")])]),_vm._v(" "),_c("td",[_c("strong",[_vm._v(":")])]),_vm._v(" "),_c("td",{staticStyle:{"text-align":"center"}},[_vm._v(_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.paid_amount,2)))]),_vm._v(" "),_c("td",{staticStyle:{"text-align":"right"}},[_c("strong",[_vm._v("المبلغ المدفوع")])])]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_due!==0,expression:"pos_settings.show_due !== 0"}]},[_c("td",{staticStyle:{"text-align":"left"}},[_c("strong",[_vm._v("Balance")])]),_vm._v(" "),_c("td",[_c("strong",[_vm._v(":")])]),_vm._v(" "),_c("td",{staticStyle:{"text-align":"center"}},[_vm._v(_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.GrandTotal-_vm.invoice_pos.sale.paid_amount,2)))]),_vm._v(" "),_c("td",{staticStyle:{"text-align":"right"}},[_c("strong",[_vm._v("الرصيد")])])])])]),_vm._v(" "),_c("table",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_payments!==0&&_vm.invoice_pos.sale.paid_amount>0,expression:"pos_settings.show_payments !== 0 && invoice_pos.sale.paid_amount > 0"}],staticClass:"change mt-3",staticStyle:{"font-size":"10px",width:"100%"}},[_c("thead",[_c("tr",{staticStyle:{background:"#eee"}},[_c("th",{staticStyle:{"text-align":"left"},attrs:{colspan:"1"}},[_vm._v("Paid By / طريقة الدفع:")]),_vm._v(" "),_c("th",{staticStyle:{"text-align":"center"},attrs:{colspan:"2"}},[_vm._v("Amount / المبلغ:")]),_vm._v(" "),_c("th",{staticStyle:{"text-align":"right"},attrs:{colspan:"1"}},[_vm._v("Change / الباقي:")])])]),_vm._v(" "),_c("tbody",[_vm._l(_vm.payments,function(payment_pos){return[_c("tr",{key:"pay4-"+payment_pos.id},[_c("td",{staticStyle:{"text-align":"left"},attrs:{colspan:"1"}},[_vm._v(_vm._s(payment_pos.payment_method?payment_pos.payment_method.name:"---"))]),_vm._v(" "),_c("td",{staticStyle:{"text-align":"center"},attrs:{colspan:"2"}},[_vm._v(_vm._s(_vm.formatPriceDisplay(payment_pos.montant,2)))]),_vm._v(" "),_c("td",{staticStyle:{"text-align":"right"},attrs:{colspan:"1"}},[_vm._v(_vm._s(_vm.formatPriceDisplay(payment_pos.change,2)))])]),_vm._v(" "),payment_pos.notes?_c("tr",{key:"pay4-note-"+payment_pos.id},[_c("td",{staticStyle:{"font-size":"9px","font-style":"italic","padding-bottom":"4px","white-space":"pre-line"},attrs:{colspan:"4"}},[_vm._v("\n                      "+_vm._s(_vm.$t("Payment_note"))+" / ملاحظة الدفع: "+_vm._s(payment_pos.notes)+"\n                    ")])]):_vm._e()];})],2)]),_vm._v(" "),_c("div",{staticClass:"ml-2",attrs:{id:"legalcopy"}},[_vm.invoice_pos.sale&&_vm.invoice_pos.sale.notes?_c("div",{staticStyle:{"font-size":"9px","font-style":"italic","padding-bottom":"4px","white-space":"pre-line"}},[_vm._v("\n                "+_vm._s(_vm.$t("sale_note"))+" / ملاحظة البيع: "+_vm._s(_vm.invoice_pos.sale.notes)+"\n              ")]):_vm._e(),_vm._v(" "),_c("div",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_note&&_vm.pos_settings.note_customer,expression:"pos_settings.show_note && pos_settings.note_customer"}],staticClass:"mt-3",staticStyle:{"border-top":"1px dashed #000","padding-top":"6px","font-size":"9px","line-height":"1.5","text-align":"center","white-space":"pre-line"}},[_c("strong",[_vm._v(_vm._s(_vm.pos_settings.note_customer))])]),_vm._v(" "),_vm.invoice_pos.setting&&_vm.invoice_pos.setting.zatca_enabled&&_vm.invoice_pos.zatca_qr&&_vm.pos_settings.show_zatca_qr!==0||_vm.pos_settings.show_barcode!==0&&_vm.invoice_pos.sale&&_vm.invoice_pos.sale.Ref?_c("div",{staticClass:"receipt-qr-row mt-2"},[_vm.invoice_pos.setting&&_vm.invoice_pos.setting.zatca_enabled&&_vm.invoice_pos.zatca_qr&&_vm.pos_settings.show_zatca_qr!==0?_c("div",{staticClass:"receipt-qr-block"},[_c("div",{staticClass:"receipt-qr-title"},[_vm._v("ZATCA QR")]),_vm._v(" "),_c("div",{ref:"zatcaQrcodePos",staticClass:"receipt-qr-canvas"})]):_vm._e(),_vm._v(" "),_vm.pos_settings.show_barcode!==0&&_vm.invoice_pos.sale&&_vm.invoice_pos.sale.Ref?_c("div",{staticClass:"receipt-qr-block"},[_c("div",{staticClass:"receipt-qr-title"},[_vm._v("Invoice QR")]),_vm._v(" "),_c("div",{ref:"invoiceUrlQr",staticClass:"receipt-qr-canvas"})]):_vm._e()]):_vm._e()])]):_vm.currentReceiptLayout===5?_c("div",{staticClass:"receipt-layout-5"},[_c("div",{staticClass:"info text-center mb-2"},[_c("div",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_logo!==0,expression:"pos_settings.show_logo !== 0"}],staticClass:"invoice_logo mb-2"},[_c("img",{attrs:{src:_vm.$imgUrl("settings",_vm.invoice_pos.setting.logo),alt:"",width:_vm.pos_settings.logo_size||60,height:_vm.pos_settings.logo_size||60}})]),_vm._v(" "),_c("div",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_store_name!==0,expression:"pos_settings.show_store_name !== 0"}],staticClass:"minimal-store-name"},[_vm._v(_vm._s(_vm.invoice_pos.setting.CompanyName))]),_vm._v(" "),_vm.invoice_pos.setting.CompanyAdress||_vm.invoice_pos.setting.CompanyPhone?_c("div",{staticClass:"minimal-contact"},[_c("span",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_address,expression:"pos_settings.show_address"}]},[_vm._v(_vm._s(_vm.invoice_pos.setting.CompanyAdress))]),_vm._v(" "),_c("span",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_address&&_vm.pos_settings.show_phone,expression:"pos_settings.show_address && pos_settings.show_phone"}]},[_vm._v(" · ")]),_vm._v(" "),_c("span",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_phone,expression:"pos_settings.show_phone"}]},[_vm._v(_vm._s(_vm.invoice_pos.setting.CompanyPhone))])]):_vm._e(),_vm._v(" "),_vm.invoice_pos.setting.email?_c("div",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_email,expression:"pos_settings.show_email"}],staticClass:"minimal-contact"},[_vm._v(_vm._s(_vm.invoice_pos.setting.email))]):_vm._e()]),_vm._v(" "),_c("div",{staticClass:"minimal-divider"}),_vm._v(" "),_c("div",{staticClass:"minimal-meta"},[_vm.invoice_pos.sale&&_vm.invoice_pos.sale.Ref&&_vm.pos_settings.show_reference!==0?_c("div",{staticClass:"minimal-meta-row"},[_c("span",[_vm._v(_vm._s(_vm.$t("Reference")))]),_c("span",[_vm._v(_vm._s(_vm.invoice_pos.sale.Ref))])]):_vm._e(),_vm._v(" "),_c("div",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_date!==0,expression:"pos_settings.show_date !== 0"}],staticClass:"minimal-meta-row"},[_c("span",[_vm._v(_vm._s(_vm.$t("date")))]),_c("span",[_vm._v(_vm._s(_vm.invoice_pos.sale.date))])]),_vm._v(" "),_c("div",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_seller!==0,expression:"pos_settings.show_seller !== 0"}],staticClass:"minimal-meta-row"},[_c("span",[_vm._v(_vm._s(_vm.$t("Seller")))]),_c("span",[_vm._v(_vm._s(_vm.invoice_pos.sale.seller_name))])]),_vm._v(" "),_c("div",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_customer,expression:"pos_settings.show_customer"}],staticClass:"minimal-meta-row"},[_c("span",[_vm._v(_vm._s(_vm.$t("Customer")))]),_c("span",[_vm._v(_vm._s(_vm.invoice_pos.sale.client_name))])]),_vm._v(" "),_c("div",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_Warehouse,expression:"pos_settings.show_Warehouse"}],staticClass:"minimal-meta-row"},[_c("span",[_vm._v(_vm._s(_vm.$t("warehouse")))]),_c("span",[_vm._v(_vm._s(_vm.invoice_pos.sale.warehouse_name))])])]),_vm._v(" "),_c("div",{staticClass:"minimal-divider"}),_vm._v(" "),_c("table",{staticClass:"minimal-items"},[_c("tbody",_vm._l(_vm.invoice_pos.details,function(detail_invoice){return _c("tr",{key:"min-item-"+detail_invoice.id},[_c("td",[_c("div",{staticClass:"minimal-item-name"},[_vm._v(_vm._s(detail_invoice.name))]),_vm._v(" "),_c("div",{staticClass:"minimal-item-qty"},[_vm._v(_vm._s(_vm.formatNumber(detail_invoice.quantity,2))+" "+_vm._s(_vm.packLineUnit(detail_invoice))+" × "+_vm._s(_vm.formatPriceDisplay(detail_invoice.total/detail_invoice.quantity,2)))]),_vm._v(" "),detail_invoice.pack_name&&Number(detail_invoice.pack_multiplier)>1?_c("div",{staticClass:"minimal-item-qty"},[_vm._v("(×"+_vm._s(detail_invoice.pack_multiplier)+") = "+_vm._s(_vm.formatNumber(detail_invoice.quantity*detail_invoice.pack_multiplier,2))+" "+_vm._s(detail_invoice.unit_sale||_vm.$t("Pcs")||"pcs"))]):_vm._e(),_vm._v(" "),_vm.pos_settings.show_product_discount!==0&&Number(detail_invoice.DiscountNet||0)>0?_c("div",{staticClass:"minimal-item-discount"},[_vm._v(_vm._s(_vm.$t("Discount"))+" −"+_vm._s(_vm.formatPriceDisplay(Number(detail_invoice.DiscountNet)*Number(detail_invoice.quantity),2)))]):_vm._e(),_vm._v(" "),_c("div",{directives:[{name:"show",rawName:"v-show",value:detail_invoice.is_imei&&detail_invoice.imei_number!==null,expression:"detail_invoice.is_imei && detail_invoice.imei_number !== null"}],staticClass:"minimal-item-qty"},[_vm._v("IMEI/SN: "+_vm._s(detail_invoice.imei_number))])]),_vm._v(" "),_c("td",{staticClass:"minimal-item-total"},[_vm._v(_vm._s(_vm.formatPriceDisplay(detail_invoice.total,2)))])]);}),0)]),_vm._v(" "),_c("div",{staticClass:"minimal-divider"}),_vm._v(" "),_c("table",{staticClass:"minimal-totals"},[_c("tbody",[_c("tr",[_c("td",[_vm._v(_vm._s(_vm.$t("Subtotal")))]),_vm._v(" "),_c("td",[_vm._v(_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoiceSubtotal-_vm.invoiceDetailsTaxTotal,2)))])]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_tax&&Number(_vm.invoice_pos.sale.taxe||0)>0,expression:"pos_settings.show_tax && Number(invoice_pos.sale.taxe || 0) > 0"}]},[_c("td",[_vm._v(_vm._s(_vm.$t("Tax")))]),_vm._v(" "),_c("td",[_vm._v(_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.taxe,2)))])]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_discount,expression:"pos_settings.show_discount"}]},[_c("td",[_vm._v(_vm._s(_vm.$t("Discount")))]),_vm._v(" "),_c("td",[String(_vm.invoice_pos.sale.discount_Method||"2")==="1"?[_vm._v("\n                      "+_vm._s(_vm.formatNumber(_vm.invoice_pos.sale.discount,2))+"%\n                    ")]:[_vm._v("\n                      "+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.calculatedManualDiscountAmount,2))+"\n                    ")]],2)]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_discount&&_vm.invoice_pos.sale.discount_from_points&&Number(_vm.invoice_pos.sale.discount_from_points)>0,expression:"pos_settings.show_discount && invoice_pos.sale.discount_from_points && Number(invoice_pos.sale.discount_from_points) > 0"}]},[_c("td",[_vm._v(_vm._s(_vm.$t("Discount_from_Points")))]),_vm._v(" "),_c("td",[_vm._v(_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.discount_from_points,2)))])]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_shipping,expression:"pos_settings.show_shipping"}]},[_c("td",[_vm._v(_vm._s(_vm.$t("Shipping")))]),_vm._v(" "),_c("td",[_vm._v(_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.shipping,2)))])]),_vm._v(" "),_c("tr",{staticClass:"minimal-grand"},[_c("td",[_vm._v(_vm._s(_vm.$t("Total")))]),_vm._v(" "),_c("td",[_vm._v(_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.GrandTotal,2)))])]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_paid!==0,expression:"pos_settings.show_paid !== 0"}]},[_c("td",[_vm._v(_vm._s(_vm.$t("Paid")))]),_vm._v(" "),_c("td",[_vm._v(_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.paid_amount,2)))])]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_due!==0,expression:"pos_settings.show_due !== 0"}]},[_c("td",[_vm._v(_vm._s(_vm.$t("Due")))]),_vm._v(" "),_c("td",[_vm._v(_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.GrandTotal-_vm.invoice_pos.sale.paid_amount,2)))])])])]),_vm._v(" "),_c("table",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_payments!==0&&_vm.invoice_pos.sale.paid_amount>0,expression:"pos_settings.show_payments !== 0 && invoice_pos.sale.paid_amount > 0"}],staticClass:"minimal-payments"},[_c("thead",[_c("tr",[_c("th",[_vm._v(_vm._s(_vm.$t("PayeBy")))]),_vm._v(" "),_c("th",[_vm._v(_vm._s(_vm.$t("Amount")))]),_vm._v(" "),_c("th",[_vm._v(_vm._s(_vm.$t("Change")))])])]),_vm._v(" "),_c("tbody",[_vm._l(_vm.payments,function(payment_pos){return[_c("tr",{key:"pay5-"+payment_pos.id},[_c("td",[_vm._v(_vm._s(payment_pos.payment_method?payment_pos.payment_method.name:"---"))]),_vm._v(" "),_c("td",[_vm._v(_vm._s(_vm.formatPriceDisplay(payment_pos.montant,2)))]),_vm._v(" "),_c("td",[_vm._v(_vm._s(_vm.formatPriceDisplay(payment_pos.change,2)))])])];})],2)]),_vm._v(" "),_c("p",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_note&&_vm.pos_settings.note_customer,expression:"pos_settings.show_note && pos_settings.note_customer"}],staticClass:"minimal-note",staticStyle:{"white-space":"pre-line"}},[_vm._v("\n              "+_vm._s(_vm.pos_settings.note_customer)+"\n            ")]),_vm._v(" "),_vm.invoice_pos.setting&&_vm.invoice_pos.setting.zatca_enabled&&_vm.invoice_pos.zatca_qr&&_vm.pos_settings.show_zatca_qr!==0||_vm.pos_settings.show_barcode!==0&&_vm.invoice_pos.sale&&_vm.invoice_pos.sale.Ref?_c("div",{staticClass:"receipt-qr-row mt-2"},[_vm.invoice_pos.setting&&_vm.invoice_pos.setting.zatca_enabled&&_vm.invoice_pos.zatca_qr&&_vm.pos_settings.show_zatca_qr!==0?_c("div",{staticClass:"receipt-qr-block"},[_c("div",{staticClass:"receipt-qr-title"},[_vm._v("ZATCA QR")]),_vm._v(" "),_c("div",{ref:"zatcaQrcodePos",staticClass:"receipt-qr-canvas"})]):_vm._e(),_vm._v(" "),_vm.pos_settings.show_barcode!==0&&_vm.invoice_pos.sale&&_vm.invoice_pos.sale.Ref?_c("div",{staticClass:"receipt-qr-block"},[_c("div",{staticClass:"receipt-qr-title"},[_vm._v("Invoice QR")]),_vm._v(" "),_c("div",{ref:"invoiceUrlQr",staticClass:"receipt-qr-canvas"})]):_vm._e()]):_vm._e()]):_vm._e()])]),_vm._v(" "),_c("button",{staticClass:"btn btn-outline-primary",on:{click:function click($event){return _vm.print_pos();}}},[_c("lucide-icon",{attrs:{name:"receipt"}}),_vm._v("\n          "+_vm._s(_vm.$t("print"))+"\n        ")],1)]),_vm._v(" "),_c("b-modal",{attrs:{id:"show_draft_sales",size:"lg","hide-footer":"",title:_vm.$t("Recent_Drafts")}},[_c("div",[_c("table",{staticClass:"table table-sm"},[_c("thead",[_c("tr",[_c("th",[_vm._v(_vm._s(_vm.$t("date")))]),_vm._v(" "),_c("th",[_vm._v(_vm._s(_vm.$t("Reference")))]),_vm._v(" "),_c("th",[_vm._v(_vm._s(_vm.$t("Customer")))]),_vm._v(" "),_c("th",{staticClass:"text-right"},[_vm._v(_vm._s(_vm.$t("Total")))]),_vm._v(" "),_c("th",{staticClass:"text-right"},[_vm._v(_vm._s(_vm.$t("Action")))])])]),_vm._v(" "),_c("tbody",[_vm.draft_sales.length===0?_c("tr",[_c("td",{staticClass:"text-center text-muted py-3",attrs:{colspan:"5"}},[_vm._v(_vm._s(_vm.$t("NodataAvailable")))])]):_vm._e(),_vm._v(" "),_vm._l(_vm.draft_sales,function(d){return _c("tr",{key:d.id},[_c("td",[_vm._v(_vm._s(d.date))]),_vm._v(" "),_c("td",[_vm._v(_vm._s(d.Ref))]),_vm._v(" "),_c("td",[_vm._v(_vm._s(d.client_name))]),_vm._v(" "),_c("td",{staticClass:"text-right"},[_vm._v(_vm._s(_vm.formatNumber(d.GrandTotal,2)))]),_vm._v(" "),_c("td",{staticClass:"text-right"},[_c("b-button",{staticClass:"mr-2",attrs:{size:"sm",variant:"outline-success",disabled:_vm.openingDraftId===d.id,title:_vm.openingDraftId===d.id?_vm.$t("Loading"):_vm.$t("Open")},on:{click:function click($event){return _vm.loadDraftSale(d.id);}}},[_vm.openingDraftId===d.id?[_c("span",{staticClass:"spinner sm spinner-primary"})]:[_c("lucide-icon",{attrs:{name:"arrow-right"}})]],2),_vm._v(" "),_c("b-button",{attrs:{size:"sm",variant:"outline-danger",title:_vm.$t("Delete")},on:{click:function click($event){return _vm.Remove_Draft_Sale(d.id);}}},[_c("lucide-icon",{attrs:{name:"trash-2"}})],1)],1)]);})],2)]),_vm._v(" "),_vm.totalRows_draft_sales>_vm.limit?_c("div",{staticClass:"d-flex justify-content-between align-items-center mt-3"},[_c("div",{staticClass:"text-muted"},[_vm._v("\n        "+_vm._s(_vm.$t("Showing"))+" "+_vm._s(_vm.draft_sales.length)+" "+_vm._s(_vm.$t("of"))+" "+_vm._s(_vm.totalRows_draft_sales)+" "+_vm._s(_vm.$t("entries"))+"\n      ")]),_vm._v(" "),_c("b-pagination",{attrs:{"total-rows":_vm.totalRows_draft_sales,"per-page":parseInt(_vm.limit),align:"right",size:"sm"},on:{change:_vm.onPageChangeDraftSales},model:{value:_vm.draft_sales_page,callback:function callback($$v){_vm.draft_sales_page=$$v;},expression:"draft_sales_page"}})],1):_vm._e()])]),_vm._v(" "),_c("validation-observer",{ref:"Update_Detail"},[_c("b-modal",{attrs:{"hide-footer":"",size:"lg",id:"form_Update_Detail",title:_vm.detail.name}},[_c("b-form",{on:{submit:function submit($event){$event.preventDefault();return _vm.submit_Update_Detail.apply(null,arguments);}}},[_c("b-row",[_vm.detailLoading?_c("b-col",{staticClass:"mb-2",attrs:{lg:"12"}},[_c("div",{staticClass:"text-center py-3"},[_c("div",{staticClass:"spinner sm spinner-primary"})])]):_vm._e(),_vm._v(" "),_c("b-col",{directives:[{name:"show",rawName:"v-show",value:!_vm.detailLoading,expression:"!detailLoading"}],attrs:{lg:"6",md:"6",sm:"12"}},[_c("validation-provider",{attrs:{name:"Product Price",rules:{required:true,regex:/^\d*\.?\d*$/}},scopedSlots:_vm._u([{key:"default",fn:function fn(validationContext){return[_c("b-form-group",{attrs:{label:_vm.$t("ProductPrice")+" "+"*",id:"Price-input"}},[_c("div",{staticClass:"d-flex align-items-center"},[_c("b-form-input",{staticClass:"mr-2",attrs:{label:"Product Price",state:_vm.getValidationState(validationContext),"aria-describedby":"Price-feedback"},model:{value:_vm.detail.Unit_price,callback:function callback($$v){_vm.$set(_vm.detail,"Unit_price",$$v);},expression:"detail.Unit_price"}}),_vm._v(" "),_c("select",{directives:[{name:"model",rawName:"v-model",value:_vm.detail.price_type,expression:"detail.price_type"}],staticClass:"form-control pos-price-select",on:{change:[function($event){var $$selectedVal=Array.prototype.filter.call($event.target.options,function(o){return o.selected;}).map(function(o){var val="_value"in o?o._value:o.value;return val;});_vm.$set(_vm.detail,"price_type",$event.target.multiple?$$selectedVal:$$selectedVal[0]);},function($event){return _vm.onChangePriceType(_vm.detail);}]}},[_c("option",{domProps:{value:"retail"}},[_vm._v(_vm._s(_vm.$t("Retail Price")))]),_vm._v(" "),_c("option",{domProps:{value:"wholesale"}},[_vm._v(_vm._s(_vm.$t("Wholesale Price")))])])],1),_vm._v(" "),_c("b-form-invalid-feedback",{attrs:{id:"Price-feedback"}},[_vm._v(_vm._s(validationContext.errors[0]))])],1)];}}])})],1),_vm._v(" "),_vm.detail.product_type!="is_service"?_c("b-col",{directives:[{name:"show",rawName:"v-show",value:!_vm.detailLoading,expression:"!detailLoading"}],attrs:{lg:"6",md:"6",sm:"12"}},[_c("validation-provider",{attrs:{name:"Unit Sale",rules:{required:true}},scopedSlots:_vm._u([{key:"default",fn:function fn(_ref){var valid=_ref.valid,errors=_ref.errors;return _c("b-form-group",{attrs:{label:_vm.$t("UnitSale")+" "+"*"}},[_c("v-select",{"class":{"is-invalid":!!errors.length},attrs:{state:errors[0]?false:valid?true:null,placeholder:_vm.$t("Choose_Unit_Sale"),reduce:function reduce(label){return label.value;},options:_vm.units.map(function(units){return{label:units.name,value:units.id};})},model:{value:_vm.detail.sale_unit_id,callback:function callback($$v){_vm.$set(_vm.detail,"sale_unit_id",$$v);},expression:"detail.sale_unit_id"}}),_vm._v(" "),_c("b-form-invalid-feedback",[_vm._v(_vm._s(errors[0]))])],1);}}],null,false,1636962053)})],1):_vm._e(),_vm._v(" "),_c("b-col",{directives:[{name:"show",rawName:"v-show",value:!_vm.detailLoading,expression:"!detailLoading"}],attrs:{lg:"6",md:"6",sm:"12"}},[_c("validation-provider",{attrs:{name:"Tax",rules:{required:true,regex:/^\d*\.?\d*$/}},scopedSlots:_vm._u([{key:"default",fn:function fn(validationContext){return[_c("b-form-group",{attrs:{label:_vm.$t("Tax")+" "+"*"}},[_c("b-input-group",{attrs:{append:"%"}},[_c("b-form-input",{attrs:{label:"Tax",state:_vm.getValidationState(validationContext),"aria-describedby":"Tax-feedback"},model:{value:_vm.detail.tax_percent,callback:function callback($$v){_vm.$set(_vm.detail,"tax_percent",$$v);},expression:"detail.tax_percent"}})],1),_vm._v(" "),_c("b-form-invalid-feedback",{attrs:{id:"Tax-feedback"}},[_vm._v(_vm._s(validationContext.errors[0]))])],1)];}}])})],1),_vm._v(" "),_c("b-col",{directives:[{name:"show",rawName:"v-show",value:!_vm.detailLoading,expression:"!detailLoading"}],attrs:{lg:"6",md:"6",sm:"12"}},[_c("validation-provider",{attrs:{name:"Tax Method",rules:{required:true}},scopedSlots:_vm._u([{key:"default",fn:function fn(_ref2){var valid=_ref2.valid,errors=_ref2.errors;return _c("b-form-group",{attrs:{label:_vm.$t("TaxMethod")+" "+"*"}},[_c("v-select",{"class":{"is-invalid":!!errors.length},attrs:{state:errors[0]?false:valid?true:null,reduce:function reduce(label){return label.value;},placeholder:_vm.$t("Choose_Method"),options:[{label:"Exclusive",value:1},{label:"Inclusive",value:2}]},model:{value:_vm.detail.tax_method,callback:function callback($$v){_vm.$set(_vm.detail,"tax_method",$$v);},expression:"detail.tax_method"}}),_vm._v(" "),_c("b-form-invalid-feedback",[_vm._v(_vm._s(errors[0]))])],1);}}])})],1),_vm._v(" "),_c("b-col",{directives:[{name:"show",rawName:"v-show",value:!_vm.detailLoading,expression:"!detailLoading"}],attrs:{lg:"6",md:"6",sm:"12"}},[_c("validation-provider",{attrs:{name:"Discount Rate",rules:{required:true,regex:/^\d*\.?\d*$/}},scopedSlots:_vm._u([{key:"default",fn:function fn(validationContext){return[_c("b-form-group",{attrs:{label:_vm.$t("Discount")+" "+"*"}},[_c("b-form-input",{attrs:{label:"Discount",state:_vm.getValidationState(validationContext),"aria-describedby":"Discount-feedback"},model:{value:_vm.detail.discount,callback:function callback($$v){_vm.$set(_vm.detail,"discount",$$v);},expression:"detail.discount"}}),_vm._v(" "),_c("b-form-invalid-feedback",{attrs:{id:"Discount-feedback"}},[_vm._v(_vm._s(validationContext.errors[0]))])],1)];}}])})],1),_vm._v(" "),_c("b-col",{directives:[{name:"show",rawName:"v-show",value:!_vm.detailLoading,expression:"!detailLoading"}],attrs:{lg:"6",md:"6",sm:"12"}},[_c("validation-provider",{attrs:{name:"Discount Method",rules:{required:true}},scopedSlots:_vm._u([{key:"default",fn:function fn(_ref3){var valid=_ref3.valid,errors=_ref3.errors;return _c("b-form-group",{attrs:{label:_vm.$t("Discount_Method")+" "+"*"}},[_c("v-select",{"class":{"is-invalid":!!errors.length},attrs:{reduce:function reduce(label){return label.value;},placeholder:_vm.$t("Choose_Method"),state:errors[0]?false:valid?true:null,options:[{label:"Percent %",value:"1"},{label:"Fixed",value:"2"}]},model:{value:_vm.detail.discount_Method,callback:function callback($$v){_vm.$set(_vm.detail,"discount_Method",$$v);},expression:"detail.discount_Method"}}),_vm._v(" "),_c("b-form-invalid-feedback",[_vm._v(_vm._s(errors[0]))])],1);}}])})],1),_vm._v(" "),_c("b-col",{attrs:{md:"12"}},[_c("b-form-group",[_c("b-button",{attrs:{variant:"primary",type:"submit"}},[_vm._v(_vm._s(_vm.$t("submit")))])],1)],1)],1)],1)],1)],1),_vm._v(" "),_c("validation-observer",{ref:"Create_Customer"},[_c("b-modal",{attrs:{id:"New_Customer","hide-footer":"",size:"lg",title:_vm.$t("New_Customer")}},[_c("b-form",{staticClass:"new-customer-form",on:{submit:function submit($event){$event.preventDefault();return _vm.Submit_Customer.apply(null,arguments);}}},[_c("b-row",[_c("b-col",{attrs:{md:"6",sm:"12"}},[_c("b-form-group",{attrs:{label:_vm.$t("Name")}},[_c("b-form-input",{attrs:{placeholder:_vm.$t("Name"),required:""},model:{value:_vm.client.name,callback:function callback($$v){_vm.$set(_vm.client,"name",$$v);},expression:"client.name"}})],1)],1),_vm._v(" "),_c("b-col",{attrs:{md:"6",sm:"12"}},[_c("b-form-group",{attrs:{label:_vm.$t("Email")}},[_c("b-form-input",{attrs:{type:"email",placeholder:_vm.$t("Email")},model:{value:_vm.client.email,callback:function callback($$v){_vm.$set(_vm.client,"email",$$v);},expression:"client.email"}})],1)],1),_vm._v(" "),_c("b-col",{attrs:{md:"6",sm:"12"}},[_c("b-form-group",{attrs:{label:_vm.$t("Phone")}},[_c("b-form-input",{attrs:{placeholder:_vm.$t("Phone")},model:{value:_vm.client.phone,callback:function callback($$v){_vm.$set(_vm.client,"phone",$$v);},expression:"client.phone"}})],1)],1),_vm._v(" "),_c("b-col",{attrs:{md:"6",sm:"12"}},[_c("b-form-group",{attrs:{label:_vm.$t("Tax_Number")}},[_c("b-form-input",{attrs:{placeholder:_vm.$t("Tax_Number")},model:{value:_vm.client.tax_number,callback:function callback($$v){_vm.$set(_vm.client,"tax_number",$$v);},expression:"client.tax_number"}})],1)],1),_vm._v(" "),_c("b-col",{attrs:{md:"6",sm:"12"}},[_c("b-form-group",{attrs:{label:_vm.$t("Country")}},[_c("b-form-input",{attrs:{placeholder:_vm.$t("Country")},model:{value:_vm.client.country,callback:function callback($$v){_vm.$set(_vm.client,"country",$$v);},expression:"client.country"}})],1)],1),_vm._v(" "),_c("b-col",{attrs:{md:"6",sm:"12"}},[_c("b-form-group",{attrs:{label:_vm.$t("City")}},[_c("b-form-input",{attrs:{placeholder:_vm.$t("City")},model:{value:_vm.client.city,callback:function callback($$v){_vm.$set(_vm.client,"city",$$v);},expression:"client.city"}})],1)],1),_vm._v(" "),_c("b-col",{attrs:{md:"12"}},[_c("b-form-group",{attrs:{label:_vm.$t("Adress")}},[_c("b-form-input",{attrs:{placeholder:_vm.$t("Adress")},model:{value:_vm.client.adresse,callback:function callback($$v){_vm.$set(_vm.client,"adresse",$$v);},expression:"client.adresse"}})],1)],1),_vm._v(" "),_c("b-col",{attrs:{md:"12"}},[_c("b-form-group",[_c("div",{staticClass:"loyalty-eligible-row"},[_c("b-form-checkbox",{staticClass:"mb-0 loyalty-switch",attrs:{"switch":""},model:{value:_vm.client.is_royalty_eligible,callback:function callback($$v){_vm.$set(_vm.client,"is_royalty_eligible",$$v);},expression:"client.is_royalty_eligible"}},[_vm._v("\n              "+_vm._s(_vm.$t("Loyalty_Eligible"))+"\n            ")]),_vm._v(" "),_c("small",{staticClass:"loyalty-help text-muted"},[_vm._v(_vm._s(_vm.$t("Loyalty_Points_Help")))])],1)])],1),_vm._v(" "),_c("b-col",{staticClass:"d-flex justify-content-end",attrs:{cols:"12"}},[_c("b-button",{staticClass:"mr-2",attrs:{variant:"secondary"},on:{click:function click($event){return _vm.$bvModal.hide("New_Customer");}}},[_vm._v(_vm._s(_vm.$t("Close")))]),_vm._v(" "),_c("b-button",{attrs:{variant:"primary",type:"submit"}},[_vm._v(_vm._s(_vm.$t("Save")))])],1)],1)],1)],1)],1),_vm._v(" "),_c("validation-observer",{ref:"Quick_Add_Customer_Form"},[_c("b-modal",{attrs:{"hide-footer":"",size:"lg",id:"Quick_Add_Customer",title:_vm.$t("Quick_Add_Customer")}},[_c("b-form",{staticClass:"quick-add-customer-form",on:{submit:function submit($event){$event.preventDefault();return _vm.Submit_Quick_Add_Customer.apply(null,arguments);}}},[_c("b-row",[_c("b-col",{attrs:{md:"6",sm:"12"}},[_c("validation-provider",{attrs:{name:"Name Customer",rules:{required:true}},scopedSlots:_vm._u([{key:"default",fn:function fn(validationContext){return[_c("b-form-group",{attrs:{label:_vm.$t("CustomerName")+" "+"*"}},[_c("b-form-input",{attrs:{state:_vm.getValidationState(validationContext),"aria-describedby":"name-feedback",label:"name",placeholder:_vm.$t("CustomerName")},model:{value:_vm.client.name,callback:function callback($$v){_vm.$set(_vm.client,"name",$$v);},expression:"client.name"}}),_vm._v(" "),_c("b-form-invalid-feedback",{attrs:{id:"name-feedback"}},[_vm._v(_vm._s(validationContext.errors[0]))])],1)];}}])})],1),_vm._v(" "),_c("b-col",{attrs:{md:"6",sm:"12"}},[_c("b-form-group",{attrs:{label:_vm.$t("Email")}},[_c("b-form-input",{attrs:{label:"email",placeholder:_vm.$t("Email")},model:{value:_vm.client.email,callback:function callback($$v){_vm.$set(_vm.client,"email",$$v);},expression:"client.email"}})],1)],1),_vm._v(" "),_c("b-col",{attrs:{md:"6",sm:"12"}},[_c("b-form-group",{attrs:{label:_vm.$t("Phone")}},[_c("b-form-input",{attrs:{label:"Phone",placeholder:_vm.$t("Phone")},model:{value:_vm.client.phone,callback:function callback($$v){_vm.$set(_vm.client,"phone",$$v);},expression:"client.phone"}})],1)],1),_vm._v(" "),_c("b-col",{attrs:{md:"6",sm:"12"}},[_c("b-form-group",{attrs:{label:_vm.$t("Country")}},[_c("b-form-input",{attrs:{label:"Country",placeholder:_vm.$t("Country")},model:{value:_vm.client.country,callback:function callback($$v){_vm.$set(_vm.client,"country",$$v);},expression:"client.country"}})],1)],1),_vm._v(" "),_c("b-col",{attrs:{md:"6",sm:"12"}},[_c("b-form-group",{attrs:{label:_vm.$t("City")}},[_c("b-form-input",{attrs:{label:"City",placeholder:_vm.$t("City")},model:{value:_vm.client.city,callback:function callback($$v){_vm.$set(_vm.client,"city",$$v);},expression:"client.city"}})],1)],1),_vm._v(" "),_c("b-col",{attrs:{md:"6",sm:"12"}},[_c("b-form-group",{attrs:{label:_vm.$t("Tax_Number")}},[_c("b-form-input",{attrs:{label:"Tax Number",placeholder:_vm.$t("Tax_Number")},model:{value:_vm.client.tax_number,callback:function callback($$v){_vm.$set(_vm.client,"tax_number",$$v);},expression:"client.tax_number"}})],1)],1),_vm._v(" "),_c("b-col",{attrs:{md:"12",sm:"12"}},[_c("b-form-group",{attrs:{label:_vm.$t("Adress")}},[_c("textarea",{directives:[{name:"model",rawName:"v-model",value:_vm.client.adresse,expression:"client.adresse"}],staticClass:"form-control",attrs:{label:"Adress",rows:"4",placeholder:_vm.$t("Adress")},domProps:{value:_vm.client.adresse},on:{input:function input($event){if($event.target.composing)return;_vm.$set(_vm.client,"adresse",$event.target.value);}}})])],1),_vm._v(" "),_c("b-col",{staticClass:"mt-4 mb-4",attrs:{md:"6",sm:"12"}},[_c("div",{staticClass:"psx-form-check"},[_c("input",{directives:[{name:"model",rawName:"v-model",value:_vm.client.is_royalty_eligible,expression:"client.is_royalty_eligible"}],staticClass:"psx-checkbox psx-form-check-input",attrs:{type:"checkbox",id:"is_royalty_eligible"},domProps:{checked:Array.isArray(_vm.client.is_royalty_eligible)?_vm._i(_vm.client.is_royalty_eligible,null)>-1:_vm.client.is_royalty_eligible},on:{change:function change($event){var $$a=_vm.client.is_royalty_eligible,$$el=$event.target,$$c=$$el.checked?true:false;if(Array.isArray($$a)){var $$v=null,$$i=_vm._i($$a,$$v);if($$el.checked){$$i<0&&_vm.$set(_vm.client,"is_royalty_eligible",$$a.concat([$$v]));}else{$$i>-1&&_vm.$set(_vm.client,"is_royalty_eligible",$$a.slice(0,$$i).concat($$a.slice($$i+1)));}}else{_vm.$set(_vm.client,"is_royalty_eligible",$$c);}}}}),_vm._v(" "),_c("label",{staticClass:"psx-form-check-label",attrs:{"for":"is_royalty_eligible"}},[_c("h5",[_vm._v(_vm._s(_vm.$t("Is_Royalty_Eligible")))])])])]),_vm._v(" "),_c("b-col",{staticClass:"mt-3",attrs:{md:"12",sm:"12"}},[_c("CustomFieldsForm",{attrs:{"entity-type":"client"},model:{value:_vm.quickAddCustomFieldValues,callback:function callback($$v){_vm.quickAddCustomFieldValues=$$v;},expression:"quickAddCustomFieldValues"}})],1),_vm._v(" "),_c("b-col",{staticClass:"mt-3",attrs:{md:"12"}},[_c("b-button",{staticClass:"mr-2",attrs:{variant:"secondary"},on:{click:function click($event){return _vm.$bvModal.hide("Quick_Add_Customer");}}},[_vm._v(_vm._s(_vm.$t("Cancel")))]),_vm._v(" "),_c("b-button",{attrs:{variant:"primary",type:"submit",disabled:_vm.SubmitProcessing}},[_vm._v(_vm._s(_vm.$t("submit")))]),_vm._v(" "),_vm.SubmitProcessing?_vm._m(0):_vm._e()],1)],1)],1)],1)],1),_vm._v(" "),_c("b-modal",{attrs:{id:"modal_today_sales","hide-footer":"","hide-header":"",size:"lg","modal-class":"ts-modal-modern","body-class":"ts-modal-body-wrap",title:_vm.$t("Today_Sales")}},[_c("div",{staticClass:"ts-modal-body"},[_c("div",{staticClass:"ts-hero"},[_c("button",{staticClass:"ts-close",attrs:{type:"button","aria-label":_vm.$t("Close")},on:{click:function click($event){return _vm.$bvModal.hide("modal_today_sales");}}},[_c("lucide-icon",{attrs:{name:"x"}})],1),_vm._v(" "),_c("div",{staticClass:"ts-hero-top"},[_c("div",{staticClass:"ts-hero-title"},[_c("div",{staticClass:"ts-hero-eyebrow"},[_c("lucide-icon",{attrs:{name:"calendar"}}),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.today_sales.today||_vm.$t("Today")))])],1),_vm._v(" "),_c("div",{staticClass:"ts-hero-heading"},[_vm._v(_vm._s(_vm.$t("Today_Sales")))])])]),_vm._v(" "),_c("div",{staticClass:"ts-hero-amount-wrap"},[_c("div",{staticClass:"ts-hero-label"},[_vm._v(_vm._s(_vm.$t("Total_Sales")))]),_vm._v(" "),_c("div",{staticClass:"ts-hero-amount"},[_vm._v("\n          "+_vm._s(_vm.formatPriceWithCurrentCurrency(_vm.today_sales.total_sales_amount||0,2))+"\n        ")])]),_vm._v(" "),_c("div",{staticClass:"ts-hero-stats"},[_c("div",{staticClass:"ts-hero-stat"},[_c("div",{staticClass:"ts-hero-stat-icon paid"},[_c("lucide-icon",{attrs:{name:"check-circle"}})],1),_vm._v(" "),_c("div",{staticClass:"ts-hero-stat-info"},[_c("div",{staticClass:"ts-hero-stat-label"},[_vm._v(_vm._s(_vm.$t("Total_Amount_Paid")))]),_vm._v(" "),_c("div",{staticClass:"ts-hero-stat-val"},[_vm._v("\n              "+_vm._s(_vm.formatPriceWithCurrentCurrency(_vm.today_sales.total_amount_paid||0,2))+"\n            ")])])]),_vm._v(" "),_c("div",{staticClass:"ts-hero-divider"}),_vm._v(" "),_c("div",{staticClass:"ts-hero-stat"},[_c("div",{staticClass:"ts-hero-stat-icon due"},[_c("lucide-icon",{attrs:{name:"clock"}})],1),_vm._v(" "),_c("div",{staticClass:"ts-hero-stat-info"},[_c("div",{staticClass:"ts-hero-stat-label"},[_vm._v(_vm._s(_vm.$t("Due")||"Due"))]),_vm._v(" "),_c("div",{staticClass:"ts-hero-stat-val"},[_vm._v("\n              "+_vm._s(_vm.formatPriceWithCurrentCurrency(Math.max(0,(Number(_vm.today_sales.total_sales_amount)||0)-(Number(_vm.today_sales.total_amount_paid)||0)),2))+"\n            ")])])])])]),_vm._v(" "),(_vm.today_sales.payment_methods||[]).length?_c("div",{staticClass:"ts-section"},[_c("div",{staticClass:"ts-section-head"},[_c("div",{staticClass:"ts-section-title"},[_c("lucide-icon",{attrs:{name:"credit-card"}}),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.$t("Payment_Methods")||"Payment Methods"))])],1),_vm._v(" "),_c("div",{staticClass:"ts-section-sub"},[_vm._v("\n          "+_vm._s(_vm.formatPriceWithCurrentCurrency(_vm.today_sales.total_amount_paid||0,2))+"\n        ")])]),_vm._v(" "),_c("div",{staticClass:"ts-methods"},_vm._l(_vm.today_sales.payment_methods||[],function(method){return _c("div",{key:method.id,staticClass:"ts-method"},[_c("div",{staticClass:"ts-method-icon"},[_c("lucide-icon",{attrs:{name:"credit-card"}})],1),_vm._v(" "),_c("div",{staticClass:"ts-method-body"},[_c("div",{staticClass:"ts-method-row"},[_c("div",{staticClass:"ts-method-name"},[_vm._v(_vm._s(method.name))]),_vm._v(" "),_c("div",{staticClass:"ts-method-amount"},[_vm._v("\n                "+_vm._s(_vm.formatPriceWithCurrentCurrency(method.total||0,2))+"\n              ")])]),_vm._v(" "),_c("div",{staticClass:"ts-method-bar-wrap"},[_c("div",{staticClass:"ts-method-bar",style:{width:(Number(method.total)||0)/Math.max(1,Number(_vm.today_sales.total_amount_paid)||0)*100+"%"}})])])]);}),0)]):_c("div",{staticClass:"ts-empty"},[_c("div",{staticClass:"ts-empty-icon"},[_c("lucide-icon",{attrs:{name:"inbox"}})],1),_vm._v(" "),_c("div",{staticClass:"ts-empty-text"},[_vm._v(_vm._s(_vm.$t("No_Payment_Methods")||"No payments recorded yet today"))])])])]),_vm._v(" "),_c("b-modal",{attrs:{id:"modal_pos_settings","hide-footer":"","hide-header":"",size:"lg","modal-class":"ps-modal-modern","body-class":"ps-modal-body-wrap",title:_vm.$t("POS_Settings")}},[_c("div",{staticClass:"ps-modal-body"},[_c("div",{staticClass:"ps-hero"},[_c("button",{staticClass:"ps-close",attrs:{type:"button","aria-label":_vm.$t("Close")},on:{click:function click($event){return _vm.$bvModal.hide("modal_pos_settings");}}},[_c("lucide-icon",{attrs:{name:"x"}})],1),_vm._v(" "),_c("div",{staticClass:"ps-hero-eyebrow"},[_c("lucide-icon",{attrs:{name:"settings"}}),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.$t("Settings")||"Settings"))])],1),_vm._v(" "),_c("div",{staticClass:"ps-hero-heading"},[_vm._v(_vm._s(_vm.$t("POS_Settings")))]),_vm._v(" "),_c("div",{staticClass:"ps-hero-sub"},[_vm._v("\n        "+_vm._s(_vm.$t("Pos_Settings_Modal_Sub")||"Configure POS behavior, display, and printing — changes apply immediately.")+"\n      ")])]),_vm._v(" "),_vm.ps_loading?_c("div",{staticClass:"ps-loading"},[_c("div",{staticClass:"spinner spinner-primary"})]):_c("validation-observer",{ref:"Submit_Pos_Settings_Modal"},[_c("b-form",{on:{submit:function submit($event){$event.preventDefault();return _vm.Submit_Pos_Settings_Modal.apply(null,arguments);}}},[_c("div",{staticClass:"ps-section"},[_c("div",{staticClass:"ps-section-title"},[_c("lucide-icon",{attrs:{name:"zap"}}),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.$t("Behavior")||"Behavior"))])],1),_vm._v(" "),_c("div",{staticClass:"ps-grid"},[_c("label",{staticClass:"ps-toggle"},[_c("div",{staticClass:"ps-toggle-info"},[_c("div",{staticClass:"ps-toggle-label"},[_vm._v(_vm._s(_vm.$t("Quick_Add_Customer")))]),_vm._v(" "),_c("div",{staticClass:"ps-toggle-help"},[_vm._v(_vm._s(_vm.$t("Enable_Quick_Add_Customer_popup_in_POS")))])]),_vm._v(" "),_c("span",{staticClass:"ps-switch"},[_c("input",{directives:[{name:"model",rawName:"v-model",value:_vm.pos_settings.quick_add_customer,expression:"pos_settings.quick_add_customer"}],attrs:{type:"checkbox"},domProps:{checked:Array.isArray(_vm.pos_settings.quick_add_customer)?_vm._i(_vm.pos_settings.quick_add_customer,null)>-1:_vm.pos_settings.quick_add_customer},on:{change:function change($event){var $$a=_vm.pos_settings.quick_add_customer,$$el=$event.target,$$c=$$el.checked?true:false;if(Array.isArray($$a)){var $$v=null,$$i=_vm._i($$a,$$v);if($$el.checked){$$i<0&&_vm.$set(_vm.pos_settings,"quick_add_customer",$$a.concat([$$v]));}else{$$i>-1&&_vm.$set(_vm.pos_settings,"quick_add_customer",$$a.slice(0,$$i).concat($$a.slice($$i+1)));}}else{_vm.$set(_vm.pos_settings,"quick_add_customer",$$c);}}}}),_vm._v(" "),_c("span",{staticClass:"ps-switch-slider"})])]),_vm._v(" "),_c("label",{staticClass:"ps-toggle"},[_c("div",{staticClass:"ps-toggle-info"},[_c("div",{staticClass:"ps-toggle-label"},[_vm._v(_vm._s(_vm.$t("Barcode_Scanning_Sound")))]),_vm._v(" "),_c("div",{staticClass:"ps-toggle-help"},[_vm._v(_vm._s(_vm.$t("Enable_sound_when_scanning_barcodes_in_POS")))])]),_vm._v(" "),_c("span",{staticClass:"ps-switch"},[_c("input",{directives:[{name:"model",rawName:"v-model",value:_vm.pos_settings.barcode_scanning_sound,expression:"pos_settings.barcode_scanning_sound"}],attrs:{type:"checkbox"},domProps:{checked:Array.isArray(_vm.pos_settings.barcode_scanning_sound)?_vm._i(_vm.pos_settings.barcode_scanning_sound,null)>-1:_vm.pos_settings.barcode_scanning_sound},on:{change:function change($event){var $$a=_vm.pos_settings.barcode_scanning_sound,$$el=$event.target,$$c=$$el.checked?true:false;if(Array.isArray($$a)){var $$v=null,$$i=_vm._i($$a,$$v);if($$el.checked){$$i<0&&_vm.$set(_vm.pos_settings,"barcode_scanning_sound",$$a.concat([$$v]));}else{$$i>-1&&_vm.$set(_vm.pos_settings,"barcode_scanning_sound",$$a.slice(0,$$i).concat($$a.slice($$i+1)));}}else{_vm.$set(_vm.pos_settings,"barcode_scanning_sound",$$c);}}}}),_vm._v(" "),_c("span",{staticClass:"ps-switch-slider"})])]),_vm._v(" "),_c("label",{staticClass:"ps-toggle"},[_c("div",{staticClass:"ps-toggle-info"},[_c("div",{staticClass:"ps-toggle-label"},[_vm._v(_vm._s(_vm.$t("Enable_Hold_Sales")))]),_vm._v(" "),_c("div",{staticClass:"ps-toggle-help"},[_vm._v(_vm._s(_vm.$t("Enable_disable_Hold_Sales_feature_in_POS")))])]),_vm._v(" "),_c("span",{staticClass:"ps-switch"},[_c("input",{directives:[{name:"model",rawName:"v-model",value:_vm.pos_settings.enable_hold_sales,expression:"pos_settings.enable_hold_sales"}],attrs:{type:"checkbox"},domProps:{checked:Array.isArray(_vm.pos_settings.enable_hold_sales)?_vm._i(_vm.pos_settings.enable_hold_sales,null)>-1:_vm.pos_settings.enable_hold_sales},on:{change:function change($event){var $$a=_vm.pos_settings.enable_hold_sales,$$el=$event.target,$$c=$$el.checked?true:false;if(Array.isArray($$a)){var $$v=null,$$i=_vm._i($$a,$$v);if($$el.checked){$$i<0&&_vm.$set(_vm.pos_settings,"enable_hold_sales",$$a.concat([$$v]));}else{$$i>-1&&_vm.$set(_vm.pos_settings,"enable_hold_sales",$$a.slice(0,$$i).concat($$a.slice($$i+1)));}}else{_vm.$set(_vm.pos_settings,"enable_hold_sales",$$c);}}}}),_vm._v(" "),_c("span",{staticClass:"ps-switch-slider"})])]),_vm._v(" "),_c("label",{staticClass:"ps-toggle"},[_c("div",{staticClass:"ps-toggle-info"},[_c("div",{staticClass:"ps-toggle-label"},[_vm._v(_vm._s(_vm.$t("Enable_Customer_Points_in_POS")))]),_vm._v(" "),_c("div",{staticClass:"ps-toggle-help"},[_vm._v(_vm._s(_vm.$t("Enable_disable_customer_points_system_in_POS")))])]),_vm._v(" "),_c("span",{staticClass:"ps-switch"},[_c("input",{directives:[{name:"model",rawName:"v-model",value:_vm.pos_settings.enable_customer_points,expression:"pos_settings.enable_customer_points"}],attrs:{type:"checkbox"},domProps:{checked:Array.isArray(_vm.pos_settings.enable_customer_points)?_vm._i(_vm.pos_settings.enable_customer_points,null)>-1:_vm.pos_settings.enable_customer_points},on:{change:function change($event){var $$a=_vm.pos_settings.enable_customer_points,$$el=$event.target,$$c=$$el.checked?true:false;if(Array.isArray($$a)){var $$v=null,$$i=_vm._i($$a,$$v);if($$el.checked){$$i<0&&_vm.$set(_vm.pos_settings,"enable_customer_points",$$a.concat([$$v]));}else{$$i>-1&&_vm.$set(_vm.pos_settings,"enable_customer_points",$$a.slice(0,$$i).concat($$a.slice($$i+1)));}}else{_vm.$set(_vm.pos_settings,"enable_customer_points",$$c);}}}}),_vm._v(" "),_c("span",{staticClass:"ps-switch-slider"})])]),_vm._v(" "),_c("label",{staticClass:"ps-toggle"},[_c("div",{staticClass:"ps-toggle-info"},[_c("div",{staticClass:"ps-toggle-label"},[_vm._v(_vm._s(_vm.$t("Allow_overselling")||"Allow Overselling"))]),_vm._v(" "),_c("div",{staticClass:"ps-toggle-help"},[_vm._v(_vm._s(_vm.$t("Allow_overselling_help")||"Allow selling products even when stock is zero or negative."))])]),_vm._v(" "),_c("span",{staticClass:"ps-switch"},[_c("input",{directives:[{name:"model",rawName:"v-model",value:_vm.pos_settings.allow_overselling,expression:"pos_settings.allow_overselling"}],attrs:{type:"checkbox"},domProps:{checked:Array.isArray(_vm.pos_settings.allow_overselling)?_vm._i(_vm.pos_settings.allow_overselling,null)>-1:_vm.pos_settings.allow_overselling},on:{change:function change($event){var $$a=_vm.pos_settings.allow_overselling,$$el=$event.target,$$c=$$el.checked?true:false;if(Array.isArray($$a)){var $$v=null,$$i=_vm._i($$a,$$v);if($$el.checked){$$i<0&&_vm.$set(_vm.pos_settings,"allow_overselling",$$a.concat([$$v]));}else{$$i>-1&&_vm.$set(_vm.pos_settings,"allow_overselling",$$a.slice(0,$$i).concat($$a.slice($$i+1)));}}else{_vm.$set(_vm.pos_settings,"allow_overselling",$$c);}}}}),_vm._v(" "),_c("span",{staticClass:"ps-switch-slider"})])]),_vm._v(" "),_c("label",{staticClass:"ps-toggle"},[_c("div",{staticClass:"ps-toggle-info"},[_c("div",{staticClass:"ps-toggle-label"},[_vm._v(_vm._s(_vm.$t("Enable_Print_Invoice")))]),_vm._v(" "),_c("div",{staticClass:"ps-toggle-help"},[_vm._v(_vm._s(_vm.$t("Enable_Print_Invoice_Help")||"Auto-print receipt after each sale."))])]),_vm._v(" "),_c("span",{staticClass:"ps-switch"},[_c("input",{directives:[{name:"model",rawName:"v-model",value:_vm.pos_settings.is_printable,expression:"pos_settings.is_printable"}],attrs:{type:"checkbox","true-value":1,"false-value":0},domProps:{checked:Array.isArray(_vm.pos_settings.is_printable)?_vm._i(_vm.pos_settings.is_printable,null)>-1:_vm._q(_vm.pos_settings.is_printable,1)},on:{change:function change($event){var $$a=_vm.pos_settings.is_printable,$$el=$event.target,$$c=$$el.checked?1:0;if(Array.isArray($$a)){var $$v=null,$$i=_vm._i($$a,$$v);if($$el.checked){$$i<0&&_vm.$set(_vm.pos_settings,"is_printable",$$a.concat([$$v]));}else{$$i>-1&&_vm.$set(_vm.pos_settings,"is_printable",$$a.slice(0,$$i).concat($$a.slice($$i+1)));}}else{_vm.$set(_vm.pos_settings,"is_printable",$$c);}}}}),_vm._v(" "),_c("span",{staticClass:"ps-switch-slider"})])])])]),_vm._v(" "),_c("div",{staticClass:"ps-section"},[_c("div",{staticClass:"ps-section-title"},[_c("lucide-icon",{attrs:{name:"eye"}}),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.$t("Display")||"Display"))])],1),_vm._v(" "),_c("div",{staticClass:"ps-grid"},[_c("label",{staticClass:"ps-toggle"},[_c("div",{staticClass:"ps-toggle-info"},[_c("div",{staticClass:"ps-toggle-label"},[_vm._v(_vm._s(_vm.$t("Show_Product_Images_in_POS")))]),_vm._v(" "),_c("div",{staticClass:"ps-toggle-help"},[_vm._v(_vm._s(_vm.$t("Show_hide_product_images_in_POS_product_listing")))])]),_vm._v(" "),_c("span",{staticClass:"ps-switch"},[_c("input",{directives:[{name:"model",rawName:"v-model",value:_vm.pos_settings.show_product_images,expression:"pos_settings.show_product_images"}],attrs:{type:"checkbox"},domProps:{checked:Array.isArray(_vm.pos_settings.show_product_images)?_vm._i(_vm.pos_settings.show_product_images,null)>-1:_vm.pos_settings.show_product_images},on:{change:function change($event){var $$a=_vm.pos_settings.show_product_images,$$el=$event.target,$$c=$$el.checked?true:false;if(Array.isArray($$a)){var $$v=null,$$i=_vm._i($$a,$$v);if($$el.checked){$$i<0&&_vm.$set(_vm.pos_settings,"show_product_images",$$a.concat([$$v]));}else{$$i>-1&&_vm.$set(_vm.pos_settings,"show_product_images",$$a.slice(0,$$i).concat($$a.slice($$i+1)));}}else{_vm.$set(_vm.pos_settings,"show_product_images",$$c);}}}}),_vm._v(" "),_c("span",{staticClass:"ps-switch-slider"})])]),_vm._v(" "),_c("label",{staticClass:"ps-toggle"},[_c("div",{staticClass:"ps-toggle-info"},[_c("div",{staticClass:"ps-toggle-label"},[_vm._v(_vm._s(_vm.$t("Show_Stock_Quantity_in_POS")))]),_vm._v(" "),_c("div",{staticClass:"ps-toggle-help"},[_vm._v(_vm._s(_vm.$t("Show_hide_stock_quantity_in_POS")))])]),_vm._v(" "),_c("span",{staticClass:"ps-switch"},[_c("input",{directives:[{name:"model",rawName:"v-model",value:_vm.pos_settings.show_stock_quantity,expression:"pos_settings.show_stock_quantity"}],attrs:{type:"checkbox"},domProps:{checked:Array.isArray(_vm.pos_settings.show_stock_quantity)?_vm._i(_vm.pos_settings.show_stock_quantity,null)>-1:_vm.pos_settings.show_stock_quantity},on:{change:function change($event){var $$a=_vm.pos_settings.show_stock_quantity,$$el=$event.target,$$c=$$el.checked?true:false;if(Array.isArray($$a)){var $$v=null,$$i=_vm._i($$a,$$v);if($$el.checked){$$i<0&&_vm.$set(_vm.pos_settings,"show_stock_quantity",$$a.concat([$$v]));}else{$$i>-1&&_vm.$set(_vm.pos_settings,"show_stock_quantity",$$a.slice(0,$$i).concat($$a.slice($$i+1)));}}else{_vm.$set(_vm.pos_settings,"show_stock_quantity",$$c);}}}}),_vm._v(" "),_c("span",{staticClass:"ps-switch-slider"})])]),_vm._v(" "),_c("label",{staticClass:"ps-toggle"},[_c("div",{staticClass:"ps-toggle-info"},[_c("div",{staticClass:"ps-toggle-label"},[_vm._v(_vm._s(_vm.$t("Show_Categories_in_POS")))]),_vm._v(" "),_c("div",{staticClass:"ps-toggle-help"},[_vm._v(_vm._s(_vm.$t("Show_hide_categories_in_POS")))])]),_vm._v(" "),_c("span",{staticClass:"ps-switch"},[_c("input",{directives:[{name:"model",rawName:"v-model",value:_vm.pos_settings.show_categories,expression:"pos_settings.show_categories"}],attrs:{type:"checkbox"},domProps:{checked:Array.isArray(_vm.pos_settings.show_categories)?_vm._i(_vm.pos_settings.show_categories,null)>-1:_vm.pos_settings.show_categories},on:{change:function change($event){var $$a=_vm.pos_settings.show_categories,$$el=$event.target,$$c=$$el.checked?true:false;if(Array.isArray($$a)){var $$v=null,$$i=_vm._i($$a,$$v);if($$el.checked){$$i<0&&_vm.$set(_vm.pos_settings,"show_categories",$$a.concat([$$v]));}else{$$i>-1&&_vm.$set(_vm.pos_settings,"show_categories",$$a.slice(0,$$i).concat($$a.slice($$i+1)));}}else{_vm.$set(_vm.pos_settings,"show_categories",$$c);}}}}),_vm._v(" "),_c("span",{staticClass:"ps-switch-slider"})])]),_vm._v(" "),_c("label",{staticClass:"ps-toggle"},[_c("div",{staticClass:"ps-toggle-info"},[_c("div",{staticClass:"ps-toggle-label"},[_vm._v(_vm._s(_vm.$t("Show_Brands_in_POS")))]),_vm._v(" "),_c("div",{staticClass:"ps-toggle-help"},[_vm._v(_vm._s(_vm.$t("Show_hide_brands_in_POS")))])]),_vm._v(" "),_c("span",{staticClass:"ps-switch"},[_c("input",{directives:[{name:"model",rawName:"v-model",value:_vm.pos_settings.show_brands,expression:"pos_settings.show_brands"}],attrs:{type:"checkbox"},domProps:{checked:Array.isArray(_vm.pos_settings.show_brands)?_vm._i(_vm.pos_settings.show_brands,null)>-1:_vm.pos_settings.show_brands},on:{change:function change($event){var $$a=_vm.pos_settings.show_brands,$$el=$event.target,$$c=$$el.checked?true:false;if(Array.isArray($$a)){var $$v=null,$$i=_vm._i($$a,$$v);if($$el.checked){$$i<0&&_vm.$set(_vm.pos_settings,"show_brands",$$a.concat([$$v]));}else{$$i>-1&&_vm.$set(_vm.pos_settings,"show_brands",$$a.slice(0,$$i).concat($$a.slice($$i+1)));}}else{_vm.$set(_vm.pos_settings,"show_brands",$$c);}}}}),_vm._v(" "),_c("span",{staticClass:"ps-switch-slider"})])])]),_vm._v(" "),_c("div",{staticClass:"ps-field"},[_c("validation-provider",{attrs:{name:"products_per_page",rules:{required:true}},scopedSlots:_vm._u([{key:"default",fn:function fn(validationContext){return[_c("label",{staticClass:"ps-field-label"},[_vm._v(_vm._s(_vm.$t("How_many_items_to_display_in_POS")||"How many items do you want to display in POS")+" *")]),_vm._v(" "),_c("b-form-input",{staticClass:"ps-input",attrs:{state:_vm.getValidationState(validationContext),type:"text"},model:{value:_vm.pos_settings.products_per_page,callback:function callback($$v){_vm.$set(_vm.pos_settings,"products_per_page",$$v);},expression:"pos_settings.products_per_page"}}),_vm._v(" "),_c("b-form-invalid-feedback",[_vm._v(_vm._s(validationContext.errors[0]))])];}}])})],1)]),_vm._v(" "),_c("div",{staticClass:"ps-section"},[_c("div",{staticClass:"ps-section-title"},[_c("lucide-icon",{attrs:{name:"banknote"}}),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.$t("Cash_Drawer_Settings")))])],1),_vm._v(" "),_c("div",{staticClass:"ps-help-banner"},[_vm._v(_vm._s(_vm.$t("Cash_Drawer_Auto_Open_Help")))]),_vm._v(" "),_c("div",{staticClass:"ps-grid"},[_c("label",{staticClass:"ps-toggle"},[_c("div",{staticClass:"ps-toggle-info"},[_c("div",{staticClass:"ps-toggle-label"},[_vm._v(_vm._s(_vm.$t("Cash_Drawer_Auto_Open")))])]),_vm._v(" "),_c("span",{staticClass:"ps-switch"},[_c("input",{directives:[{name:"model",rawName:"v-model",value:_vm.pos_settings.cash_drawer_auto_open,expression:"pos_settings.cash_drawer_auto_open"}],attrs:{type:"checkbox","true-value":true,"false-value":false},domProps:{checked:Array.isArray(_vm.pos_settings.cash_drawer_auto_open)?_vm._i(_vm.pos_settings.cash_drawer_auto_open,null)>-1:_vm.pos_settings.cash_drawer_auto_open},on:{change:function change($event){var $$a=_vm.pos_settings.cash_drawer_auto_open,$$el=$event.target,$$c=$$el.checked?true:false;if(Array.isArray($$a)){var $$v=null,$$i=_vm._i($$a,$$v);if($$el.checked){$$i<0&&_vm.$set(_vm.pos_settings,"cash_drawer_auto_open",$$a.concat([$$v]));}else{$$i>-1&&_vm.$set(_vm.pos_settings,"cash_drawer_auto_open",$$a.slice(0,$$i).concat($$a.slice($$i+1)));}}else{_vm.$set(_vm.pos_settings,"cash_drawer_auto_open",$$c);}}}}),_vm._v(" "),_c("span",{staticClass:"ps-switch-slider"})])])]),_vm._v(" "),_c("div",{staticClass:"ps-field"},[_c("label",{staticClass:"ps-field-label"},[_vm._v(_vm._s(_vm.$t("Cash_Drawer_Printer_Name")))]),_vm._v(" "),_c("b-form-input",{staticClass:"ps-input",attrs:{placeholder:_vm.$t("Leave_blank_for_default_receipt_printer"),maxlength:"192"},model:{value:_vm.pos_settings.cash_drawer_printer_name,callback:function callback($$v){_vm.$set(_vm.pos_settings,"cash_drawer_printer_name",$$v);},expression:"pos_settings.cash_drawer_printer_name"}}),_vm._v(" "),_c("small",{staticClass:"ps-field-help"},[_vm._v(_vm._s(_vm.$t("Cash_Drawer_Printer_Name_Help")))])],1)]),_vm._v(" "),_c("div",{staticClass:"ps-section"},[_c("div",{staticClass:"ps-section-title"},[_c("lucide-icon",{attrs:{name:"receipt"}}),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.$t("Receipt")||"Receipt"))])],1),_vm._v(" "),_c("div",{staticClass:"ps-field"},[_c("label",{staticClass:"ps-field-label"},[_vm._v(_vm._s(_vm.$t("Invoice_Format")))]),_vm._v(" "),_c("b-form-radio-group",{attrs:{options:_vm.ps_invoiceFormatOptions.map(function(opt){return{value:opt.value,text:_vm.$t(opt.textKey)};}),buttons:"","button-variant":"outline-primary",size:"sm"},model:{value:_vm.invoice_format,callback:function callback($$v){_vm.invoice_format=$$v;},expression:"invoice_format"}}),_vm._v(" "),_c("small",{staticClass:"ps-field-help d-block mt-1"},[_vm._v(_vm._s(_vm.$t("Invoice_Format_help")))])],1)]),_vm._v(" "),_c("div",{staticClass:"ps-footer"},[_c("button",{staticClass:"ps-btn ps-btn-secondary",attrs:{type:"button"},on:{click:function click($event){return _vm.$bvModal.hide("modal_pos_settings");}}},[_vm._v("\n            "+_vm._s(_vm.$t("Cancel")||"Cancel")+"\n          ")]),_vm._v(" "),_c("button",{staticClass:"ps-btn ps-btn-primary",attrs:{type:"submit",disabled:_vm.ps_saving}},[!_vm.ps_saving?_c("lucide-icon",{attrs:{name:"check"}}):_vm._e(),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.ps_saving?_vm.$t("Saving")||"Saving…":_vm.$t("submit")||"Save"))])],1)])])],1)],1)]),_vm._v(" "),_c("b-modal",{attrs:{id:"OpenRegisterModal",title:_vm.$t("Open Register"),"hide-footer":""}},[_c("div",{staticClass:"form-group"},[_c("label",[_vm._v(_vm._s(_vm.$t("warehouse")))]),_vm._v(" "),_c("b-form-select",{attrs:{options:_vm.warehouseOptions},model:{value:_vm.registerForm.warehouse_id,callback:function callback($$v){_vm.$set(_vm.registerForm,"warehouse_id",$$v);},expression:"registerForm.warehouse_id"}})],1),_vm._v(" "),_c("div",{staticClass:"form-group"},[_c("label",[_vm._v(_vm._s(_vm.$t("Opening_Balance")))]),_vm._v(" "),_c("input",{directives:[{name:"model",rawName:"v-model.number",value:_vm.registerForm.opening_balance,expression:"registerForm.opening_balance",modifiers:{number:true}}],staticClass:"form-control",attrs:{type:"text",min:"0",step:"0.01"},domProps:{value:_vm.registerForm.opening_balance},on:{input:function input($event){if($event.target.composing)return;_vm.$set(_vm.registerForm,"opening_balance",_vm._n($event.target.value));},blur:function blur($event){return _vm.$forceUpdate();}}})]),_vm._v(" "),_c("div",{staticClass:"form-group"},[_c("label",[_vm._v(_vm._s(_vm.$t("notes")))]),_vm._v(" "),_c("textarea",{directives:[{name:"model",rawName:"v-model",value:_vm.registerForm.notes,expression:"registerForm.notes"}],staticClass:"form-control",domProps:{value:_vm.registerForm.notes},on:{input:function input($event){if($event.target.composing)return;_vm.$set(_vm.registerForm,"notes",$event.target.value);}}})]),_vm._v(" "),_c("div",{staticClass:"text-right"},[_c("b-button",{staticClass:"mr-2",attrs:{variant:"secondary"},on:{click:function click($event){return _vm.$bvModal.hide("OpenRegisterModal");}}},[_vm._v(_vm._s(_vm.$t("Cancel")))]),_vm._v(" "),_c("b-button",{attrs:{variant:"success",disabled:_vm.registerBusy},on:{click:_vm.submitOpenRegister}},[_vm._v(_vm._s(_vm.$t("Open Register")))])],1)]),_vm._v(" "),_c("b-modal",{attrs:{id:"CloseRegisterModal",title:_vm.$t("Close Register"),"hide-footer":""}},[_c("div",{staticClass:"form-group"},[_c("label",[_vm._v(_vm._s(_vm.$t("Counted_Cash")))]),_vm._v(" "),_c("input",{directives:[{name:"model",rawName:"v-model.number",value:_vm.closeForm.counted_cash,expression:"closeForm.counted_cash",modifiers:{number:true}}],staticClass:"form-control",attrs:{type:"text",min:"0",step:"0.01"},domProps:{value:_vm.closeForm.counted_cash},on:{input:function input($event){if($event.target.composing)return;_vm.$set(_vm.closeForm,"counted_cash",_vm._n($event.target.value));},blur:function blur($event){return _vm.$forceUpdate();}}})]),_vm._v(" "),_c("div",{staticClass:"form-group"},[_c("label",[_vm._v(_vm._s(_vm.$t("Closing_Notes")))]),_vm._v(" "),_c("textarea",{directives:[{name:"model",rawName:"v-model",value:_vm.closeForm.notes,expression:"closeForm.notes"}],staticClass:"form-control",domProps:{value:_vm.closeForm.notes},on:{input:function input($event){if($event.target.composing)return;_vm.$set(_vm.closeForm,"notes",$event.target.value);}}})]),_vm._v(" "),_c("div",{staticClass:"text-right"},[_c("b-button",{staticClass:"mr-2",attrs:{variant:"secondary"},on:{click:function click($event){return _vm.$bvModal.hide("CloseRegisterModal");}}},[_vm._v(_vm._s(_vm.$t("Cancel")))]),_vm._v(" "),_c("b-button",{attrs:{variant:"danger",disabled:_vm.registerBusy},on:{click:_vm.submitCloseRegister}},[_vm._v(_vm._s(_vm.$t("Close Register")))])],1)]),_vm._v(" "),_c("b-modal",{attrs:{id:"OnlineReloadModal","hide-footer":true,"hide-header-close":true,"no-close-on-backdrop":true,"no-close-on-esc":true,size:"md",centered:"",title:_vm.$t("pos.InternetRestored")||"Internet connection restored"},model:{value:_vm.onlineReloadModalVisible,callback:function callback($$v){_vm.onlineReloadModalVisible=$$v;},expression:"onlineReloadModalVisible"}},[_c("p",{staticClass:"mb-3"},[_vm._v("\n      "+_vm._s(_vm.$t("pos.ActiveCheckoutReloadQuestion")||"You have an active checkout. Would you like to reload the page now or after completing the sale?")+"\n    ")]),_vm._v(" "),_c("div",{staticClass:"d-flex justify-content-end"},[_c("b-button",{staticClass:"mr-2",attrs:{variant:"outline-primary"},on:{click:_vm.onOnlineReloadAfterSale}},[_vm._v("\n        "+_vm._s(_vm.$t("pos.ReloadAfterSale")||"After this sale")+"\n      ")]),_vm._v(" "),_c("b-button",{attrs:{variant:"primary"},on:{click:_vm.onOnlineReloadNow}},[_vm._v("\n        "+_vm._s(_vm.$t("pos.ReloadNow")||"Reload now")+"\n      ")])],1)]),_vm._v(" "),_c("b-modal",{attrs:{id:"pos-keyboard-shortcuts-help",size:"lg",scrollable:"","hide-footer":"",title:_vm.$t("Keyboard_Shortcuts")||"Keyboard Shortcuts"}},[_c("div",{staticClass:"pos-shortcuts-help"},[_c("p",{staticClass:"text-muted small mb-3"},[_vm._v("\n        "+_vm._s(_vm.$t("Keyboard_Shortcuts_Help_Intro")||"Speed up checkout with these shortcuts. Enable or disable them in POS Settings.")+"\n      ")]),_vm._v(" "),_c("table",{staticClass:"table table-sm table-hover"},[_c("thead",[_c("tr",[_c("th",{staticStyle:{width:"40%"}},[_vm._v(_vm._s(_vm.$t("Shortcut")||"Shortcut"))]),_vm._v(" "),_c("th",[_vm._v(_vm._s(_vm.$t("Action")||"Action"))])])]),_vm._v(" "),_c("tbody",_vm._l(_vm.posShortcutsList,function(s){return _c("tr",{key:s.id},[_c("td",[_c("kbd",{staticClass:"pos-shortcut-key"},[_vm._v(_vm._s(s.keys))])]),_vm._v(" "),_c("td",[_vm._v(_vm._s(_vm.$t(s.descriptionKey)!==s.descriptionKey?_vm.$t(s.descriptionKey):s.descriptionFallback))])]);}),0)])])]),_vm._v(" "),_c("b-modal",{attrs:{id:"pos-confirm-clear-cart","hide-footer":"","hide-header":"",centered:"",size:"sm","modal-class":"pos-confirm-clear-modal","body-class":"pos-confirm-clear-body"}},[_c("div",{staticClass:"pos-confirm-clear"},[_c("div",{staticClass:"pos-confirm-clear-icon",attrs:{"aria-hidden":"true"}},[_c("lucide-icon",{attrs:{name:"alert-triangle"}})],1),_vm._v(" "),_c("h3",{staticClass:"pos-confirm-clear-title"},[_vm._v("\n        "+_vm._s(_vm.$t("Confirm_Clear_Cart_Title")||"Are you sure you want to remove all items?")+"\n      ")]),_vm._v(" "),_c("p",{staticClass:"pos-confirm-clear-msg"},[_vm._v("\n        "+_vm._s(_vm.$t("Confirm_Clear_Cart_Subtitle")||"You can clear the cart, or save it as a draft to recall later.")+"\n      ")]),_vm._v(" "),_c("div",{staticClass:"pos-confirm-clear-actions"},[_c("button",{staticClass:"pos-confirm-btn pos-confirm-btn-secondary",attrs:{type:"button"},on:{click:function click($event){_vm.$bvModal.hide("pos-confirm-clear-cart");_vm.Submit_Draft();}}},[_c("lucide-icon",{attrs:{name:"bookmark"}}),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.$t("Draft_Hold")||"Draft / Hold"))])],1),_vm._v(" "),_c("button",{staticClass:"pos-confirm-btn pos-confirm-btn-danger",attrs:{type:"button"},on:{click:function click($event){_vm.$bvModal.hide("pos-confirm-clear-cart");_vm.Reset_Pos();}}},[_c("lucide-icon",{attrs:{name:"trash-2"}}),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.$t("Yes_Clear_It")||"Yes, Clear It"))])],1)])])]),_vm._v(" "),_c("transition",{attrs:{name:"cat-drawer"}},[_vm.catDrawerOpen?_c("div",{staticClass:"cat-drawer-backdrop",on:{click:function click($event){if($event.target!==$event.currentTarget)return null;_vm.catDrawerOpen=false;},keydown:function keydown($event){if(!$event.type.indexOf("key")&&_vm._k($event.keyCode,"esc",27,$event.key,["Esc","Escape"]))return null;_vm.catDrawerOpen=false;}}},[_c("aside",{staticClass:"cat-drawer",attrs:{role:"dialog","aria-label":_vm.$t("Categories")||"Categories"}},[_c("header",{staticClass:"cat-drawer-header"},[_c("div",{staticClass:"cat-drawer-title"},[_c("span",{staticClass:"cat-drawer-title-icon"},[_c("lucide-icon",{attrs:{name:"folder"}})],1),_vm._v(" "),_c("div",[_c("div",{staticClass:"cat-drawer-title-text"},[_vm._v(_vm._s(_vm.$t("Categories")||"Categories"))]),_vm._v(" "),_c("div",{staticClass:"cat-drawer-title-sub"},[_vm._v(_vm._s(_vm.categories.length)+" "+_vm._s(_vm.categories.length===1?_vm.$t("category")||"category":_vm.$t("categories")||"categories"))])])]),_vm._v(" "),_c("button",{staticClass:"cat-drawer-close",attrs:{type:"button","aria-label":_vm.$t("Close")},on:{click:function click($event){_vm.catDrawerOpen=false;}}},[_c("lucide-icon",{attrs:{name:"x"}})],1)]),_vm._v(" "),_c("div",{staticClass:"cat-drawer-search"},[_c("lucide-icon",{attrs:{name:"search"}}),_vm._v(" "),_c("input",{directives:[{name:"model",rawName:"v-model",value:_vm.catDrawerSearch,expression:"catDrawerSearch"}],attrs:{type:"text",placeholder:_vm.$t("Search_Categories")||"Search categories…"},domProps:{value:_vm.catDrawerSearch},on:{input:function input($event){if($event.target.composing)return;_vm.catDrawerSearch=$event.target.value;}}}),_vm._v(" "),_vm.catDrawerSearch?_c("button",{staticClass:"cat-drawer-search-clear",attrs:{type:"button","aria-label":_vm.$t("Clear")},on:{click:function click($event){_vm.catDrawerSearch="";}}},[_c("lucide-icon",{attrs:{name:"x"}})],1):_vm._e()],1),_vm._v(" "),_c("div",{staticClass:"cat-drawer-list"},[_c("button",{staticClass:"cat-drawer-item all","class":{active:!_vm.category_id},attrs:{type:"button"},on:{click:function click($event){return _vm.selectCategory(null);}}},[_c("span",{staticClass:"cat-drawer-item-icon all"},[_c("lucide-icon",{attrs:{name:"list"}})],1),_vm._v(" "),_c("span",{staticClass:"cat-drawer-item-name"},[_vm._v(_vm._s(_vm.$t("pos.All_Categories")||"All Categories"))]),_vm._v(" "),!_vm.category_id?_c("lucide-icon",{staticClass:"cat-drawer-item-check",attrs:{name:"check-circle"}}):_vm._e()],1),_vm._v(" "),_vm._l(_vm.filteredCategories,function(c){return _c("button",{key:c.id,staticClass:"cat-drawer-item","class":{active:_vm.category_id===c.id},attrs:{type:"button"},on:{click:function click($event){return _vm.selectCategory(c.id);}}},[_c("span",{staticClass:"cat-drawer-item-icon",style:{background:_vm.catColor(c.id),color:"#fff"}},[_vm._v(_vm._s(_vm.catInitial(c.name)))]),_vm._v(" "),_c("span",{staticClass:"cat-drawer-item-name"},[_vm._v(_vm._s(c.name))]),_vm._v(" "),_vm.category_id===c.id?_c("lucide-icon",{staticClass:"cat-drawer-item-check",attrs:{name:"check-circle"}}):_vm._e()],1);}),_vm._v(" "),!_vm.filteredCategories.length&&_vm.catDrawerSearch?_c("div",{staticClass:"cat-drawer-empty"},[_c("div",{staticClass:"cat-drawer-empty-icon"},[_c("lucide-icon",{attrs:{name:"search"}})],1),_vm._v(" "),_c("div",{staticClass:"cat-drawer-empty-text"},[_vm._v(_vm._s(_vm.$t("No_results")||"No results"))])]):_vm._e()],2)])]):_vm._e()]),_vm._v(" "),_c("transition",{attrs:{name:"cat-drawer"}},[_vm.brandDrawerOpen?_c("div",{staticClass:"cat-drawer-backdrop",on:{click:function click($event){if($event.target!==$event.currentTarget)return null;_vm.brandDrawerOpen=false;},keydown:function keydown($event){if(!$event.type.indexOf("key")&&_vm._k($event.keyCode,"esc",27,$event.key,["Esc","Escape"]))return null;_vm.brandDrawerOpen=false;}}},[_c("aside",{staticClass:"cat-drawer",attrs:{role:"dialog","aria-label":_vm.$t("Brands")||"Brands"}},[_c("header",{staticClass:"cat-drawer-header"},[_c("div",{staticClass:"cat-drawer-title"},[_c("span",{staticClass:"cat-drawer-title-icon"},[_c("lucide-icon",{attrs:{name:"tag"}})],1),_vm._v(" "),_c("div",[_c("div",{staticClass:"cat-drawer-title-text"},[_vm._v(_vm._s(_vm.$t("Brands")||"Brands"))]),_vm._v(" "),_c("div",{staticClass:"cat-drawer-title-sub"},[_vm._v(_vm._s(_vm.brands.length)+" "+_vm._s(_vm.brands.length===1?_vm.$t("brand")||"brand":_vm.$t("brands")||"brands"))])])]),_vm._v(" "),_c("button",{staticClass:"cat-drawer-close",attrs:{type:"button","aria-label":_vm.$t("Close")},on:{click:function click($event){_vm.brandDrawerOpen=false;}}},[_c("lucide-icon",{attrs:{name:"x"}})],1)]),_vm._v(" "),_c("div",{staticClass:"cat-drawer-search"},[_c("lucide-icon",{attrs:{name:"search"}}),_vm._v(" "),_c("input",{directives:[{name:"model",rawName:"v-model",value:_vm.brandDrawerSearch,expression:"brandDrawerSearch"}],attrs:{type:"text",placeholder:_vm.$t("Search_Brands")||"Search brands…"},domProps:{value:_vm.brandDrawerSearch},on:{input:function input($event){if($event.target.composing)return;_vm.brandDrawerSearch=$event.target.value;}}}),_vm._v(" "),_vm.brandDrawerSearch?_c("button",{staticClass:"cat-drawer-search-clear",attrs:{type:"button","aria-label":_vm.$t("Clear")},on:{click:function click($event){_vm.brandDrawerSearch="";}}},[_c("lucide-icon",{attrs:{name:"x"}})],1):_vm._e()],1),_vm._v(" "),_c("div",{staticClass:"cat-drawer-list"},[_c("button",{staticClass:"cat-drawer-item all","class":{active:!_vm.brand_id},attrs:{type:"button"},on:{click:function click($event){return _vm.selectBrand(null);}}},[_c("span",{staticClass:"cat-drawer-item-icon all"},[_c("lucide-icon",{attrs:{name:"list"}})],1),_vm._v(" "),_c("span",{staticClass:"cat-drawer-item-name"},[_vm._v(_vm._s(_vm.$t("pos.All_Brands")||"All Brands"))]),_vm._v(" "),!_vm.brand_id?_c("lucide-icon",{staticClass:"cat-drawer-item-check",attrs:{name:"check-circle"}}):_vm._e()],1),_vm._v(" "),_vm._l(_vm.filteredBrands,function(b){return _c("button",{key:b.id,staticClass:"cat-drawer-item","class":{active:_vm.brand_id===b.id},attrs:{type:"button"},on:{click:function click($event){return _vm.selectBrand(b.id);}}},[_c("span",{staticClass:"cat-drawer-item-icon",style:{background:_vm.catColor(b.id),color:"#fff"}},[_vm._v(_vm._s(_vm.catInitial(b.name)))]),_vm._v(" "),_c("span",{staticClass:"cat-drawer-item-name"},[_vm._v(_vm._s(b.name))]),_vm._v(" "),_vm.brand_id===b.id?_c("lucide-icon",{staticClass:"cat-drawer-item-check",attrs:{name:"check-circle"}}):_vm._e()],1);}),_vm._v(" "),!_vm.filteredBrands.length&&_vm.brandDrawerSearch?_c("div",{staticClass:"cat-drawer-empty"},[_c("div",{staticClass:"cat-drawer-empty-icon"},[_c("lucide-icon",{attrs:{name:"search"}})],1),_vm._v(" "),_c("div",{staticClass:"cat-drawer-empty-text"},[_vm._v(_vm._s(_vm.$t("No_results")||"No results"))])]):_vm._e()],2)])]):_vm._e()]),_vm._v(" "),_c("transition",{attrs:{name:"wh-drawer"}},[_vm.whDrawerOpen?_c("div",{staticClass:"wh-drawer-backdrop",on:{click:function click($event){if($event.target!==$event.currentTarget)return null;_vm.whDrawerOpen=false;},keydown:function keydown($event){if(!$event.type.indexOf("key")&&_vm._k($event.keyCode,"esc",27,$event.key,["Esc","Escape"]))return null;_vm.whDrawerOpen=false;}}},[_c("aside",{staticClass:"wh-drawer",attrs:{role:"dialog","aria-label":_vm.$t("Warehouses")||"Warehouses"}},[_c("header",{staticClass:"wh-drawer-header"},[_c("button",{staticClass:"wh-drawer-close",attrs:{type:"button","aria-label":_vm.$t("Close")},on:{click:function click($event){_vm.whDrawerOpen=false;}}},[_c("lucide-icon",{attrs:{name:"x"}})],1),_vm._v(" "),_c("div",{staticClass:"wh-drawer-hero-icon"},[_c("lucide-icon",{attrs:{name:"warehouse"}})],1),_vm._v(" "),_c("div",{staticClass:"wh-drawer-hero-text"},[_c("div",{staticClass:"wh-drawer-hero-eyebrow"},[_vm._v(_vm._s(_vm.$t("Locations")||"Locations"))]),_vm._v(" "),_c("div",{staticClass:"wh-drawer-hero-title"},[_vm._v(_vm._s(_vm.$t("Warehouses")||"Warehouses"))]),_vm._v(" "),_c("div",{staticClass:"wh-drawer-hero-sub"},[_vm._v("\n              "+_vm._s(_vm.warehouses.length)+" "+_vm._s(_vm.warehouses.length===1?_vm.$t("warehouse")||"warehouse":_vm.$t("warehouses")||"warehouses")),_vm.sale.warehouse_id?_c("span",[_vm._v(" · "+_vm._s(_vm.$t("Currently_Active")||"1 active"))]):_vm._e()])])]),_vm._v(" "),_c("div",{staticClass:"wh-drawer-search"},[_c("lucide-icon",{attrs:{name:"search"}}),_vm._v(" "),_c("input",{directives:[{name:"model",rawName:"v-model",value:_vm.whDrawerSearch,expression:"whDrawerSearch"}],attrs:{type:"text",placeholder:_vm.$t("Search_Warehouses")||"Search warehouses…"},domProps:{value:_vm.whDrawerSearch},on:{input:function input($event){if($event.target.composing)return;_vm.whDrawerSearch=$event.target.value;}}}),_vm._v(" "),_vm.whDrawerSearch?_c("button",{staticClass:"wh-drawer-search-clear",attrs:{type:"button","aria-label":_vm.$t("Clear")},on:{click:function click($event){_vm.whDrawerSearch="";}}},[_c("lucide-icon",{attrs:{name:"x"}})],1):_vm._e()],1),_vm._v(" "),_c("div",{staticClass:"wh-drawer-list"},[_c("button",{staticClass:"wh-drawer-card wh-drawer-card-clear","class":{active:!_vm.sale.warehouse_id},attrs:{type:"button"},on:{click:function click($event){return _vm.selectWarehouse(null);}}},[_c("div",{staticClass:"wh-drawer-card-icon clear"},[_c("lucide-icon",{attrs:{name:"x-circle"}})],1),_vm._v(" "),_c("div",{staticClass:"wh-drawer-card-body"},[_c("div",{staticClass:"wh-drawer-card-name"},[_vm._v(_vm._s(_vm.$t("No_Warehouse")||"No warehouse"))]),_vm._v(" "),_c("div",{staticClass:"wh-drawer-card-meta"},[_c("span",{staticClass:"wh-drawer-card-hint"},[_vm._v(_vm._s(_vm.$t("Clear_Selection")||"Clear selection"))])])]),_vm._v(" "),_c("div",{staticClass:"wh-drawer-card-arrow"},[!_vm.sale.warehouse_id?_c("lucide-icon",{attrs:{name:"check-circle"}}):_c("lucide-icon",{attrs:{name:"chevron-right"}})],1)]),_vm._v(" "),_vm._l(_vm.filteredWarehouses,function(wh){return _c("button",{key:wh.id,staticClass:"wh-drawer-card","class":{active:_vm.sale.warehouse_id===wh.id},attrs:{type:"button"},on:{click:function click($event){return _vm.selectWarehouse(wh.id);}}},[_c("div",{staticClass:"wh-drawer-card-icon"},[_c("lucide-icon",{attrs:{name:"warehouse"}})],1),_vm._v(" "),_c("div",{staticClass:"wh-drawer-card-body"},[_c("div",{staticClass:"wh-drawer-card-name"},[_vm._v(_vm._s(wh.name))]),_vm._v(" "),_c("div",{staticClass:"wh-drawer-card-meta"},[_c("span",{staticClass:"wh-drawer-card-id"},[_vm._v("#"+_vm._s(wh.id))]),_vm._v(" "),_vm.sale.warehouse_id===wh.id?_c("span",{staticClass:"wh-drawer-card-active-pill"},[_c("span",{staticClass:"wh-drawer-card-active-dot"}),_vm._v("\n                  "+_vm._s(_vm.$t("Active")||"Active")+"\n                ")]):_vm._e()])]),_vm._v(" "),_c("div",{staticClass:"wh-drawer-card-arrow"},[_vm.sale.warehouse_id===wh.id?_c("lucide-icon",{attrs:{name:"check-circle"}}):_c("lucide-icon",{attrs:{name:"chevron-right"}})],1)]);}),_vm._v(" "),!_vm.filteredWarehouses.length&&_vm.whDrawerSearch?_c("div",{staticClass:"wh-drawer-empty"},[_c("div",{staticClass:"wh-drawer-empty-icon"},[_c("lucide-icon",{attrs:{name:"search"}})],1),_vm._v(" "),_c("div",{staticClass:"wh-drawer-empty-text"},[_vm._v(_vm._s(_vm.$t("No_results")||"No results"))])]):!_vm.warehouses.length?_c("div",{staticClass:"wh-drawer-empty"},[_c("div",{staticClass:"wh-drawer-empty-icon"},[_c("lucide-icon",{attrs:{name:"warehouse"}})],1),_vm._v(" "),_c("div",{staticClass:"wh-drawer-empty-text"},[_vm._v(_vm._s(_vm.$t("No_Warehouses")||"No warehouses available"))])]):_vm._e()],2)])]):_vm._e()]),_vm._v(" "),_c("transition",{attrs:{name:"cust-drawer"}},[_vm.custDrawerOpen?_c("div",{staticClass:"cust-drawer-backdrop",on:{click:function click($event){if($event.target!==$event.currentTarget)return null;_vm.custDrawerOpen=false;},keydown:function keydown($event){if(!$event.type.indexOf("key")&&_vm._k($event.keyCode,"esc",27,$event.key,["Esc","Escape"]))return null;_vm.custDrawerOpen=false;}}},[_c("section",{staticClass:"cust-drawer",attrs:{role:"dialog","aria-label":_vm.$t("Select_Customer")||"Select customer"}},[_c("button",{staticClass:"cust-drawer-close",attrs:{type:"button","aria-label":_vm.$t("Close")},on:{click:function click($event){_vm.custDrawerOpen=false;}}},[_c("lucide-icon",{attrs:{name:"x"}})],1),_vm._v(" "),_c("header",{staticClass:"cust-drawer-header"},[_c("div",{staticClass:"cust-drawer-hero-icon"},[_c("lucide-icon",{attrs:{name:"users"}})],1),_vm._v(" "),_c("div",{staticClass:"cust-drawer-hero-text"},[_c("div",{staticClass:"cust-drawer-hero-eyebrow"},[_vm._v(_vm._s(_vm.$t("Customer")||"Customer"))]),_vm._v(" "),_c("div",{staticClass:"cust-drawer-hero-title"},[_vm._v(_vm._s(_vm.$t("Select_Customer")||"Select Customer"))]),_vm._v(" "),_c("div",{staticClass:"cust-drawer-hero-sub"},[_vm._v("\n              "+_vm._s(_vm.filteredCustomers.length)+" / "+_vm._s(_vm.clients.length)+"\n            ")])]),_vm._v(" "),_vm.isQuickAddCustomerEnabled&&_vm.isOnline?_c("button",{staticClass:"cust-drawer-quick-add",attrs:{type:"button"},on:{click:function click($event){_vm.custDrawerOpen=false;_vm.Quick_Add_Client();}}},[_c("lucide-icon",{attrs:{name:"user-plus"}}),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.$t("Quick_Add_Customer")||"Quick add"))])],1):_vm._e()]),_vm._v(" "),_c("div",{staticClass:"cust-drawer-search"},[_c("lucide-icon",{attrs:{name:"search"}}),_vm._v(" "),_c("input",{directives:[{name:"model",rawName:"v-model",value:_vm.custDrawerSearch,expression:"custDrawerSearch"}],ref:"custDrawerSearchInput",attrs:{type:"text",placeholder:_vm.$t("Search_Customers")||"Search by name or phone…"},domProps:{value:_vm.custDrawerSearch},on:{input:function input($event){if($event.target.composing)return;_vm.custDrawerSearch=$event.target.value;}}}),_vm._v(" "),_vm.custDrawerSearch?_c("button",{staticClass:"cust-drawer-search-clear",attrs:{type:"button","aria-label":_vm.$t("Clear")},on:{click:function click($event){_vm.custDrawerSearch="";}}},[_c("lucide-icon",{attrs:{name:"x"}})],1):_vm._e()],1),_vm._v(" "),_c("div",{staticClass:"cust-drawer-list"},[_c("button",{staticClass:"cust-drawer-card cust-drawer-card-clear","class":{active:!_vm.selectedClientId},attrs:{type:"button"},on:{click:function click($event){return _vm.selectCustomer(null);}}},[_c("span",{staticClass:"cust-drawer-card-avatar clear"},[_c("lucide-icon",{attrs:{name:"x-circle"}})],1),_vm._v(" "),_c("span",{staticClass:"cust-drawer-card-body"},[_c("span",{staticClass:"cust-drawer-card-name"},[_vm._v(_vm._s(_vm.$t("No_Customer")||"No customer"))]),_vm._v(" "),_c("span",{staticClass:"cust-drawer-card-meta"},[_c("span",[_vm._v(_vm._s(_vm.$t("Clear_Selection")||"Clear selection"))])])]),_vm._v(" "),!_vm.selectedClientId?_c("span",{staticClass:"cust-drawer-card-check"},[_c("lucide-icon",{attrs:{name:"check"}})],1):_vm._e()]),_vm._v(" "),_vm._l(_vm.filteredCustomers,function(c){return _c("button",{key:c.value,staticClass:"cust-drawer-card","class":{active:_vm.selectedClientId===c.value},attrs:{type:"button"},on:{click:function click($event){return _vm.selectCustomer(c.value);}}},[_c("span",{staticClass:"cust-drawer-card-avatar",style:{background:_vm.catColor(c.value)}},[_vm._v("\n              "+_vm._s(_vm.catInitial(c.name||c.label))+"\n            ")]),_vm._v(" "),_c("span",{staticClass:"cust-drawer-card-body"},[_c("span",{staticClass:"cust-drawer-card-name"},[_vm._v(_vm._s(c.name||c.label))]),_vm._v(" "),c.phone?_c("span",{staticClass:"cust-drawer-card-meta"},[_c("lucide-icon",{attrs:{name:"phone"}}),_vm._v(" "),_c("span",[_vm._v(_vm._s(c.phone))])],1):_vm._e()]),_vm._v(" "),_vm.selectedClientId===c.value?_c("span",{staticClass:"cust-drawer-card-check"},[_c("lucide-icon",{attrs:{name:"check"}})],1):_vm._e()]);}),_vm._v(" "),!_vm.filteredCustomers.length?_c("div",{staticClass:"cust-drawer-empty"},[_c("div",{staticClass:"cust-drawer-empty-icon"},[_c("lucide-icon",{attrs:{name:"users"}})],1),_vm._v(" "),_c("div",{staticClass:"cust-drawer-empty-text"},[_vm._v("\n              "+_vm._s(_vm.custDrawerSearch?_vm.$t("No_results")||"No results":_vm.$t("No_Customers")||"No customers")+"\n            ")])]):_vm._e()],2)])]):_vm._e()])],1);};var staticRenderFns=[function(){var _vm=this,_c=_vm._self._c;return _c("div",{staticClass:"typo__p"},[_c("div",{staticClass:"spinner sm spinner-primary mt-3"})]);}];render._withStripped=true;
+var render=function render(){var _vm=this,_c=_vm._self._c;return _c("div",{staticClass:"pos-codecanyon",staticStyle:{display:"flex","flex-direction":"column",height:"100vh",background:"#f7f7fb",color:"#1f1f2c","font-family":"'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif","-webkit-font-smoothing":"antialiased",overflow:"hidden"}},[_vm.productsReady?_c("nav",{staticClass:"pos-shell-header",staticStyle:{display:"flex","align-items":"center",gap:"8px",padding:"0 16px","flex-shrink":"0","flex-grow":"0","border-bottom":"1px solid #e6e6ec",background:"#ffffff"}},[_c("div",{staticClass:"pos-shell-brand-block",staticStyle:{display:"flex","align-items":"center",gap:"10px","padding-right":"12px","border-right":"1px solid #e6e6ec",height:"32px"}},[_c("div",{staticClass:"pos-shell-brand-mark",staticStyle:{width:"28px",height:"28px","border-radius":"8px",background:"transparent",display:"grid","place-items":"center",color:"#1f1f2c","font-weight":"700","font-size":"13px","font-family":"'JetBrains Mono', monospace",overflow:"hidden","flex-shrink":"0"}},[_vm.currentUser&&_vm.currentUser.logo?_c("img",{staticStyle:{width:"100%",height:"100%","object-fit":"cover"},attrs:{src:_vm.$imgUrl("settings",_vm.currentUser.logo),alt:"logo"}}):_c("span",[_vm._v(_vm._s(_vm.currentUser&&_vm.currentUser.company?_vm.currentUser.company[0]||"P":"P"))])])]),_vm._v(" "),_vm.registerEnabled?_c("div",{staticClass:"pos-shell-register-status",staticStyle:{display:"inline-flex","align-items":"center",gap:"10px"}},[_c("div",{staticStyle:{"font-size":"13px","font-weight":"600",color:"#1f1f2c","white-space":"nowrap"}},[_vm._v("\n        "+_vm._s(_vm.$t("Register")||"Register")),_vm.currentRegister&&_vm.currentRegister.id?_c("span",[_vm._v(" #"+_vm._s(_vm.currentRegister.id))]):_vm._e()]),_vm._v(" "),_vm.isOnline?_c("button",{staticClass:"pos-shell-register-pill",staticStyle:{display:"inline-flex","align-items":"center",gap:"6px",padding:"4px 8px","border-radius":"6px","font-size":"11px","font-weight":"600","font-family":"inherit","text-transform":"uppercase",cursor:"pointer",border:"0"},style:{background:_vm.currentRegister&&_vm.currentRegister.status==="open"?"#eaf7ef":"#fdecec",color:_vm.currentRegister&&_vm.currentRegister.status==="open"?"#1e7a44":"#a83232"},attrs:{type:"button",title:_vm.currentRegister&&_vm.currentRegister.status==="open"?_vm.$t("Close Register"):_vm.$t("Open Register")},on:{click:function click($event){_vm.currentRegister&&_vm.currentRegister.status==="open"?_vm.$bvModal.show("CloseRegisterModal"):_vm.$bvModal.show("OpenRegisterModal");}}},[_c("span",{staticStyle:{width:"6px",height:"6px","border-radius":"99px",background:"currentColor"}}),_vm._v(" "),_vm.currentRegister&&_vm.currentRegister.status==="open"?_c("span",[_vm._v("OPEN")]):_c("span",[_vm._v("CLOSED")])]):_vm._e()]):_vm._e(),_vm._v(" "),_c("div",{staticClass:"pos-wh-trigger","class":{"is-active":_vm.sale.warehouse_id},attrs:{role:"button",tabindex:"0",title:_vm.$t("Select_Warehouse")},on:{click:function click($event){_vm.whDrawerOpen=true;},keydown:[function($event){if(!$event.type.indexOf("key")&&_vm._k($event.keyCode,"enter",13,$event.key,"Enter"))return null;$event.preventDefault();_vm.whDrawerOpen=true;},function($event){if(!$event.type.indexOf("key")&&_vm._k($event.keyCode,"space",32,$event.key,[" ","Spacebar"]))return null;$event.preventDefault();_vm.whDrawerOpen=true;}]}},[_c("span",{staticClass:"pos-wh-trigger-icon"},[_c("lucide-icon",{attrs:{name:"warehouse"}}),_vm._v(" "),_vm.sale.warehouse_id?_c("span",{staticClass:"pos-wh-trigger-icon-pulse"}):_vm._e()],1),_vm._v(" "),_c("span",{staticClass:"pos-wh-trigger-body"},[_c("span",{staticClass:"pos-wh-trigger-eyebrow"},[_vm._v(_vm._s(_vm.$t("Warehouse")||"Warehouse"))]),_vm._v(" "),_c("span",{staticClass:"pos-wh-trigger-label"},[_vm._v(_vm._s(_vm.selectedWarehouseLabel))])]),_vm._v(" "),_c("lucide-icon",{staticClass:"pos-wh-trigger-caret",attrs:{name:"chevron-down"}})],1),_vm._v(" "),_vm.pos_settings.show_categories&&_vm.isOnline?_c("div",{staticClass:"pos-cat-trigger","class":{"is-active":_vm.category_id},attrs:{role:"button",tabindex:"0",title:_vm.$t("pos.All_Categories")},on:{click:function click($event){_vm.catDrawerOpen=true;},keydown:[function($event){if(!$event.type.indexOf("key")&&_vm._k($event.keyCode,"enter",13,$event.key,"Enter"))return null;$event.preventDefault();_vm.catDrawerOpen=true;},function($event){if(!$event.type.indexOf("key")&&_vm._k($event.keyCode,"space",32,$event.key,[" ","Spacebar"]))return null;$event.preventDefault();_vm.catDrawerOpen=true;}]}},[_c("span",{staticClass:"pos-cat-trigger-icon"},[_c("lucide-icon",{attrs:{name:"folder"}})],1),_vm._v(" "),_c("span",{staticClass:"pos-cat-trigger-label"},[_vm._v(_vm._s(_vm.selectedCategoryLabel))]),_vm._v(" "),_vm.category_id?_c("span",{staticClass:"pos-cat-trigger-clear",attrs:{role:"button",tabindex:"0",title:_vm.$t("Clear")},on:{click:function click($event){$event.stopPropagation();return _vm.selectCategory(null);},keydown:[function($event){if(!$event.type.indexOf("key")&&_vm._k($event.keyCode,"enter",13,$event.key,"Enter"))return null;$event.stopPropagation();$event.preventDefault();return _vm.selectCategory(null);},function($event){if(!$event.type.indexOf("key")&&_vm._k($event.keyCode,"space",32,$event.key,[" ","Spacebar"]))return null;$event.stopPropagation();$event.preventDefault();return _vm.selectCategory(null);}]}},[_c("lucide-icon",{attrs:{name:"x"}})],1):_c("lucide-icon",{staticClass:"pos-cat-trigger-caret",attrs:{name:"chevron-down"}})],1):_vm._e(),_vm._v(" "),_vm.pos_settings.show_brands&&_vm.isOnline?_c("div",{staticClass:"pos-cat-trigger pos-brand-trigger","class":{"is-active":_vm.brand_id},attrs:{role:"button",tabindex:"0",title:_vm.$t("pos.All_Brands")},on:{click:function click($event){_vm.brandDrawerOpen=true;},keydown:[function($event){if(!$event.type.indexOf("key")&&_vm._k($event.keyCode,"enter",13,$event.key,"Enter"))return null;$event.preventDefault();_vm.brandDrawerOpen=true;},function($event){if(!$event.type.indexOf("key")&&_vm._k($event.keyCode,"space",32,$event.key,[" ","Spacebar"]))return null;$event.preventDefault();_vm.brandDrawerOpen=true;}]}},[_c("span",{staticClass:"pos-cat-trigger-icon"},[_c("lucide-icon",{attrs:{name:"tag"}})],1),_vm._v(" "),_c("span",{staticClass:"pos-cat-trigger-label"},[_vm._v(_vm._s(_vm.selectedBrandLabel))]),_vm._v(" "),_vm.brand_id?_c("span",{staticClass:"pos-cat-trigger-clear",attrs:{role:"button",tabindex:"0",title:_vm.$t("Clear")},on:{click:function click($event){$event.stopPropagation();return _vm.selectBrand(null);},keydown:[function($event){if(!$event.type.indexOf("key")&&_vm._k($event.keyCode,"enter",13,$event.key,"Enter"))return null;$event.stopPropagation();$event.preventDefault();return _vm.selectBrand(null);},function($event){if(!$event.type.indexOf("key")&&_vm._k($event.keyCode,"space",32,$event.key,[" ","Spacebar"]))return null;$event.stopPropagation();$event.preventDefault();return _vm.selectBrand(null);}]}},[_c("lucide-icon",{attrs:{name:"x"}})],1):_c("lucide-icon",{staticClass:"pos-cat-trigger-caret",attrs:{name:"chevron-down"}})],1):_vm._e(),_vm._v(" "),_c("div",{staticStyle:{flex:"1"}}),_vm._v(" "),_c("div",{staticClass:"pos-cust-trigger","class":{"is-active":_vm.selectedClientId},attrs:{role:"button",tabindex:"0",title:_vm.$t("Select_Customer")},on:{click:function click($event){_vm.custDrawerOpen=true;},keydown:[function($event){if(!$event.type.indexOf("key")&&_vm._k($event.keyCode,"enter",13,$event.key,"Enter"))return null;$event.preventDefault();_vm.custDrawerOpen=true;},function($event){if(!$event.type.indexOf("key")&&_vm._k($event.keyCode,"space",32,$event.key,[" ","Spacebar"]))return null;$event.preventDefault();_vm.custDrawerOpen=true;}]}},[_c("span",{staticClass:"pos-cust-trigger-avatar",style:_vm.selectedClientId?{background:_vm.catColor(_vm.selectedClientId)}:{}},[_vm.selectedClientId?_c("span",[_vm._v(_vm._s(_vm.catInitial(_vm.selectedCustomerLabel)))]):_c("lucide-icon",{attrs:{name:"user"}})],1),_vm._v(" "),_c("span",{staticClass:"pos-cust-trigger-body"},[_c("span",{staticClass:"pos-cust-trigger-eyebrow"},[_vm._v(_vm._s(_vm.$t("Customer")||"Customer"))]),_vm._v(" "),_c("span",{staticClass:"pos-cust-trigger-label"},[_vm._v(_vm._s(_vm.selectedCustomerLabel))])]),_vm._v(" "),_c("lucide-icon",{staticClass:"pos-cust-trigger-caret",attrs:{name:"chevron-down"}})],1),_vm._v(" "),_vm.isQuickAddCustomerEnabled&&_vm.isOnline?_c("button",{staticClass:"pos-shell-icon-btn",staticStyle:{width:"32px",height:"32px","border-radius":"8px",border:"1px solid #ece9fb",background:"#f5f3fd",color:"#6f53d9",display:"inline-flex","align-items":"center","justify-content":"center",padding:"0",cursor:"pointer",transition:"all 120ms ease"},attrs:{title:_vm.$t("Quick_Add_Customer")},on:{click:_vm.Quick_Add_Client}},[_c("lucide-icon",{staticStyle:{"font-size":"15px"},attrs:{name:"user-plus"}})],1):_vm._e(),_vm._v(" "),_c("div",{staticStyle:{width:"1px",height:"24px",background:"#e6e6ec",margin:"0 4px"}}),_vm._v(" "),_vm.isOnline?_c("button",{staticClass:"pos-shell-icon-btn",staticStyle:{width:"32px",height:"32px","border-radius":"8px",border:"1px solid #e6e6ec",background:"#ffffff",color:"#54546a",display:"inline-flex","align-items":"center","justify-content":"center",padding:"0",cursor:"pointer",transition:"all 120ms ease"},attrs:{title:_vm.$t("Today_Sales")},on:{click:_vm.get_today_sales}},[_c("lucide-icon",{staticStyle:{"font-size":"15px"},attrs:{name:"receipt"}})],1):_vm._e(),_vm._v(" "),_vm.isOnline&&_vm.currentUserPermissions&&_vm.currentUserPermissions.includes("Sale_Returns_add")?_c("button",{staticClass:"pos-shell-icon-btn pos-shell-return-btn",staticStyle:{width:"32px",height:"32px","border-radius":"8px",border:"1px solid #e6e6ec",background:"#ffffff",color:"#54546a",display:"inline-flex","align-items":"center","justify-content":"center",padding:"0",cursor:"pointer",transition:"all 120ms ease"},attrs:{title:_vm.$t("POS_Return")||"Product Return"},on:{click:_vm.openReturnModal}},[_c("lucide-icon",{staticStyle:{"font-size":"15px"},attrs:{name:"undo"}})],1):_vm._e(),_vm._v(" "),!_vm.isOnline||_vm.offlineSalesCount>0?_c("button",{staticClass:"pos-shell-icon-btn",style:{width:"32px",height:"32px",borderRadius:"8px",border:"1px solid "+(!_vm.isOnline?"#fecaca":"#e6e6ec"),background:!_vm.isOnline?"#fef2f2":"#ffffff",color:!_vm.isOnline?"#a83232":"#54546a",display:"inline-flex",alignItems:"center",justifyContent:"center",padding:0,cursor:"pointer",position:"relative"},attrs:{title:_vm.offlineStatusTitle},on:{click:_vm.syncOfflineSales}},[_c("lucide-icon",{staticStyle:{"font-size":"15px"},attrs:{name:"cloud"}}),_vm._v(" "),_vm.offlineSalesCount>0?_c("span",{staticStyle:{position:"absolute",top:"-4px",right:"-4px","min-width":"16px",height:"16px",padding:"0 4px",background:"#d64545",color:"#fff","font-size":"10px","font-weight":"700","border-radius":"99px",display:"inline-flex","align-items":"center","justify-content":"center","font-family":"'JetBrains Mono', monospace"}},[_vm._v(_vm._s(_vm.offlineSalesCount))]):_vm._e()],1):_vm._e(),_vm._v(" "),_vm.currentUserPermissions&&_vm.currentUserPermissions.includes("pos_settings")&&_vm.isOnline?_c("button",{staticClass:"pos-shell-icon-btn pos-shell-settings-btn",staticStyle:{width:"32px",height:"32px","border-radius":"8px",border:"1px solid #e6e6ec",background:"#ffffff",color:"#54546a",display:"inline-flex","align-items":"center","justify-content":"center",padding:"0"},attrs:{type:"button",title:_vm.$t("Pos_Settings")},on:{click:_vm.open_pos_settings_modal}},[_c("lucide-icon",{staticStyle:{"font-size":"15px"},attrs:{name:"settings"}})],1):_vm._e(),_vm._v(" "),_vm.show_language&&_vm.isOnline?_c("b-dropdown",{attrs:{id:"lang-dd",right:"",offset:"8",boundary:"window","toggle-class":"dropdown-toggle-no-caret p-0 bg-transparent border-0","menu-class":"pos-shell-dropdown-menu","no-caret":"",variant:"link"},scopedSlots:_vm._u([{key:"button-content",fn:function fn(){return[_c("span",{staticStyle:{width:"32px",height:"32px","border-radius":"8px",border:"1px solid #e6e6ec",background:"#ffffff",color:"#54546a",display:"inline-flex","align-items":"center","justify-content":"center"},attrs:{title:_vm.$t("Languages")||"Languages"}},[_c("lucide-icon",{staticStyle:{"font-size":"15px"},attrs:{name:"globe"}})],1)];},proxy:true}],null,false,3662148854)},[_vm._v(" "),_c("div",{staticStyle:{display:"grid","grid-template-columns":"repeat(2, 1fr)",gap:"4px",padding:"8px","min-width":"220px"}},_vm._l(_vm.languages_available,function(lang){return _c("button",{key:lang.locale,staticStyle:{display:"flex","align-items":"center",gap:"8px",padding:"6px 8px",background:"transparent",border:"0","border-radius":"6px",cursor:"pointer",color:"#1f1f2c","font-size":"12px","text-align":"left"},on:{click:function click($event){return _vm.SetLocal(lang.locale);}}},[_c("img",{staticStyle:{width:"18px",height:"18px","border-radius":"99px","object-fit":"cover"},attrs:{src:"/flags/".concat(lang.flag),alt:lang.name}}),_vm._v(" "),_c("span",[_vm._v(_vm._s(lang.name))])]);}),0)]):_vm._e(),_vm._v(" "),_c("b-dropdown",{attrs:{id:"display-screen-dd",right:"",offset:"8",boundary:"window","toggle-class":"dropdown-toggle-no-caret p-0 bg-transparent border-0","menu-class":"pos-shell-dropdown-menu","no-caret":"",variant:"link"},scopedSlots:_vm._u([{key:"button-content",fn:function fn(){return[_c("span",{staticStyle:{width:"32px",height:"32px","border-radius":"8px",border:"1px solid #e6e6ec",background:"#ffffff",color:"#54546a",display:"inline-flex","align-items":"center","justify-content":"center"},attrs:{title:_vm.$t("Display")}},[_c("lucide-icon",{staticStyle:{"font-size":"15px"},attrs:{name:"monitor"}})],1)];},proxy:true}],null,false,2371902051)},[_vm._v(" "),_c("div",{staticStyle:{padding:"6px","min-width":"160px"}},_vm._l(_vm.customerDisplayScreenOptions,function(opt){return _c("button",{key:opt.value,style:{display:"block",width:"100%",textAlign:"left",padding:"6px 10px",fontSize:"12px",borderRadius:"6px",background:_vm.customer_display_screen_id===opt.value?"#f5f3fd":"transparent",color:_vm.customer_display_screen_id===opt.value?"#6f53d9":"#1f1f2c",border:0,cursor:"pointer"},attrs:{type:"button"},on:{click:function click($event){return _vm.onCustomerDisplayScreenChange(opt.value);}}},[_vm._v("\n          "+_vm._s(opt.label)+"\n        ")]);}),0)]),_vm._v(" "),_c("button",{staticClass:"pos-shell-icon-btn pos-shell-calc-btn",staticStyle:{width:"32px",height:"32px","border-radius":"8px",border:"1px solid #e6e6ec",background:"#ffffff",color:"#54546a",display:"inline-flex","align-items":"center","justify-content":"center",padding:"0",cursor:"pointer",transition:"all 120ms ease"},attrs:{title:_vm.$t("Calculator")||"Calculator"},on:{click:_vm.openCalculator}},[_c("lucide-icon",{staticStyle:{"font-size":"15px"},attrs:{name:"calculator"}})],1),_vm._v(" "),_c("button",{staticClass:"pos-shell-icon-btn",staticStyle:{width:"32px",height:"32px","border-radius":"8px",border:"1px solid #e6e6ec",background:"#ffffff",color:"#54546a",display:"inline-flex","align-items":"center","justify-content":"center",padding:"0",cursor:"pointer"},attrs:{title:_vm.$t("Fullscreen")},on:{click:_vm.handleFullScreen}},[_c("lucide-icon",{staticStyle:{"font-size":"15px"},attrs:{name:"maximize"}})],1),_vm._v(" "),_c("div",{staticStyle:{width:"1px",height:"24px",background:"#e6e6ec",margin:"0 4px"}}),_vm._v(" "),_c("div",{staticClass:"pos-shell-user-dd-wrapper",staticStyle:{display:"inline-flex"}},[_c("b-dropdown",{attrs:{id:"user-dd",right:"","toggle-class":"dropdown-toggle-no-caret p-0 bg-transparent border-0","no-caret":"",variant:"link"},scopedSlots:_vm._u([{key:"button-content",fn:function fn(){return[_vm.currentUser&&_vm.currentUser.avatar?_c("img",{staticStyle:{width:"32px",height:"32px","border-radius":"99px","object-fit":"cover",display:"block"},attrs:{src:"/images/avatar/"+_vm.currentUser.avatar,alt:"avatar"}}):_c("div",{staticStyle:{width:"32px",height:"32px","border-radius":"99px",background:"linear-gradient(135deg, #6f53d9, #b65cd6)",color:"#fff",display:"inline-flex","align-items":"center","justify-content":"center","font-size":"13px","font-weight":"600"}},[_vm._v(_vm._s(_vm.currentUser&&_vm.currentUser.name?_vm.currentUser.name.charAt(0).toUpperCase():"U"))])];},proxy:true}],null,false,2451024223)},[_vm._v(" "),_c("div",{staticStyle:{padding:"6px","min-width":"200px"}},[_c("div",{staticStyle:{padding:"8px 10px","font-size":"12px",color:"#8d8da0",display:"flex","align-items":"center",gap:"6px"}},[_c("lucide-icon",{attrs:{name:"lock"}}),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.currentUser&&(_vm.currentUser.username||_vm.currentUser.name)))])],1),_vm._v(" "),_c("router-link",{staticStyle:{display:"block",padding:"8px 10px","font-size":"13px",color:"#1f1f2c","border-radius":"6px","text-decoration":"none"},attrs:{to:"/app/profile"}},[_vm._v(_vm._s(_vm.$t("profil")))]),_vm._v(" "),_vm.currentUserPermissions&&_vm.currentUserPermissions.includes("setting_system")?_c("router-link",{staticStyle:{display:"block",padding:"8px 10px","font-size":"13px",color:"#1f1f2c","border-radius":"6px","text-decoration":"none"},attrs:{to:"/app/settings/System_settings"}},[_vm._v(_vm._s(_vm.$t("Settings")))]):_vm._e(),_vm._v(" "),_c("a",{staticStyle:{display:"block",padding:"8px 10px","font-size":"13px",color:"#d64545","border-radius":"6px","text-decoration":"none"},attrs:{href:"#"},on:{click:function click($event){$event.preventDefault();return _vm.logoutUser.apply(null,arguments);}}},[_vm._v(_vm._s(_vm.$t("logout")))])],1)])],1)],1):_c("div",{staticStyle:{flex:"1",display:"grid","place-items":"center",background:"#f7f7fb"}},[_c("div",{staticStyle:{"text-align":"center"}},[_c("div",{staticClass:"spinner lg spinner-primary"}),_vm._v(" "),_c("div",{staticStyle:{"margin-top":"8px",color:"#54546a","font-size":"13px"}},[_vm._v(_vm._s(_vm.$t("Loading"))+"...")])])]),_vm._v(" "),_vm.productsReady?_c("div",{staticClass:"pos-shell-main",staticStyle:{flex:"1 1 auto",display:"flex","flex-direction":"row","align-items":"stretch","min-height":"0",overflow:"hidden"}},[_c("aside",{staticClass:"pos-shell-cart-aside","class":{"is-resizing":_vm.cartAsideResizing},staticStyle:{display:"grid","grid-template-rows":"1fr auto","border-right":"1px solid #e6e6ec",background:"#ffffff","min-height":"0",overflow:"hidden"},style:{"--pos-cart-w":_vm.cartAsideWidth+"px"}},[_c("div",{staticClass:"pos-shell-mobile-cart-header"},[_c("svg",{staticStyle:{width:"16px",height:"16px",color:"#6f53d9"},attrs:{viewBox:"0 0 24 24",fill:"none",stroke:"currentColor","stroke-width":"2","stroke-linecap":"round","stroke-linejoin":"round"}},[_c("circle",{attrs:{cx:"9",cy:"21",r:"1"}}),_c("circle",{attrs:{cx:"20",cy:"21",r:"1"}}),_c("path",{attrs:{d:"M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"}})]),_vm._v(" "),_c("span",{staticClass:"pos-shell-mobile-cart-title"},[_vm._v(_vm._s(_vm.$t("pos.Cart")||"Cart")+" ("+_vm._s(_vm.details.length)+" "+_vm._s(_vm.$t("pos.items")||"items")+")")])]),_vm._v(" "),_c("div",{staticClass:"pos-shell-cart-scroll",staticStyle:{"overflow-y":"auto","overflow-x":"hidden",padding:"8px","min-height":"0",height:"100%"}},[_c("div",{staticClass:"pos-cart-header"},[_c("div",{staticClass:"pos-cart-header-left"},[_c("span",{staticClass:"pos-cart-header-icon"},[_c("lucide-icon",{attrs:{name:"shopping-cart"}})],1),_vm._v(" "),_c("div",{staticClass:"pos-cart-header-text"},[_c("div",{staticClass:"pos-cart-header-title"},[_vm._v(_vm._s(_vm.$t("Current_Cart")||"Current Cart"))]),_vm._v(" "),_c("div",{staticClass:"pos-cart-header-sub"},[_vm._v("\n                "+_vm._s(_vm.details.length)+" "+_vm._s(_vm.details.length===1?_vm.$t("item")||"item":_vm.$t("items")||"items")+"\n              ")])])]),_vm._v(" "),_c("div",{staticClass:"pos-cart-header-right"},[_c("div",{staticClass:"pos-cart-header-total"},[_c("span",{staticClass:"pos-cart-header-total-label"},[_vm._v(_vm._s(_vm.$t("Total")||"Total"))]),_vm._v(" "),_c("span",{staticClass:"pos-cart-header-total-value"},[_vm._v("\n                "+_vm._s(_vm.formatPriceWithCurrentCurrency(_vm.GrandTotal||0,2))+"\n              ")])]),_vm._v(" "),_c("button",{staticClass:"pos-cart-header-clear-btn","class":{"is-disabled":!_vm.details.length},attrs:{type:"button",disabled:!_vm.details.length,title:_vm.$t("pos.Clear_all_items")||"Clear cart"},on:{click:_vm.Reset_Pos}},[_c("lucide-icon",{attrs:{name:"trash-2"}})],1)])]),_vm._v(" "),_vm.details.length===0?_c("div",{staticClass:"pos-shell-empty-state",staticStyle:{padding:"32px 16px","text-align":"center",color:"#8d8da0"}},[_c("svg",{staticStyle:{width:"32px",height:"32px",opacity:"0.3",margin:"0 auto 8px"},attrs:{viewBox:"0 0 20 20",fill:"none",stroke:"currentColor","stroke-width":"1.5","stroke-linecap":"round","stroke-linejoin":"round"}},[_c("path",{attrs:{d:"M3 4h2l2 9h9l1.5-6H6"}}),_c("circle",{attrs:{cx:"8",cy:"16.5",r:"1"}}),_c("circle",{attrs:{cx:"15",cy:"16.5",r:"1"}})]),_vm._v(" "),_c("div",{staticClass:"pos-shell-empty-title",staticStyle:{"font-size":"13px","font-weight":"500","margin-bottom":"4px",color:"#54546a"}},[_vm._v(_vm._s(_vm.$t("pos.No_items_added")||"Cart is empty"))]),_vm._v(" "),_c("div",{staticClass:"pos-shell-empty-desc",staticStyle:{"font-size":"11px",color:"#8d8da0"}},[_vm._v(_vm._s(_vm.$t("pos.Select_products_from_right_panel")||"Scan or click a product to begin"))])]):_c("div",{staticStyle:{display:"flex","flex-direction":"column"}},_vm._l(_vm.details,function(item,index){return _c("div",{key:index,staticClass:"pos-shell-cart-row",staticStyle:{display:"grid","grid-template-columns":"32px 1fr auto",gap:"8px",padding:"6px 8px","border-radius":"8px","margin-bottom":"2px",transition:"background 120ms ease"}},[_c("div",{staticClass:"pos-shell-cart-thumb",staticStyle:{width:"32px",height:"32px","border-radius":"6px","align-self":"center",display:"grid","place-items":"center","font-family":"'JetBrains Mono', monospace","font-weight":"700","font-size":"10px",color:"rgba(31,31,44,0.55)","letter-spacing":"0.02em","text-transform":"uppercase"},style:{background:_vm.pos_settings.show_product_images&&item.image?"#ffffff":"repeating-linear-gradient(135deg, #ece9fb, #ece9fb 6px, #f5f3fd 6px, #f5f3fd 12px)",backgroundImage:_vm.pos_settings.show_product_images&&item.image?"url("+_vm.resolveProductImage(item.image)+")":null,backgroundRepeat:"no-repeat",backgroundPosition:"center",backgroundSize:"contain",border:_vm.pos_settings.show_product_images&&item.image?"1px solid #e6e6ec":"0"}},[!(_vm.pos_settings.show_product_images&&item.image)?_c("span",[_vm._v("\n                "+_vm._s((item.name||"P").split(/[ ·]/).filter(Boolean).slice(0,2).map(function(w){return w[0];}).join(""))+"\n              ")]):_vm._e()]),_vm._v(" "),_c("div",{staticClass:"pos-shell-cart-body",staticStyle:{"min-width":"0",display:"flex","flex-direction":"column","justify-content":"center",gap:"2px"}},[_c("div",{staticClass:"pos-shell-cart-name",staticStyle:{"font-size":"13px","font-weight":"600",color:"#1f1f2c","line-height":"1.2","white-space":"nowrap",overflow:"hidden","text-overflow":"ellipsis"}},[_vm._v(_vm._s(item.name))]),_vm._v(" "),item.code?_c("div",{staticClass:"pos-shell-cart-sku",staticStyle:{"font-size":"10px",color:"#8d8da0","font-family":"'JetBrains Mono', monospace","letter-spacing":"0.02em","white-space":"nowrap",overflow:"hidden","text-overflow":"ellipsis"}},[_vm._v("SKU · "+_vm._s(item.code))]):_vm._e(),_vm._v(" "),item.is_jewelry_item?_c("div",{staticClass:"pos-shell-cart-jewelry",staticStyle:{"font-size":"10px",color:"#8d6a1e",background:"#fdf6e8","border-radius":"5px",padding:"3px 6px","margin-top":"2px","line-height":"1.5"}},[_c("div",[item.metal_type?_c("span",[_vm._v(_vm._s(item.metal_type))]):_vm._e(),_vm._v(" "),item.karat?_c("span",[_vm._v(" · "+_vm._s(item.karat))]):_vm._e(),_vm._v(" "),item.jewelry_gross_weight?_c("span",[_vm._v(" · Gross "+_vm._s(_vm.formatNumber(item.jewelry_gross_weight,3))+_vm._s(item.jewelry_weight_uom))]):_vm._e(),_vm._v(" "),item.jewelry_pricing_breakdown&&item.jewelry_pricing_breakdown.metal_weight?_c("span",[_vm._v(" · Metal "+_vm._s(_vm.formatNumber(item.jewelry_pricing_breakdown.metal_weight,3))+_vm._s(item.jewelry_weight_uom))]):_vm._e(),_vm._v(" "),item.stone_summary?_c("span",[_vm._v(" · "+_vm._s(item.stone_summary))]):_vm._e()]),_vm._v(" "),item.jewelry_pricing_breakdown?_c("div",[item.jewelry_pricing_breakdown.gold_rate?_c("span",[_vm._v("Rate "+_vm._s(_vm.formatPriceWithCurrentCurrency(item.jewelry_pricing_breakdown.gold_rate,2)))]):_vm._e(),_vm._v(" "),item.jewelry_pricing_breakdown.metal_value?_c("span",[_vm._v(" · Metal Value "+_vm._s(_vm.formatPriceWithCurrentCurrency(item.jewelry_pricing_breakdown.metal_value,2)))]):_vm._e(),_vm._v(" "),item.jewelry_pricing_breakdown.making_charge?_c("span",[_vm._v(" · Making "+_vm._s(_vm.formatPriceWithCurrentCurrency(item.jewelry_pricing_breakdown.making_charge,2)))]):_vm._e(),_vm._v(" "),item.jewelry_pricing_breakdown.wastage?_c("span",[_vm._v(" · Wastage "+_vm._s(_vm.formatPriceWithCurrentCurrency(item.jewelry_pricing_breakdown.wastage,2)))]):_vm._e(),_vm._v(" "),item.jewelry_pricing_breakdown.stone_value?_c("span",[_vm._v(" · Stones "+_vm._s(_vm.formatPriceWithCurrentCurrency(item.jewelry_pricing_breakdown.stone_value,2)))]):_vm._e(),_vm._v(" "),item.jewelry_pricing_breakdown.discount?_c("span",[_vm._v(" · Discount "+_vm._s(_vm.formatPriceWithCurrentCurrency(item.jewelry_pricing_breakdown.discount,2)))]):_vm._e(),_vm._v(" "),item.jewelry_pricing_breakdown.tax?_c("span",[_vm._v(" · Tax "+_vm._s(_vm.formatPriceWithCurrentCurrency(item.jewelry_pricing_breakdown.tax,2)))]):_vm._e()]):_vm._e()]):_vm._e(),_vm._v(" "),_c("div",{staticClass:"pos-shell-cart-controls",staticStyle:{display:"flex","align-items":"center",gap:"8px","margin-top":"2px"}},[_c("div",{staticClass:"pos-shell-cart-stepper",staticStyle:{display:"inline-flex","align-items":"center",border:"1px solid #e6e6ec","border-radius":"5px",height:"24px",background:"#ffffff","flex-shrink":"0"}},[_c("button",{staticStyle:{width:"22px",height:"22px",background:"transparent",border:"0",color:"#54546a","font-size":"14px",cursor:"pointer",padding:"0"},attrs:{title:_vm.$t("pos.Decrease")},on:{click:function click($event){return _vm.decrement(item,item.detail_id);}}},[_vm._v("−")]),_vm._v(" "),_c("input",{directives:[{name:"model",rawName:"v-model.number",value:item.quantity,expression:"item.quantity",modifiers:{number:true}}],staticStyle:{width:"32px",height:"100%",border:"0","text-align":"center","font-size":"12px","font-family":"'JetBrains Mono', monospace",background:"transparent",color:"#1f1f2c",outline:"none",padding:"0"},attrs:{type:"text"},domProps:{value:item.quantity},on:{change:function change($event){return _vm.Verified_Qty(item,item.detail_id);},input:function input($event){if($event.target.composing)return;_vm.$set(item,"quantity",_vm._n($event.target.value));},blur:function blur($event){return _vm.$forceUpdate();}}}),_vm._v(" "),_c("button",{staticStyle:{width:"22px",height:"22px",background:"transparent",border:"0",color:"#54546a","font-size":"14px",cursor:"pointer",padding:"0"},attrs:{title:_vm.$t("pos.Increase")},on:{click:function click($event){return _vm.increment(item.detail_id);}}},[_vm._v("+")])]),_vm._v(" "),_c("span",{staticClass:"pos-shell-cart-unit",staticStyle:{"font-size":"12px",color:"#54546a","font-weight":"500","font-family":"'JetBrains Mono', monospace","white-space":"nowrap"}},[_vm._v("× "+_vm._s(_vm.formatPriceWithCurrentCurrency(item.Total_price,2)))]),_vm._v(" "),_c("select",{directives:[{name:"model",rawName:"v-model",value:item.price_type,expression:"item.price_type"}],staticClass:"pos-shell-cart-select",staticStyle:{height:"24px",padding:"0 6px","font-size":"11px","font-weight":"500",border:"1px solid #d8d8e0","border-radius":"5px",background:"#ffffff",color:"#1f1f2c",outline:"none",cursor:"pointer","flex-shrink":"0"},on:{change:[function($event){var $$selectedVal=Array.prototype.filter.call($event.target.options,function(o){return o.selected;}).map(function(o){var val="_value"in o?o._value:o.value;return val;});_vm.$set(item,"price_type",$event.target.multiple?$$selectedVal:$$selectedVal[0]);},function($event){return _vm.onChangePriceType(item);}]}},[_c("option",{attrs:{value:"retail"}},[_vm._v(_vm._s(_vm.$t("Retail Price")))]),_vm._v(" "),_c("option",{attrs:{value:"wholesale"}},[_vm._v(_vm._s(_vm.$t("Wholesale Price")))])]),_vm._v(" "),item.packs&&item.packs.length?_c("select",{directives:[{name:"model",rawName:"v-model",value:item.product_pack_id,expression:"item.product_pack_id"}],staticClass:"pos-shell-cart-select pos-shell-cart-pack-select",staticStyle:{height:"24px",padding:"0 6px","font-size":"11px","font-weight":"500",border:"1px solid #d8d8e0","border-radius":"5px",background:"#ffffff",color:"#1f1f2c",outline:"none",cursor:"pointer","flex-shrink":"0"},attrs:{title:_vm.$t("Pack")},on:{change:[function($event){var $$selectedVal=Array.prototype.filter.call($event.target.options,function(o){return o.selected;}).map(function(o){var val="_value"in o?o._value:o.value;return val;});_vm.$set(item,"product_pack_id",$event.target.multiple?$$selectedVal:$$selectedVal[0]);},function($event){return _vm.onChangePack(item);}]}},_vm._l(item.packs,function(pack){return _c("option",{key:"pk-"+item.detail_id+"-"+pack.id,attrs:{disabled:!_vm.isOversellingAllowed&&item.product_type!=="is_service"&&Number(pack.multiplier)>1&&Number(pack.multiplier)>Number(item.current)},domProps:{value:pack.id}},[_vm._v(_vm._s(pack.name)+" (×"+_vm._s(pack.multiplier)+")"),!_vm.isOversellingAllowed&&item.product_type!=="is_service"&&Number(pack.multiplier)>1&&Number(pack.multiplier)>Number(item.current)?[_vm._v(" — "+_vm._s(_vm.$t("Out_of_Stock")||"out of stock"))]:_vm._e()],2);}),0):_vm._e()])]),_vm._v(" "),_c("div",{staticClass:"pos-shell-cart-side",staticStyle:{display:"flex","flex-direction":"column","align-items":"flex-end","justify-content":"space-between",gap:"4px"}},[_c("div",{staticClass:"pos-shell-cart-actions",staticStyle:{display:"inline-flex",gap:"2px"}},[_vm.currentUserPermissions&&_vm.currentUserPermissions.includes("edit_product_sale")?_c("button",{staticClass:"pos-shell-cart-action",staticStyle:{background:"transparent",border:"0",padding:"4px","border-radius":"4px",cursor:"pointer",color:"#8d8da0",display:"inline-flex","align-items":"center","justify-content":"center"},attrs:{type:"button",title:_vm.$t("pos.Edit")},on:{mousedown:function mousedown($event){$event.preventDefault();},click:function click($event){return _vm.Modal_Updat_Detail(item);}}},[_c("svg",{staticStyle:{width:"13px",height:"13px"},attrs:{viewBox:"0 0 20 20",fill:"none",stroke:"currentColor","stroke-width":"1.5","stroke-linecap":"round","stroke-linejoin":"round"}},[_c("path",{attrs:{d:"M14 3l3 3-9 9H5v-3z"}})])]):_vm._e(),_vm._v(" "),_c("button",{staticClass:"pos-shell-cart-action",staticStyle:{background:"transparent",border:"0",padding:"4px","border-radius":"4px",cursor:"pointer",color:"#8d8da0",display:"inline-flex","align-items":"center","justify-content":"center"},attrs:{type:"button",title:_vm.$t("pos.Remove")},on:{mousedown:function mousedown($event){$event.preventDefault();},click:function click($event){return _vm.delete_Product_Detail(item.detail_id);}}},[_c("svg",{staticStyle:{width:"14px",height:"14px"},attrs:{viewBox:"0 0 20 20",fill:"none",stroke:"currentColor","stroke-width":"1.5","stroke-linecap":"round"}},[_c("path",{attrs:{d:"m5 5 10 10M15 5 5 15"}})])])]),_vm._v(" "),_c("div",{staticClass:"pos-shell-cart-line-total",staticStyle:{"font-size":"13px","font-weight":"600","font-family":"'JetBrains Mono', monospace",color:"#1f1f2c"}},[_vm._v(_vm._s(_vm.formatPriceWithCurrentCurrency(item.subtotal,2)))])]),_vm._v(" "),item.is_batch_tracked?_c("div",{staticStyle:{"grid-column":"1 / -1","margin-top":"6px",padding:"8px",background:"#f3f3f7","border-radius":"8px"}},[_c("div",{staticStyle:{display:"flex","align-items":"center","justify-content":"space-between","margin-bottom":"6px"}},[_c("div",{staticStyle:{"font-size":"11px","font-weight":"600",color:"#54546a",display:"inline-flex","align-items":"center",gap:"4px"}},[_c("svg",{attrs:{viewBox:"0 0 24 24",width:"13",height:"13",fill:"currentColor"}},[_c("path",{attrs:{d:"M12 2L2 7v10l10 5 10-5V7L12 2zm0 2.24L19.53 8 12 11.76 4.47 8 12 4.24zM4 9.51l7 3.5V20l-7-3.5V9.51zm16 0V16.5L13 20v-7l7-3.49z"}})]),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.$t("Batches")||"Batches"))]),_vm._v(" "),_c("span",{staticStyle:{"font-size":"10px",color:"#8d8da0","font-family":"'JetBrains Mono', monospace","font-weight":"400","margin-left":"4px"}},[_vm._v("\n                    "+_vm._s((item.batches||[]).length)+" "+_vm._s(_vm.$t("items")||"items")+"\n                    "),(item.batches||[]).length?[_vm._v("· "+_vm._s(_vm.formatNumber(_vm.batch_total_qty(item),2))+" / "+_vm._s(_vm.formatNumber(Number(item.quantity)||0,2)))]:_vm._e()],2)]),_vm._v(" "),_c("button",{staticStyle:{height:"24px",padding:"0 8px",background:"#f5f3fd",color:"#6f53d9",border:"0","border-radius":"5px","font-size":"11px","font-weight":"600",cursor:"pointer"},attrs:{type:"button"},on:{click:function click($event){return _vm.add_batch_to_detail(item);}}},[_vm._v("+ "+_vm._s(_vm.$t("Add")||"Add"))])]),_vm._v(" "),item.batches_loading?_c("div",{staticStyle:{"font-size":"11px",color:"#8d8da0",padding:"4px 0"}},[_vm._v(_vm._s(_vm.$t("Loading")||"Loading..."))]):!(item.available_batches&&item.available_batches.length)?_c("div",{staticStyle:{"font-size":"11px",color:"#d64545",padding:"4px 0"}},[_vm._v(_vm._s(_vm.$t("No_Batches_Available")||"No available batches for this product in the selected warehouse"))]):!item.batches||item.batches.length===0?_c("div",{staticStyle:{"font-size":"11px",color:"#d64545",padding:"4px 0"}},[_vm._v(_vm._s(_vm.$t("Choose_Batch")||"Choose a batch"))]):_c("div",{staticStyle:{display:"flex","flex-direction":"column",gap:"6px"}},_vm._l(item.batches,function(b,bIdx){return _c("div",{key:"pb-"+item.detail_id+"-"+bIdx,staticStyle:{display:"grid","grid-template-columns":"1fr 80px 24px",gap:"6px","align-items":"center"}},[_c("v-select",{attrs:{value:b.product_batch_id,options:item.available_batches.map(function(ab){return{label:ab.batch_no+(ab.expiry_date?" · "+(_vm.$t("Exp")||"Exp")+" "+ab.expiry_date:"")+" · "+ab.qty_available,value:ab.id};}),reduce:function reduce(opt){return opt.value;},placeholder:_vm.$t("Choose_Batch")||"Choose batch","append-to-body":true},on:{input:function input(val){return _vm.on_batch_select(item,bIdx,val);}}}),_vm._v(" "),_c("input",{staticStyle:{height:"32px",padding:"0 8px","border-radius":"6px",background:"#ffffff","font-size":"12px","font-family":"'JetBrains Mono', monospace",color:"#1f1f2c",outline:"none",width:"100%"},style:{border:"1px solid "+(Number(b.qty)>(Number(b.qty_available)||0)?"#fca5a5":"#e6e6ec")},attrs:{type:"text",inputmode:"decimal",placeholder:_vm.$t("Quantity")},domProps:{value:b.qty},on:{input:function input(evt){return _vm.on_batch_qty_input(b,evt.target.value);}}}),_vm._v(" "),_c("button",{staticStyle:{width:"24px",height:"24px",background:"transparent",border:"0",color:"#8d8da0",cursor:"pointer",padding:"0","border-radius":"5px",display:"inline-flex","align-items":"center","justify-content":"center","font-size":"16px"},attrs:{type:"button",title:_vm.$t("pos.Remove")},on:{click:function click($event){return _vm.remove_batch_from_detail(item,bIdx);}}},[_vm._v("×")])],1);}),0),_vm._v(" "),!item.batches_loading&&_vm.batch_line_error(item)?_c("div",{staticStyle:{"margin-top":"6px","font-size":"11px",color:"#d64545"}},[_vm._v(_vm._s(_vm.batch_line_error(item)))]):_vm._e()]):_vm._e(),_vm._v(" "),item.is_imei?_c("div",{staticStyle:{"grid-column":"1 / -1","margin-top":"6px",padding:"8px",background:"#f3f3f7","border-radius":"8px"}},[_c("serial-numbers-field",{attrs:{mode:"select","required-count":item.quantity,"product-id":item.product_id,"product-variant-id":item.product_variant_id,"warehouse-id":_vm.sale.warehouse_id},model:{value:item.serial_numbers,callback:function callback($$v){_vm.$set(item,"serial_numbers",$$v);},expression:"item.serial_numbers"}})],1):_vm._e()]);}),0)]),_vm._v(" "),_c("div",{staticClass:"pos-shell-totals",staticStyle:{"border-top":"1px solid #e6e6ec",padding:"8px 12px",background:"#f7f7fb"}},[_c("div",{staticClass:"pos-shell-totals-hero"},[_c("div",{staticClass:"pos-shell-totals-copy"},[_c("div",{staticClass:"pos-shell-totals-eyebrow"},[_vm._v("Order Summary")]),_vm._v(" "),_c("div",{staticClass:"pos-shell-totals-title"},[_vm._v(_vm._s(_vm.details.length)+" "+_vm._s(_vm.details.length===1?"item":"items")+" ready for checkout")])]),_vm._v(" "),_c("div",{staticClass:"pos-shell-totals-amount"},[_vm._v(_vm._s(_vm.formatPriceWithCurrentCurrency(_vm.GrandTotal||0,2)))])]),_vm._v(" "),_c("div",{staticClass:"pos-shell-charges-row",staticStyle:{display:"grid","grid-template-columns":"1fr 1fr 1fr",gap:"6px","margin-bottom":"8px"}},[_c("label",{staticStyle:{display:"block"}},[_c("div",{staticStyle:{"font-size":"9px","font-weight":"700","letter-spacing":"0.08em",color:"#8d8da0","margin-bottom":"4px"}},[_vm._v(_vm._s(_vm.$t("pos.Tax"))+" %")]),_vm._v(" "),_c("div",{staticStyle:{display:"flex","align-items":"center",height:"28px",border:"1px solid #e6e6ec","border-radius":"6px",background:"#ffffff"}},[_c("input",{directives:[{name:"model",rawName:"v-model.number",value:_vm.sale.tax_rate,expression:"sale.tax_rate",modifiers:{number:true}}],staticStyle:{width:"100%",border:"0",padding:"0 8px",background:"transparent","font-size":"12px","font-family":"'JetBrains Mono', monospace",color:"#1f1f2c",outline:"none","min-width":"0"},attrs:{type:"text",placeholder:"0"},domProps:{value:_vm.sale.tax_rate},on:{keyup:_vm.keyup_OrderTax,input:function input($event){if($event.target.composing)return;_vm.$set(_vm.sale,"tax_rate",_vm._n($event.target.value));},blur:function blur($event){return _vm.$forceUpdate();}}}),_vm._v(" "),_c("span",{staticStyle:{"padding-right":"8px",color:"#8d8da0","font-size":"12px","font-family":"'JetBrains Mono', monospace"}},[_vm._v("%")])])]),_vm._v(" "),_c("label",{staticStyle:{display:"block"}},[_c("div",{staticStyle:{"font-size":"9px","font-weight":"700","letter-spacing":"0.08em",color:"#8d8da0","margin-bottom":"4px"}},[_vm._v(_vm._s(_vm.$t("Discount")))]),_vm._v(" "),_c("div",{staticStyle:{display:"flex","align-items":"center",height:"28px",border:"1px solid #e6e6ec","border-radius":"6px",background:"#ffffff"}},[_c("button",{staticStyle:{"padding-left":"8px","padding-right":"0",background:"transparent",border:"0",color:"#8d8da0","font-size":"12px",cursor:"pointer","font-family":"'JetBrains Mono', monospace"},attrs:{type:"button",title:_vm.sale.discount_Method==="1"?_vm.$t("Switch_to_Fixed"):_vm.$t("Switch_to_Percentage")},on:{click:_vm.toggleDiscountType}},[_vm._v(_vm._s(_vm.sale.discount_Method==="1"?"%":_vm.currentUser.currency))]),_vm._v(" "),_c("input",{directives:[{name:"model",rawName:"v-model.number",value:_vm.sale.discount,expression:"sale.discount",modifiers:{number:true}}],staticStyle:{width:"100%",border:"0",padding:"0 8px",background:"transparent","font-size":"12px","font-family":"'JetBrains Mono', monospace",color:"#1f1f2c",outline:"none","min-width":"0"},attrs:{type:"text",placeholder:"0"},domProps:{value:_vm.sale.discount},on:{keyup:_vm.keyup_Discount,input:function input($event){if($event.target.composing)return;_vm.$set(_vm.sale,"discount",_vm._n($event.target.value));},blur:function blur($event){return _vm.$forceUpdate();}}})])]),_vm._v(" "),_c("label",{staticStyle:{display:"block"}},[_c("div",{staticStyle:{"font-size":"9px","font-weight":"700","letter-spacing":"0.08em",color:"#8d8da0","margin-bottom":"4px"}},[_vm._v(_vm._s(_vm.$t("Shipping")))]),_vm._v(" "),_c("div",{staticStyle:{display:"flex","align-items":"center",height:"28px",border:"1px solid #e6e6ec","border-radius":"6px",background:"#ffffff"}},[_c("span",{staticStyle:{"padding-left":"8px",color:"#8d8da0","font-size":"12px","font-family":"'JetBrains Mono', monospace"}},[_vm._v(_vm._s(_vm.currentUser.currency))]),_vm._v(" "),_c("input",{directives:[{name:"model",rawName:"v-model.number",value:_vm.sale.shipping,expression:"sale.shipping",modifiers:{number:true}}],staticStyle:{width:"100%",border:"0",padding:"0 8px",background:"transparent","font-size":"12px","font-family":"'JetBrains Mono', monospace",color:"#1f1f2c",outline:"none","min-width":"0"},attrs:{type:"text",placeholder:"0"},domProps:{value:_vm.sale.shipping},on:{keyup:_vm.keyup_Shipping,input:function input($event){if($event.target.composing)return;_vm.$set(_vm.sale,"shipping",_vm._n($event.target.value));},blur:function blur($event){return _vm.$forceUpdate();}}})])])]),_vm._v(" "),_vm.isOnline&&_vm.pos_settings.enable_customer_points&&_vm.clientIsEligible&&_vm.currentUserPermissions&&_vm.currentUserPermissions.includes("edit_tax_discount_shipping_sale")?_c("div",{staticClass:"pos-shell-points-bar",style:{display:"flex",alignItems:"center",justifyContent:"space-between",gap:"10px",padding:"10px",background:_vm.pointsConverted?"#eaf7ef":"#f5f3fd",borderRadius:"8px",marginBottom:"10px"}},[_c("div",{staticStyle:{"min-width":"0"}},[_c("div",{staticStyle:{display:"inline-flex","align-items":"center",gap:"6px","font-size":"11px",color:"#54546a"}},[_vm.pointsConverted?_c("lucide-icon",{attrs:{name:"check"}}):_vm._e(),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.$t("Available_Points")))]),_vm._v(" "),_c("span",{staticStyle:{"font-size":"14px","font-weight":"700",color:"#6f53d9","font-family":"'JetBrains Mono', monospace","margin-left":"4px"}},[_vm._v(_vm._s(_vm.selectedClientPoints))])],1),_vm._v(" "),_vm.discount_from_points>0?_c("div",{staticStyle:{"font-size":"10px",color:"#1e7a44","margin-top":"2px"}},[_vm._v("✅ "+_vm._s(_vm.$t("Discount"))+" "+_vm._s(_vm.discount_from_points)+" "+_vm._s(_vm.currentUser.currency)+" "+_vm._s(_vm.$t("pos.will_be_applied")))]):_vm._e()]),_vm._v(" "),_c("div",{staticStyle:{display:"inline-flex","align-items":"center",gap:"6px"}},[_c("input",{directives:[{name:"model",rawName:"v-model.number",value:_vm.points_to_convert,expression:"points_to_convert",modifiers:{number:true}}],staticStyle:{width:"60px",height:"28px",padding:"0 8px",border:"1px solid #e6e6ec","border-radius":"6px",background:"#ffffff","font-size":"12px","font-family":"'JetBrains Mono', monospace",color:"#1f1f2c",outline:"none","text-align":"center"},attrs:{type:"text",min:"0",max:_vm.selectedClientPoints,step:"1",disabled:_vm.selectedClientPoints===0||_vm.pointsConverted,inputmode:"numeric",pattern:"[0-9]*",placeholder:"0"},domProps:{value:_vm.points_to_convert},on:{input:[function($event){if($event.target.composing)return;_vm.points_to_convert=_vm._n($event.target.value);},_vm.onPointsToConvertInput],blur:function blur($event){return _vm.$forceUpdate();}}}),_vm._v(" "),_c("button",{style:{height:"28px",padding:"0 10px",background:_vm.pointsConverted?"#2fae5e":"#6f53d9",color:"#fff",border:0,borderRadius:"6px",fontSize:"11px",fontWeight:600,cursor:"pointer",display:"inline-flex",alignItems:"center",gap:"4px"},attrs:{disabled:_vm.selectedClientPoints===0},on:{click:_vm.convertPointsToDiscount}},[!_vm.pointsConverted?[_c("lucide-icon",{attrs:{name:"banknote"}}),_vm._v(" "+_vm._s(_vm.$t("Convert")))]:[_c("lucide-icon",{attrs:{name:"check"}}),_vm._v(" "+_vm._s(_vm.$t("Unconverted")))]],2)])]):_vm._e(),_vm._v(" "),_c("div",{staticClass:"pos-shell-summary"},[_c("div",{staticStyle:{display:"flex","justify-content":"space-between",padding:"4px 0","font-size":"12px"}},[_c("span",{staticStyle:{color:"#54546a"}},[_vm._v(_vm._s(_vm.$t("pos.Subtotal")))]),_vm._v(" "),_c("span",{staticStyle:{color:"#1f1f2c","font-family":"'JetBrains Mono', monospace","font-weight":"500"}},[_vm._v(_vm._s(_vm.formatPriceWithCurrentCurrency(_vm.total,2)))])]),_vm._v(" "),_c("div",{staticStyle:{display:"flex","justify-content":"space-between",padding:"4px 0","font-size":"12px"}},[_c("span",{staticStyle:{color:"#8d8da0"}},[_vm._v(_vm._s(_vm.$t("pos.Tax")))]),_vm._v(" "),_c("span",{staticStyle:{color:"#54546a","font-family":"'JetBrains Mono', monospace","font-weight":"500"}},[_vm._v(_vm._s(_vm.formatPriceWithCurrentCurrency(_vm.sale.TaxNet,2)))])]),_vm._v(" "),_vm.getCurrentSaleDiscountAmount()>0?_c("div",{staticStyle:{display:"flex","justify-content":"space-between",padding:"4px 0","font-size":"12px"}},[_c("span",{staticStyle:{color:"#54546a"}},[_vm._v(_vm._s(_vm.$t("pos.Discount")))]),_vm._v(" "),_c("span",{staticStyle:{color:"#d64545","font-family":"'JetBrains Mono', monospace","font-weight":"500"}},[_vm._v("−"+_vm._s(_vm.formatPriceWithCurrentCurrency(_vm.getCurrentSaleDiscountAmount(),2)))])]):_vm._e(),_vm._v(" "),Number(_vm.sale.shipping)>0?_c("div",{staticStyle:{display:"flex","justify-content":"space-between",padding:"4px 0","font-size":"12px"}},[_c("span",{staticStyle:{color:"#8d8da0"}},[_vm._v(_vm._s(_vm.$t("pos.Shipping")))]),_vm._v(" "),_c("span",{staticStyle:{color:"#54546a","font-family":"'JetBrains Mono', monospace","font-weight":"500"}},[_vm._v(_vm._s(_vm.formatPriceWithCurrentCurrency(_vm.sale.shipping,2)))])]):_vm._e()]),_vm._v(" "),_c("button",{staticClass:"pos-shell-mobile-pay-btn",attrs:{disabled:_vm.paymentProcessing||_vm.details.length===0||_vm.payNowBatchGate.blocked,title:_vm.payNowBatchGate.blocked?_vm.payNowBatchGate.reason:_vm.$t("pos.Complete_and_process_payment")},on:{click:_vm.openModernPaymentModal}},[_c("svg",{staticStyle:{width:"18px",height:"18px"},attrs:{viewBox:"0 0 24 24",fill:"currentColor"}},[_c("path",{attrs:{d:"M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"}})]),_vm._v(" "),_c("span",{staticClass:"pos-shell-mobile-pay-btn-label"},[_vm._v(_vm._s(_vm.paymentProcessing?_vm.$t("pos.Processing"):_vm.$t("pos.Pay_Now")))]),_vm._v(" "),_c("span",{staticClass:"pos-shell-mobile-pay-btn-amount"},[_vm._v(_vm._s(_vm.formatPriceWithCurrentCurrency(_vm.GrandTotal,2)))])])])]),_vm._v(" "),_c("div",{staticClass:"pos-shell-cart-resizer","class":{"is-resizing":_vm.cartAsideResizing},attrs:{role:"separator","aria-orientation":"vertical","aria-label":_vm.$t("pos.Resize_cart_panel")||"Resize cart panel"},on:{mousedown:_vm.startCartAsideResize}},[_c("span",{staticClass:"pos-shell-cart-resizer-grip"})]),_vm._v(" "),_c("section",{staticClass:"pos-shell-section",staticStyle:{flex:"1 1 auto","min-width":"0",display:"grid","grid-template-rows":"auto 1fr auto","min-height":"0",background:"#ffffff",overflow:"hidden"}},[_c("div",{staticClass:"pos-shell-search-row",staticStyle:{padding:"4px 6px",display:"flex",gap:"8px","align-items":"center"}},[_c("div",{staticClass:"pos-shell-search-wrap",staticStyle:{flex:"1",position:"relative"}},[_c("svg",{staticStyle:{position:"absolute",left:"14px",top:"50%",transform:"translateY(-50%)",width:"18px",height:"18px",color:"#8d8da0","pointer-events":"none"},attrs:{viewBox:"0 0 20 20",fill:"none",stroke:"currentColor","stroke-width":"1.5","stroke-linecap":"round"}},[_c("path",{attrs:{d:"M3 7V4h3M14 4h3v3M17 13v3h-3M6 16H3v-3"}}),_c("path",{attrs:{d:"M5 10h10"}})]),_vm._v(" "),_c("input",{directives:[{name:"model",rawName:"v-model",value:_vm.search_input,expression:"search_input"}],staticClass:"pos-shell-search-input",staticStyle:{width:"100%",height:"36px",padding:"0 12px 0 38px",background:"#ffffff",border:"1px solid #e6e6ec","border-radius":"8px","font-size":"13px",color:"#1f1f2c",outline:"none","font-family":"inherit",transition:"border-color 120ms ease, box-shadow 120ms ease"},attrs:{type:"text",placeholder:_vm.$t("Scan_Search_Product_by_Code_Name")},domProps:{value:_vm.search_input},on:{keyup:_vm.search,input:function input($event){if($event.target.composing)return;_vm.search_input=$event.target.value;}}}),_vm._v(" "),_vm.product_filter&&_vm.product_filter.length?_c("ul",{staticStyle:{position:"absolute",top:"calc(100% + 4px)",left:"0",right:"0",margin:"0",padding:"4px","list-style":"none",background:"#ffffff",border:"1px solid #e6e6ec","border-radius":"10px","box-shadow":"0 8px 24px rgba(20,20,40,0.08)","max-height":"280px",overflow:"auto","z-index":"10"}},_vm._l(_vm.product_filter,function(product_fil){return _c("li",{key:product_fil.id,staticClass:"pos-shell-autocomplete-item",staticStyle:{padding:"8px 12px","font-size":"13px",color:"#1f1f2c",cursor:"pointer","border-radius":"6px"},on:{mousedown:function mousedown($event){return _vm.SearchProduct(product_fil);}}},[_vm._v("\n              "+_vm._s(_vm.getResultValue(product_fil))+"\n            ")]);}),0):_vm._e()]),_vm._v(" "),_c("button",{staticClass:"pos-shell-action-btn",staticStyle:{height:"36px",padding:"0 12px",background:"transparent",color:"#1f1f2c",border:"1px solid #e6e6ec","border-radius":"8px","font-size":"13px","font-weight":"500",display:"inline-flex","align-items":"center",gap:"6px",cursor:"pointer",transition:"all 120ms ease"},attrs:{title:_vm.$t("Scan")},on:{click:_vm.showModal}},[_c("svg",{staticStyle:{width:"16px",height:"16px"},attrs:{viewBox:"0 0 20 20",fill:"none",stroke:"currentColor","stroke-width":"1.5","stroke-linecap":"round"}},[_c("path",{attrs:{d:"M3 7V4h3M14 4h3v3M17 13v3h-3M6 16H3v-3"}}),_c("path",{attrs:{d:"M5 10h10"}})]),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.$t("Scan")))])]),_vm._v(" "),_c("div",{staticClass:"pos-shell-rfid-wrap",staticStyle:{width:"220px",position:"relative"}},[_c("lucide-icon",{staticStyle:{position:"absolute",left:"10px",top:"50%",transform:"translateY(-50%)",width:"14px",height:"14px",color:"#8d6a1e","pointer-events":"none"},attrs:{name:"tag"}}),_vm._v(" "),_c("input",{directives:[{name:"model",rawName:"v-model",value:_vm.rfid_pos_input,expression:"rfid_pos_input"}],staticClass:"pos-shell-search-input",staticStyle:{width:"100%",height:"36px",padding:"0 12px 0 30px",background:"#fdf6e8",border:"1px solid #f2dbb3","border-radius":"8px","font-size":"13px",color:"#8d6a1e",outline:"none","font-family":"inherit",transition:"border-color 120ms ease"},attrs:{type:"text",placeholder:"Scan RFID EPC..."},domProps:{value:_vm.rfid_pos_input},on:{keyup:function keyup($event){if(!$event.type.indexOf("key")&&_vm._k($event.keyCode,"enter",13,$event.key,"Enter"))return null;return _vm.onPosRfidScan.apply(null,arguments);},input:function input($event){if($event.target.composing)return;_vm.rfid_pos_input=$event.target.value;}}})],1),_vm._v(" "),_c("button",{staticClass:"pos-shell-action-btn",staticStyle:{height:"36px",padding:"0 10px",background:"#eaf7ef",color:"#1e7a44",border:"1px solid #ccebda","border-radius":"8px","font-size":"11px","font-weight":"600",cursor:"pointer",display:"inline-flex","align-items":"center",gap:"4px"},on:{click:_vm.triggerMockRfidScan}},[_c("lucide-icon",{attrs:{name:"laptop"}}),_vm._v(" "),_c("span",[_vm._v("Mock Scan")])],1)]),_vm._v(" "),_c("div",{staticClass:"pos-shell-products-scroll",style:{overflowY:"auto",overflowX:"hidden",padding:"0px 6px",minHeight:0,height:"100%",position:"relative",opacity:_vm.productsLoading?0.6:1},on:{"&touchstart":function touchstart($event){return _vm.onProductsTouchStart.apply(null,arguments);},"&touchmove":function touchmove($event){return _vm.onProductsTouchMove.apply(null,arguments);},touchend:_vm.onProductsTouchEnd,touchcancel:_vm.onProductsTouchEnd}},[_vm.paginated_Products.length===0?_c("div",{staticClass:"pos-shell-products-empty",staticStyle:{padding:"48px 16px","text-align":"center",color:"#8d8da0"}},[_c("svg",{staticStyle:{width:"40px",height:"40px",opacity:"0.3",margin:"0 auto 8px"},attrs:{viewBox:"0 0 24 24",fill:"none",stroke:"currentColor","stroke-width":"1.5"}},[_c("circle",{attrs:{cx:"11",cy:"11",r:"8"}}),_vm._v(" "),_c("path",{attrs:{d:"m21 21-4.35-4.35"}})]),_vm._v(" "),_c("div",{staticStyle:{"font-size":"13px",color:"#54546a"}},[_vm._v(_vm._s(_vm.$t("pos.No_products_found")))])]):_c("div",{staticClass:"pos-shell-products-grid"},_vm._l(_vm.paginated_Products,function(product){return _c("button",{key:product.product_variant_id?product.id+"-"+product.product_variant_id:product.id,staticClass:"pos-shell-product-card",staticStyle:{background:"#ffffff",border:"1px solid #e6e6ec","border-radius":"12px",padding:"10px","text-align":"left",cursor:"pointer",position:"relative",transition:"all 120ms ease","font-family":"inherit"},attrs:{type:"button"},on:{click:function click($event){return _vm.handleProductClick(product);}}},[_vm.uiLoadingProductId===(product.product_variant_id?product.id+"-"+product.product_variant_id:product.id)?_c("div",{staticStyle:{position:"absolute",inset:"0",background:"rgba(255,255,255,0.7)","border-radius":"12px",display:"grid","place-items":"center","z-index":"2"}},[_c("div",{staticClass:"spinner sm spinner-primary"})]):_vm._e(),_vm._v(" "),_c("div",{staticClass:"pos-shell-card-media-wrap",staticStyle:{margin:"-10px -10px 8px",position:"relative"}},[_c("div",{staticClass:"pos-shell-card-media",style:{width:"100%",height:"58px",borderRadius:"12px 12px 0 0",overflow:"hidden",position:"relative",background:_vm.pos_settings.show_product_images&&product.image?"#f1efe7":"repeating-linear-gradient(135deg, #ece9fb, #ece9fb 8px, #f5f3fd 8px, #f5f3fd 16px)",backgroundImage:_vm.pos_settings.show_product_images&&product.image?"url("+_vm.resolveProductImage(product.image)+")":null,backgroundRepeat:"no-repeat",backgroundPosition:"center",backgroundSize:"cover"}},[!(_vm.pos_settings.show_product_images&&product.image)?_c("span",{staticStyle:{position:"absolute",inset:"0",display:"flex","align-items":"center","justify-content":"center","font-family":"'JetBrains Mono', monospace","font-weight":"700","font-size":"16px",color:"rgba(31,31,44,0.6)","letter-spacing":"0.02em","text-transform":"uppercase"}},[_vm._v("\n                  "+_vm._s((product.name||"P").split(/[ ·]/).filter(Boolean).slice(0,2).map(function(w){return w[0];}).join(""))+"\n                ")]):_vm._e()]),_vm._v(" "),product.discount?_c("div",{staticClass:"pos-shell-card-badge",staticStyle:{position:"absolute",top:"6px",left:"6px",background:"rgba(255,255,255,0.9)","border-radius":"6px",padding:"2px 6px",color:"#d64545","font-family":"'JetBrains Mono', monospace","font-size":"10px","font-weight":"700"}},[_vm._v("-"+_vm._s(product.discount)+"%")]):_vm._e()]),_vm._v(" "),_c("div",{staticClass:"pos-shell-card-name",staticStyle:{"font-size":"13px","font-weight":"500","margin-bottom":"2px","line-height":"1.2",color:"#1f1f2c","white-space":"nowrap",overflow:"hidden","text-overflow":"ellipsis"}},[_vm._v(_vm._s(product.name))]),_vm._v(" "),_c("div",{staticClass:"pos-shell-card-meta",staticStyle:{"font-size":"10px",color:"#8d8da0","font-family":"'JetBrains Mono', monospace","margin-bottom":"6px","white-space":"nowrap",overflow:"hidden","text-overflow":"ellipsis"}},[product.code?_c("span",[_vm._v("SKU "+_vm._s(product.code))]):_vm._e(),_vm._v(" "),product.product_type!=="is_service"&&_vm.pos_settings.show_stock_quantity?_c("span",{staticClass:"pos-shell-card-stock"},[product.code?_c("span",[_vm._v(" · ")]):_vm._e(),_vm._v(_vm._s(_vm.formatNumber(product.qte_sale,2))+" "+_vm._s(product.unitSale)+"\n              ")]):_vm._e()]),_vm._v(" "),product.is_jewelry_item?_c("div",{staticClass:"pos-shell-card-jewelry",staticStyle:{"font-size":"10px",color:"#a8792f",background:"#fdf6e8","border-radius":"6px",padding:"3px 6px","margin-bottom":"6px","white-space":"nowrap",overflow:"hidden","text-overflow":"ellipsis"}},[product.metal_type?_c("span",[_vm._v(_vm._s(product.metal_type))]):_vm._e(),_vm._v(" "),product.karat?_c("span",[_vm._v(" · "+_vm._s(product.karat))]):_vm._e(),_vm._v(" "),product.jewelry_gross_weight?_c("span",[_vm._v(" · "+_vm._s(_vm.formatNumber(product.jewelry_gross_weight,3))+_vm._s(product.jewelry_weight_uom))]):_vm._e(),_vm._v(" "),product.stone_summary?_c("span",[_vm._v(" · "+_vm._s(product.stone_summary))]):_vm._e(),_vm._v(" "),product.jewelry_pricing_breakdown&&product.jewelry_pricing_breakdown.gold_rate?_c("span",[_vm._v(" · Rate "+_vm._s(_vm.formatNumber(product.jewelry_pricing_breakdown.gold_rate,2)))]):_vm._e()]):_vm._e(),_vm._v(" "),_c("div",{staticClass:"pos-shell-card-price-row",staticStyle:{display:"flex","align-items":"center","justify-content":"space-between"}},[_c("div",{staticClass:"pos-shell-card-price",staticStyle:{"font-size":"14px","font-weight":"700","font-family":"'JetBrains Mono', monospace",color:"#6f53d9","letter-spacing":"-0.01em"}},[_vm._v(_vm._s(_vm.formatPriceWithCurrentCurrency(product.Net_price,2)))]),_vm._v(" "),_c("span",{staticClass:"pos-shell-add-btn",style:{width:"24px",height:"24px",background:"#f0ecfb",color:"#6f53d9",borderRadius:"6px",display:"grid",placeItems:"center",opacity:!_vm.isOversellingAllowed&&product.product_type!=="is_service"&&product.qte_sale<=0?0.4:1}},[_c("svg",{staticStyle:{width:"14px",height:"14px"},attrs:{viewBox:"0 0 20 20",fill:"none",stroke:"currentColor","stroke-width":"1.5","stroke-linecap":"round"}},[_c("path",{attrs:{d:"M10 4v12M4 10h12"}})])])])]);}),0)]),_vm._v(" "),_vm.paginated_Products.length>0&&_vm.product_lastPage>1?_c("div",{staticClass:"pos-shell-mobile-pagination-dots"},_vm._l(_vm.product_lastPage,function(page){return _c("button",{key:"pdot-"+page,staticClass:"pos-shell-mobile-page-dot","class":{"pos-shell-mobile-page-dot-active":page===_vm.product_currentPage},attrs:{type:"button","aria-label":(_vm.$t("pos.Page")||"Page")+" "+page},on:{click:function click($event){return _vm.Product_onPageChanged(page);}}});}),0):_vm._e(),_vm._v(" "),_vm.paginated_Products.length>0?_c("div",{staticClass:"pos-shell-pagination",staticStyle:{padding:"0px 16px","border-top":"1px solid rgb(230, 230, 236)",background:"rgb(255, 255, 255)",display:"flex","align-items":"center","justify-content":"space-between",gap:"7px","font-size":"11px",color:"rgb(141, 141, 160)","min-height":"30px"}},[_c("button",{staticStyle:{width:"28px",height:"28px","border-radius":"6px",border:"1px solid #e6e6ec",background:"#ffffff",color:"#54546a",cursor:"pointer",display:"inline-flex","align-items":"center","justify-content":"center",padding:"0"},attrs:{disabled:_vm.product_currentPage===1,title:_vm.$t("pos.Previous_Page")},on:{click:function click($event){return _vm.Product_onPageChanged(_vm.product_currentPage-1);}}},[_c("svg",{staticStyle:{width:"14px",height:"14px"},attrs:{viewBox:"0 0 24 24",fill:"none",stroke:"currentColor","stroke-width":"2"}},[_c("polyline",{attrs:{points:"15 18 9 12 15 6"}})])]),_vm._v(" "),_c("div",{staticStyle:{display:"inline-flex","flex-direction":"column","align-items":"center","font-size":"11px",color:"#8d8da0"}},[_c("span",{staticStyle:{"font-family":"'JetBrains Mono', monospace",color:"#54546a"}},[_vm._v(_vm._s(_vm.$t("pos.Page"))+" "+_vm._s(_vm.product_currentPage))]),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.product_totalRows)+" "+_vm._s(_vm.$t("pos.products")))])]),_vm._v(" "),_c("div",{staticStyle:{display:"inline-flex",gap:"4px"}},_vm._l(_vm.product_visiblePageItems,function(item,idx){return _c("button",{key:"pp-".concat(idx,"-").concat(item),style:{width:"28px",height:"28px",borderRadius:"6px",border:item==="…"?0:"1px solid #e6e6ec",background:item===_vm.product_currentPage?"#6f53d9":item==="…"?"transparent":"#ffffff",color:item===_vm.product_currentPage?"#fff":"#54546a",fontSize:"12px",cursor:item==="…"?"default":"pointer",fontWeight:item===_vm.product_currentPage?600:400,display:"inline-flex",alignItems:"center",justifyContent:"center",padding:0},attrs:{disabled:item==="…",title:item==="…"?"":"".concat(_vm.$t("pos.Go_to_page")," ").concat(item)},on:{click:function click($event){return _vm.onProductPageItemClick(item);}}},[_vm._v("\n            "+_vm._s(item)+"\n          ")]);}),0),_vm._v(" "),_c("button",{staticStyle:{width:"28px",height:"28px","border-radius":"6px",border:"1px solid #e6e6ec",background:"#ffffff",color:"#54546a",cursor:"pointer",display:"inline-flex","align-items":"center","justify-content":"center",padding:"0"},attrs:{disabled:_vm.product_currentPage===_vm.product_lastPage,title:_vm.$t("pos.Next_Page")},on:{click:function click($event){return _vm.Product_onPageChanged(_vm.product_currentPage+1);}}},[_c("svg",{staticStyle:{width:"14px",height:"14px"},attrs:{viewBox:"0 0 24 24",fill:"none",stroke:"currentColor","stroke-width":"2"}},[_c("polyline",{attrs:{points:"9 18 15 12 9 6"}})])])]):_vm._e()])]):_vm._e(),_vm._v(" "),_vm.productsReady?_c("div",{staticClass:"pos-shell-pay-bar",staticStyle:{display:"flex",background:"rgb(255, 255, 255)","align-items":"center",gap:"8px",padding:"8px 16px 8px 20px","flex-shrink":"0","flex-grow":"0","border-top":"1px solid rgb(230, 230, 236)"}},[_c("div",{staticClass:"pos-shell-connection-status",style:{display:"inline-flex",alignItems:"center",gap:"6px",fontSize:"12px",fontWeight:500,color:_vm.isOnline?"#1e7a44":"#a83232"},attrs:{title:_vm.offlineStatusTitle}},[_c("span",{style:{width:"6px",height:"6px",borderRadius:"99px",background:_vm.isOnline?"#2fae5e":"#d64545"}}),_vm._v(" "),_vm.isOnline?_c("span",[_vm._v(_vm._s(_vm.$t("Online")||"Online")+" "),_vm.lastProductsSyncAt?_c("span",{staticStyle:{opacity:"0.7"}},[_vm._v("· "+_vm._s(_vm.$t("pos.Synced")||"synced"))]):_vm._e()]):_c("span",[_vm._v(_vm._s(_vm.$t("pos.Offline_Mode"))),_vm.offlineSalesCount>0?_c("span",{staticStyle:{opacity:"0.7"}},[_vm._v(" · "+_vm._s(_vm.offlineSalesCount)+" "+_vm._s(_vm.$t("pos.Pending")||"pending"))]):_vm._e()])]),_vm._v(" "),_c("div",{staticStyle:{width:"1px",height:"24px",background:"#e6e6ec",margin:"0 8px"}}),_vm._v(" "),_vm.isOnline?_c("router-link",{staticClass:"pos-shell-action-btn",staticStyle:{height:"36px",padding:"0 14px",background:"transparent",color:"#1f1f2c",border:"1px solid #e6e6ec","border-radius":"8px","font-size":"13px","font-weight":"500",display:"inline-flex","align-items":"center",gap:"8px",cursor:"pointer","text-decoration":"none",transition:"all 120ms ease"},attrs:{to:"/app/dashboard",title:_vm.$t("pos.Home")}},[_c("svg",{staticStyle:{width:"16px",height:"16px"},attrs:{viewBox:"0 0 24 24",fill:"none",stroke:"currentColor","stroke-width":"2"}},[_c("path",{attrs:{d:"M3 11l9-8 9 8"}}),_vm._v(" "),_c("path",{attrs:{d:"M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"}})]),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.$t("pos.Home")))])]):_vm._e(),_vm._v(" "),_vm.isOnline?_c("button",{staticClass:"pos-shell-action-btn",staticStyle:{height:"36px",padding:"0 14px",background:"transparent",color:"#1f1f2c",border:"1px solid #e6e6ec","border-radius":"8px","font-size":"13px","font-weight":"500",display:"inline-flex","align-items":"center",gap:"8px",cursor:"pointer",transition:"all 120ms ease"},attrs:{title:_vm.$t("pos.Clear_all_items")},on:{click:_vm.Reset_Pos}},[_c("svg",{staticStyle:{width:"16px",height:"16px"},attrs:{viewBox:"0 0 24 24",fill:"none",stroke:"currentColor","stroke-width":"2"}},[_c("path",{attrs:{d:"M1 4v6h6"}}),_vm._v(" "),_c("path",{attrs:{d:"M23 20v-6h-6"}}),_vm._v(" "),_c("path",{attrs:{d:"M20.49 9A9 9 0 0 0 5.64 5.64"}}),_vm._v(" "),_c("path",{attrs:{d:"M3.51 15A9 9 0 0 0 18.36 18.36"}})]),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.$t("pos.Reset")))])]):_vm._e(),_vm._v(" "),_vm.isOnline?_c("button",{staticClass:"pos-shell-action-btn",staticStyle:{height:"36px",padding:"0 14px",background:"transparent",color:"#1f1f2c",border:"1px solid #e6e6ec","border-radius":"8px","font-size":"13px","font-weight":"500",display:"inline-flex","align-items":"center",gap:"8px",cursor:"pointer",transition:"all 120ms ease"},attrs:{title:_vm.$t("pos.Drafts_list")},on:{click:_vm.Show_Draft_Sales}},[_c("svg",{staticStyle:{width:"16px",height:"16px"},attrs:{viewBox:"0 0 24 24",fill:"none",stroke:"currentColor","stroke-width":"2"}},[_c("rect",{attrs:{x:"3",y:"4",width:"18",height:"14",rx:"2",ry:"2"}}),_vm._v(" "),_c("path",{attrs:{d:"M7 8h10M7 12h8"}})]),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.$t("pos.Recent_Drafts")))]),_vm._v(" "),_vm.totalRows_draft_sales>0?_c("span",{staticStyle:{background:"#f3f3f7",color:"#54546a",padding:"1px 7px","border-radius":"99px","font-size":"11px","font-family":"'JetBrains Mono', monospace","font-weight":"600","margin-left":"2px"}},[_vm._v(_vm._s(_vm.totalRows_draft_sales))]):_vm._e()]):_vm._e(),_vm._v(" "),_vm.pos_settings.enable_hold_sales&&_vm.isOnline?_c("button",{staticClass:"pos-shell-action-btn",staticStyle:{height:"36px",padding:"0 14px",background:"transparent",color:"#1f1f2c",border:"1px solid #e6e6ec","border-radius":"8px","font-size":"13px","font-weight":"500",display:"inline-flex","align-items":"center",gap:"8px",cursor:"pointer",transition:"all 120ms ease"},attrs:{disabled:_vm.DraftProcessing,title:_vm.$t("pos.Hold_this_sale")},on:{click:_vm.Submit_Draft}},[_c("svg",{staticStyle:{width:"16px",height:"16px"},attrs:{viewBox:"0 0 24 24",fill:"none",stroke:"currentColor","stroke-width":"2"}},[_c("circle",{attrs:{cx:"12",cy:"12",r:"10"}}),_vm._v(" "),_c("path",{attrs:{d:"M10 9v6"}}),_vm._v(" "),_c("path",{attrs:{d:"M14 9v6"}})]),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.DraftProcessing?_vm.$t("pos.Saving"):_vm.$t("pos.Hold")))])]):_vm._e(),_vm._v(" "),_c("div",{staticStyle:{flex:"1"}}),_vm._v(" "),_c("div",{staticClass:"pos-shell-pay-summary",staticStyle:{display:"flex","flex-direction":"column","align-items":"flex-end","text-align":"right","margin-right":"12px"}},[_c("span",{staticClass:"pos-shell-pay-summary-label",staticStyle:{"font-size":"10px",color:"#8d8da0","font-weight":"700","letter-spacing":"0.08em","text-transform":"uppercase"}},[_vm._v(_vm._s(_vm.$t("pos.Total_Payable")))]),_vm._v(" "),_c("span",{staticClass:"pos-shell-pay-summary-value",staticStyle:{"font-size":"20px","font-weight":"700","font-family":"'JetBrains Mono', monospace",color:"#1f1f2c","letter-spacing":"-0.01em"}},[_vm._v(_vm._s(_vm.formatPriceWithCurrentCurrency(_vm.GrandTotal,2)))])]),_vm._v(" "),_c("button",{staticClass:"pos-shell-pay-btn",style:{height:"48px",padding:"0 28px",background:"#6f53d9",color:"#fff",border:0,borderRadius:"10px",fontSize:"15px",fontWeight:600,display:"inline-flex",alignItems:"center",gap:"10px",cursor:_vm.paymentProcessing||_vm.details.length===0||_vm.payNowBatchGate.blocked?"not-allowed":"pointer",opacity:_vm.paymentProcessing||_vm.details.length===0||_vm.payNowBatchGate.blocked?0.5:1,boxShadow:"0 4px 14px rgba(111,83,217,0.32)",transition:"all 120ms ease"},attrs:{disabled:_vm.paymentProcessing||_vm.details.length===0||_vm.payNowBatchGate.blocked,title:_vm.payNowBatchGate.blocked?_vm.payNowBatchGate.reason:_vm.$t("pos.Complete_and_process_payment")},on:{click:_vm.openModernPaymentModal}},[_c("svg",{staticStyle:{width:"18px",height:"18px"},attrs:{viewBox:"0 0 24 24",fill:"currentColor"}},[_c("path",{attrs:{d:"M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"}})]),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.paymentProcessing?_vm.$t("pos.Processing"):_vm.$t("pos.Pay_Now")))])])],1):_vm._e(),_vm._v(" "),_vm.productsReady?_c("nav",{staticClass:"pos-shell-mobile-tabbar"},[_c("button",{staticClass:"pos-shell-mobile-tab","class":{"pos-shell-mobile-tab-active":_vm.mobileActiveTab==="home"},attrs:{type:"button"},on:{click:function click($event){return _vm.goToMobileTab("home");}}},[_c("svg",{staticStyle:{width:"22px",height:"22px"},attrs:{viewBox:"0 0 24 24",fill:"none",stroke:"currentColor","stroke-width":"2","stroke-linecap":"round","stroke-linejoin":"round"}},[_c("path",{attrs:{d:"M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"}}),_c("polyline",{attrs:{points:"9 22 9 12 15 12 15 22"}})]),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.$t("pos.Home")||"Home"))])]),_vm._v(" "),_c("button",{staticClass:"pos-shell-mobile-tab","class":{"pos-shell-mobile-tab-active":_vm.mobileActiveTab==="cart"},attrs:{type:"button"},on:{click:function click($event){return _vm.goToMobileTab("cart");}}},[_c("span",{staticClass:"pos-shell-mobile-tab-icon-wrap"},[_c("svg",{staticStyle:{width:"22px",height:"22px"},attrs:{viewBox:"0 0 24 24",fill:"none",stroke:"currentColor","stroke-width":"2","stroke-linecap":"round","stroke-linejoin":"round"}},[_c("circle",{attrs:{cx:"9",cy:"21",r:"1"}}),_c("circle",{attrs:{cx:"20",cy:"21",r:"1"}}),_c("path",{attrs:{d:"M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"}})]),_vm._v(" "),_vm.details.length>0?_c("span",{staticClass:"pos-shell-mobile-tab-badge"},[_vm._v(_vm._s(_vm.details.length))]):_vm._e()]),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.$t("pos.Cart")||"Cart"))])]),_vm._v(" "),_vm.pos_settings.enable_hold_sales&&_vm.isOnline?_c("button",{staticClass:"pos-shell-mobile-tab","class":{"pos-shell-mobile-tab-active":_vm.mobileActiveTab==="hold"},attrs:{type:"button",disabled:_vm.DraftProcessing||_vm.details.length===0},on:{click:function click($event){_vm.mobileActiveTab="hold";_vm.Submit_Draft();}}},[_c("svg",{staticStyle:{width:"22px",height:"22px"},attrs:{viewBox:"0 0 24 24",fill:"none",stroke:"currentColor","stroke-width":"2","stroke-linecap":"round","stroke-linejoin":"round"}},[_c("circle",{attrs:{cx:"12",cy:"12",r:"10"}}),_c("path",{attrs:{d:"M10 9v6"}}),_c("path",{attrs:{d:"M14 9v6"}})]),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.$t("pos.Hold")||"Hold"))])]):_vm._e(),_vm._v(" "),_vm.isOnline?_c("button",{staticClass:"pos-shell-mobile-tab","class":{"pos-shell-mobile-tab-active":_vm.mobileActiveTab==="recent"},attrs:{type:"button"},on:{click:function click($event){_vm.mobileActiveTab="recent";_vm.Show_Draft_Sales();}}},[_c("svg",{staticStyle:{width:"22px",height:"22px"},attrs:{viewBox:"0 0 24 24",fill:"none",stroke:"currentColor","stroke-width":"2","stroke-linecap":"round","stroke-linejoin":"round"}},[_c("rect",{attrs:{x:"3",y:"4",width:"18",height:"14",rx:"2",ry:"2"}}),_c("path",{attrs:{d:"M7 8h10M7 12h8"}})]),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.$t("pos.Recent")||"Recent"))])]):_vm._e(),_vm._v(" "),_c("b-dropdown",{attrs:{dropup:"",right:"","no-caret":"",variant:"link","toggle-class":"pos-shell-mobile-tab-toggle","menu-class":"pos-shell-mobile-tab-menu"},scopedSlots:_vm._u([{key:"button-content",fn:function fn(){return[_c("span",{staticClass:"pos-shell-mobile-tab","class":{"pos-shell-mobile-tab-active":_vm.mobileActiveTab==="more"}},[_c("svg",{staticStyle:{width:"22px",height:"22px"},attrs:{viewBox:"0 0 24 24",fill:"none",stroke:"currentColor","stroke-width":"2","stroke-linecap":"round","stroke-linejoin":"round"}},[_c("line",{attrs:{x1:"3",y1:"6",x2:"21",y2:"6"}}),_c("line",{attrs:{x1:"3",y1:"12",x2:"21",y2:"12"}}),_c("line",{attrs:{x1:"3",y1:"18",x2:"21",y2:"18"}})]),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.$t("pos.More")||"More"))])])];},proxy:true}],null,false,479427509)},[_vm._v(" "),_c("router-link",{staticClass:"dropdown-item",attrs:{to:"/app/dashboard"}},[_vm._v(_vm._s(_vm.$t("pos.Home")||"Home"))]),_vm._v(" "),_c("button",{staticClass:"dropdown-item",attrs:{type:"button"},on:{click:_vm.Reset_Pos}},[_vm._v(_vm._s(_vm.$t("pos.Reset")||"Reset"))]),_vm._v(" "),_c("button",{staticClass:"dropdown-item",attrs:{type:"button"},on:{click:_vm.handleFullScreen}},[_vm._v(_vm._s(_vm.$t("Fullscreen")||"Fullscreen"))]),_vm._v(" "),_c("a",{staticClass:"dropdown-item",attrs:{href:"#"},on:{click:function click($event){$event.preventDefault();return _vm.logoutUser.apply(null,arguments);}}},[_vm._v(_vm._s(_vm.$t("logout")||"Logout"))])],1)],1):_vm._e(),_vm._v(" "),_c("b-modal",{attrs:{id:"pos_calculator","hide-footer":"",size:"sm",title:_vm.$t("Calculator")||"Calculator"}},[_c("div",{staticClass:"pos-calc"},[_c("div",{staticClass:"pos-calc-display"},[_c("div",{staticClass:"pos-calc-expr"},[_vm._v(_vm._s(_vm.calc.expression||" "))]),_vm._v(" "),_c("div",{staticClass:"pos-calc-result"},[_vm._v(_vm._s(_vm.calc.display))])]),_vm._v(" "),_c("div",{staticClass:"pos-calc-grid"},[_c("button",{staticClass:"pos-calc-key pos-calc-key-fn",attrs:{type:"button"},on:{click:_vm.calcClear}},[_vm._v("C")]),_vm._v(" "),_c("button",{staticClass:"pos-calc-key pos-calc-key-fn",attrs:{type:"button"},on:{click:_vm.calcBackspace}},[_vm._v("⌫")]),_vm._v(" "),_c("button",{staticClass:"pos-calc-key pos-calc-key-fn",attrs:{type:"button"},on:{click:_vm.calcPercent}},[_vm._v("%")]),_vm._v(" "),_c("button",{staticClass:"pos-calc-key pos-calc-key-op",attrs:{type:"button"},on:{click:function click($event){return _vm.calcOperator("/");}}},[_vm._v("÷")]),_vm._v(" "),_c("button",{staticClass:"pos-calc-key",attrs:{type:"button"},on:{click:function click($event){return _vm.calcDigit("7");}}},[_vm._v("7")]),_vm._v(" "),_c("button",{staticClass:"pos-calc-key",attrs:{type:"button"},on:{click:function click($event){return _vm.calcDigit("8");}}},[_vm._v("8")]),_vm._v(" "),_c("button",{staticClass:"pos-calc-key",attrs:{type:"button"},on:{click:function click($event){return _vm.calcDigit("9");}}},[_vm._v("9")]),_vm._v(" "),_c("button",{staticClass:"pos-calc-key pos-calc-key-op",attrs:{type:"button"},on:{click:function click($event){return _vm.calcOperator("*");}}},[_vm._v("×")]),_vm._v(" "),_c("button",{staticClass:"pos-calc-key",attrs:{type:"button"},on:{click:function click($event){return _vm.calcDigit("4");}}},[_vm._v("4")]),_vm._v(" "),_c("button",{staticClass:"pos-calc-key",attrs:{type:"button"},on:{click:function click($event){return _vm.calcDigit("5");}}},[_vm._v("5")]),_vm._v(" "),_c("button",{staticClass:"pos-calc-key",attrs:{type:"button"},on:{click:function click($event){return _vm.calcDigit("6");}}},[_vm._v("6")]),_vm._v(" "),_c("button",{staticClass:"pos-calc-key pos-calc-key-op",attrs:{type:"button"},on:{click:function click($event){return _vm.calcOperator("-");}}},[_vm._v("−")]),_vm._v(" "),_c("button",{staticClass:"pos-calc-key",attrs:{type:"button"},on:{click:function click($event){return _vm.calcDigit("1");}}},[_vm._v("1")]),_vm._v(" "),_c("button",{staticClass:"pos-calc-key",attrs:{type:"button"},on:{click:function click($event){return _vm.calcDigit("2");}}},[_vm._v("2")]),_vm._v(" "),_c("button",{staticClass:"pos-calc-key",attrs:{type:"button"},on:{click:function click($event){return _vm.calcDigit("3");}}},[_vm._v("3")]),_vm._v(" "),_c("button",{staticClass:"pos-calc-key pos-calc-key-op",attrs:{type:"button"},on:{click:function click($event){return _vm.calcOperator("+");}}},[_vm._v("+")]),_vm._v(" "),_c("button",{staticClass:"pos-calc-key pos-calc-key-zero",attrs:{type:"button"},on:{click:function click($event){return _vm.calcDigit("0");}}},[_vm._v("0")]),_vm._v(" "),_c("button",{staticClass:"pos-calc-key",attrs:{type:"button"},on:{click:_vm.calcDot}},[_vm._v(".")]),_vm._v(" "),_c("button",{staticClass:"pos-calc-key pos-calc-key-eq",attrs:{type:"button"},on:{click:_vm.calcEquals}},[_vm._v("=")])])])]),_vm._v(" "),_c("b-modal",{attrs:{id:"open_scan","hide-footer":"",title:_vm.$t("Scan")}},[_c("qrcode-scanner",{staticStyle:{width:"100%",height:"calc(100vh - 56px)"},attrs:{qrbox:250,fps:10},on:{result:_vm.onScan}}),_vm._v(" "),_c("div",{staticClass:"text-center mt-2"},[_c("b-button",{attrs:{variant:"primary"},on:{click:function click($event){return _vm.$bvModal.hide("open_scan");}}},[_vm._v(_vm._s(_vm.$t("Close")))])],1)],1),_vm._v(" "),_c("modern-payment-modal",{ref:"modernPaymentModal",attrs:{"payment-methods":_vm.payment_methods,accounts:_vm.accounts,"default-account-id":_vm.default_account_id,"default-payment-method-id":_vm.default_payment_method_id,currency:_vm.currentUser.currency,"client-id":_vm.selectedClientId,"warehouse-id":_vm.sale.warehouse_id,sale:_vm.sale,details:_vm.details,"grand-total":_vm.GrandTotal,"stripe-key":_vm.stripe_key,"discount-from-points":_vm.discount_from_points,"used-points":_vm.used_points,"draft-sale-id":_vm.draft_sale_id,"client-credit-limit":_vm.selectedClientCreditLimit,"client-net-balance":_vm.selectedClientNetBalance,"is-online":_vm.isOnline},on:{"payment-success":_vm.onModernPaymentSuccess}}),_vm._v(" "),_c("pos-return-modal",{ref:"posReturnModal",attrs:{"warehouse-id":_vm.sale.warehouse_id,currency:_vm.currentUser.currency},on:{"return-success":_vm.onReturnSuccess}}),_vm._v(" "),_c("b-modal",{attrs:{"hide-footer":"",size:"sm",scrollable:"",id:"Show_invoice",title:_vm.$t("Invoice_POS")},on:{shown:_vm.onInvoiceModalShown}},[_c("div",{attrs:{id:"invoice-POS"}},[_c("div",{staticStyle:{"max-width":"400px",margin:"0px auto"}},[_vm.currentReceiptLayout===1?_c("div",[_c("div",{staticClass:"info"},[_c("div",{staticClass:"invoice_logo text-center mb-2"},[_c("img",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_logo!==0,expression:"pos_settings.show_logo !== 0"}],attrs:{src:_vm.$imgUrl("settings",_vm.invoice_pos.setting.logo),alt:"",width:_vm.pos_settings.logo_size||60,height:_vm.pos_settings.logo_size||60}})]),_vm._v(" "),_c("p",[_c("span",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_store_name!==0,expression:"pos_settings.show_store_name !== 0"}]},[_c("strong",[_vm._v(_vm._s(_vm.invoice_pos.setting.CompanyName))]),_c("br")]),_vm._v(" "),_vm.invoice_pos.sale&&_vm.invoice_pos.sale.Ref&&_vm.pos_settings.show_reference!==0?_c("span",[_vm._v(_vm._s(_vm.$t("Reference"))+" : "+_vm._s(_vm.invoice_pos.sale.Ref)+" "),_c("br")]):_vm._e(),_vm._v(" "),_c("span",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_date!==0,expression:"pos_settings.show_date !== 0"}]},[_vm._v(_vm._s(_vm.$t("date"))+" : "+_vm._s(_vm.invoice_pos.sale.date)+" "),_c("br")]),_vm._v(" "),_c("span",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_seller!==0,expression:"pos_settings.show_seller !== 0"}]},[_vm._v(_vm._s(_vm.$t("Seller"))+" : "+_vm._s(_vm.invoice_pos.sale.seller_name)+" "),_c("br")]),_vm._v(" "),_c("span",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_address,expression:"pos_settings.show_address"}]},[_vm._v(_vm._s(_vm.$t("Adress"))+" : "+_vm._s(_vm.invoice_pos.setting.CompanyAdress)+" "),_c("br")]),_vm._v(" "),_c("span",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_email,expression:"pos_settings.show_email"}]},[_vm._v(_vm._s(_vm.$t("Email"))+" : "+_vm._s(_vm.invoice_pos.setting.email)+" "),_c("br")]),_vm._v(" "),_c("span",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_phone,expression:"pos_settings.show_phone"}]},[_vm._v(_vm._s(_vm.$t("Phone"))+" : "+_vm._s(_vm.invoice_pos.setting.CompanyPhone)+" "),_c("br")]),_vm._v(" "),_c("span",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_customer,expression:"pos_settings.show_customer"}]},[_vm._v(_vm._s(_vm.$t("Customer"))+" : "+_vm._s(_vm.invoice_pos.sale.client_name)+" "),_c("br")]),_vm._v(" "),_c("span",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_Warehouse,expression:"pos_settings.show_Warehouse"}]},[_vm._v(_vm._s(_vm.$t("warehouse"))+" : "+_vm._s(_vm.invoice_pos.sale.warehouse_name)+" "),_c("br")])])]),_vm._v(" "),_c("table",{staticClass:"table_data",staticStyle:{width:"100%"}},[_c("tbody",[_vm._l(_vm.invoice_pos.details,function(detail_invoice){return _c("tr",[_c("td",{attrs:{colspan:"3"}},[_vm._v("\n                    "+_vm._s(detail_invoice.name)+"\n                    "),_c("br",{directives:[{name:"show",rawName:"v-show",value:detail_invoice.is_imei&&detail_invoice.imei_number!==null,expression:"detail_invoice.is_imei && detail_invoice.imei_number !==null"}]}),_vm._v(" "),_c("span",{directives:[{name:"show",rawName:"v-show",value:detail_invoice.is_imei&&detail_invoice.imei_number!==null,expression:"detail_invoice.is_imei && detail_invoice.imei_number !==null "}]},[_vm._v(_vm._s(_vm.$t("IMEI_SN"))+" : "+_vm._s(detail_invoice.imei_number))]),_vm._v(" "),_c("br"),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.formatNumber(detail_invoice.quantity,2))+" "+_vm._s(_vm.packLineUnit(detail_invoice))+" x "+_vm._s(_vm.formatPriceDisplay(detail_invoice.total/detail_invoice.quantity,2)))]),_vm._v(" "),detail_invoice.pack_name&&Number(detail_invoice.pack_multiplier)>1?_c("br"):_vm._e(),_vm._v(" "),detail_invoice.pack_name&&Number(detail_invoice.pack_multiplier)>1?_c("small",{staticStyle:{color:"#666"}},[_vm._v("(×"+_vm._s(detail_invoice.pack_multiplier)+") = "+_vm._s(_vm.formatNumber(detail_invoice.quantity*detail_invoice.pack_multiplier,2))+" "+_vm._s(detail_invoice.unit_sale||_vm.$t("Pcs")||"pcs"))]):_vm._e(),_vm._v(" "),_vm.pos_settings.show_product_discount!==0&&Number(detail_invoice.DiscountNet||0)>0?_c("br"):_vm._e(),_vm._v(" "),_vm.pos_settings.show_product_discount!==0&&Number(detail_invoice.DiscountNet||0)>0?_c("small",{staticStyle:{color:"#888","font-style":"italic"}},[_vm._v(_vm._s(_vm.$t("Discount"))+": -"+_vm._s(_vm.formatPriceDisplay(Number(detail_invoice.DiscountNet)*Number(detail_invoice.quantity),2)))]):_vm._e()]),_vm._v(" "),_c("td",{staticStyle:{"text-align":"right","vertical-align":"bottom"}},[_vm._v("\n                    "+_vm._s(_vm.formatPriceDisplay(detail_invoice.total,2))+"\n                  ")])]);}),_vm._v(" "),_c("tr",{staticStyle:{"margin-top":"10px"}},[_c("td",{staticClass:"total",attrs:{colspan:"3"}},[_vm._v(_vm._s(_vm.$t("pos.Subtotal")))]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[_vm._v("\n                    "+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoiceSubtotal,2))+"\n                  ")])]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_tax,expression:"pos_settings.show_tax"}],staticStyle:{"margin-top":"10px"}},[_c("td",{staticClass:"total",attrs:{colspan:"3"}},[_vm._v(_vm._s(_vm.$t("OrderTax")))]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[_vm._v("\n                    "+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.taxe,2))+" ("+_vm._s(_vm.formatNumber(_vm.invoice_pos.sale.tax_rate,2))+" %)\n                  ")])]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_discount,expression:"pos_settings.show_discount"}],staticStyle:{"margin-top":"10px"}},[_c("td",{staticClass:"total",attrs:{colspan:"3"}},[_vm._v(_vm._s(_vm.$t("Discount")))]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[String(_vm.invoice_pos.sale.discount_Method||"2")==="1"?[_vm._v("\n                      "+_vm._s(_vm.formatNumber(_vm.invoice_pos.sale.discount,2))+"% ("+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.calculatedManualDiscountAmount,2))+")\n                    ")]:[_vm._v("\n                      "+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.calculatedManualDiscountAmount,2))+"\n                    ")]],2)]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_discount&&_vm.invoice_pos.sale.discount_from_points&&Number(_vm.invoice_pos.sale.discount_from_points)>0,expression:"pos_settings.show_discount && invoice_pos.sale.discount_from_points && Number(invoice_pos.sale.discount_from_points) > 0"}]},[_c("td",{staticClass:"total",attrs:{colspan:"3"}},[_vm._v(_vm._s(_vm.$t("Discount_from_Points")))]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[_vm._v("\n                    "+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.discount_from_points,2))+"\n                  ")])]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_shipping,expression:"pos_settings.show_shipping"}],staticStyle:{"margin-top":"10px"}},[_c("td",{staticClass:"total",attrs:{colspan:"3"}},[_vm._v(_vm._s(_vm.$t("Shipping")))]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[_vm._v("\n                    "+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.shipping,2))+"\n                  ")])]),_vm._v(" "),_c("tr",{staticStyle:{"margin-top":"10px"}},[_c("td",{staticClass:"total",attrs:{colspan:"3"}},[_vm._v(_vm._s(_vm.$t("Total")))]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[_vm._v("\n                    "+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.GrandTotal,2))+"\n                  ")])]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_paid!==0,expression:"pos_settings.show_paid !== 0"}]},[_c("td",{staticClass:"total",attrs:{colspan:"3"}},[_vm._v(_vm._s(_vm.$t("Paid")))]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[_vm._v("\n                    "+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.paid_amount,2))+"\n                  ")])]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_due!==0,expression:"pos_settings.show_due !== 0"}]},[_c("td",{staticClass:"total",attrs:{colspan:"3"}},[_vm._v(_vm._s(_vm.$t("Due")))]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[_vm._v("\n                    "+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.GrandTotal-_vm.invoice_pos.sale.paid_amount,2))+"\n                  ")])])],2)]),_vm._v(" "),_c("table",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_payments!==0&&_vm.invoice_pos.sale.paid_amount>0,expression:"pos_settings.show_payments !== 0 && invoice_pos.sale.paid_amount > 0"}],staticClass:"change mt-3",staticStyle:{"font-size":"10px",width:"100%"}},[_c("thead",[_c("tr",{staticStyle:{background:"#eee"}},[_c("th",{staticStyle:{"text-align":"left"},attrs:{colspan:"1"}},[_vm._v(_vm._s(_vm.$t("PayeBy"))+":")]),_vm._v(" "),_c("th",{staticStyle:{"text-align":"center"},attrs:{colspan:"2"}},[_vm._v(_vm._s(_vm.$t("Amount"))+":")]),_vm._v(" "),_c("th",{staticStyle:{"text-align":"right"},attrs:{colspan:"1"}},[_vm._v(_vm._s(_vm.$t("Change"))+":")])])]),_vm._v(" "),_c("tbody",[_vm._l(_vm.payments,function(payment_pos){return[_c("tr",{key:"pay-"+payment_pos.id},[_c("td",{staticStyle:{"text-align":"left"},attrs:{colspan:"1"}},[_vm._v(_vm._s(payment_pos.payment_method?payment_pos.payment_method.name:"---"))]),_vm._v(" "),_c("td",{staticStyle:{"text-align":"center"},attrs:{colspan:"2"}},[_vm._v("\n                      "+_vm._s(_vm.formatPriceDisplay(payment_pos.montant,2))+"\n                    ")]),_vm._v(" "),_c("td",{staticStyle:{"text-align":"right"},attrs:{colspan:"1"}},[_vm._v("\n                      "+_vm._s(_vm.formatPriceDisplay(payment_pos.change,2))+"\n                    ")])]),_vm._v(" "),payment_pos.notes?_c("tr",{key:"pay-note-"+payment_pos.id},[_c("td",{staticStyle:{"font-size":"9px","font-style":"italic","padding-bottom":"4px","white-space":"pre-line"},attrs:{colspan:"4"}},[_vm._v("\n                      "+_vm._s(_vm.$t("Payment_note"))+": "+_vm._s(payment_pos.notes)+"\n                    ")])]):_vm._e()];})],2)]),_vm._v(" "),_c("div",{staticClass:"ml-2",attrs:{id:"legalcopy"}},[_vm.invoice_pos.sale&&_vm.invoice_pos.sale.notes?_c("p",{staticStyle:{"font-size":"9px","font-style":"italic","padding-bottom":"4px","white-space":"pre-line",margin:"0"}},[_vm._v("\n                "+_vm._s(_vm.$t("sale_note"))+": "+_vm._s(_vm.invoice_pos.sale.notes)+"\n              ")]):_vm._e(),_vm._v(" "),_c("p",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_note,expression:"pos_settings.show_note"}],staticClass:"legal",staticStyle:{"white-space":"pre-line"}},[_c("strong",[_vm._v(_vm._s(_vm.pos_settings.note_customer))])]),_vm._v(" "),_vm.invoice_pos.setting&&_vm.invoice_pos.setting.zatca_enabled&&_vm.invoice_pos.zatca_qr&&_vm.pos_settings.show_zatca_qr!==0||_vm.pos_settings.show_barcode!==0&&_vm.invoice_pos.sale&&_vm.invoice_pos.sale.Ref?_c("div",{staticClass:"receipt-qr-row mt-2"},[_vm.invoice_pos.setting&&_vm.invoice_pos.setting.zatca_enabled&&_vm.invoice_pos.zatca_qr&&_vm.pos_settings.show_zatca_qr!==0?_c("div",{staticClass:"receipt-qr-block"},[_c("div",{staticClass:"receipt-qr-title"},[_vm._v("ZATCA QR")]),_vm._v(" "),_c("div",{ref:"zatcaQrcodePos",staticClass:"receipt-qr-canvas"})]):_vm._e(),_vm._v(" "),_vm.pos_settings.show_barcode!==0&&_vm.invoice_pos.sale&&_vm.invoice_pos.sale.Ref?_c("div",{staticClass:"receipt-qr-block"},[_c("div",{staticClass:"receipt-qr-title"},[_vm._v("Invoice QR")]),_vm._v(" "),_c("div",{ref:"invoiceUrlQr",staticClass:"receipt-qr-canvas"})]):_vm._e()]):_vm._e()])]):_vm.currentReceiptLayout===2?_c("div",[_c("div",{staticClass:"info text-center"},[_c("div",{staticClass:"invoice_logo mb-1"},[_c("img",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_logo!==0,expression:"pos_settings.show_logo !== 0"}],attrs:{src:_vm.$imgUrl("settings",_vm.invoice_pos.setting.logo),alt:"",width:_vm.pos_settings.logo_size||60,height:_vm.pos_settings.logo_size||60}})]),_vm._v(" "),_c("div",[_c("div",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_store_name!==0,expression:"pos_settings.show_store_name !== 0"}]},[_vm._v(_vm._s(_vm.invoice_pos.setting.CompanyName))]),_vm._v(" "),_c("div",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_address,expression:"pos_settings.show_address"}]},[_vm._v(_vm._s(_vm.invoice_pos.setting.CompanyAdress))]),_vm._v(" "),_c("div",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_phone,expression:"pos_settings.show_phone"}]},[_vm._v(_vm._s(_vm.invoice_pos.setting.CompanyPhone))]),_vm._v(" "),_c("div",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_email,expression:"pos_settings.show_email"}]},[_vm._v(_vm._s(_vm.invoice_pos.setting.email))])]),_vm._v(" "),_c("div",{staticClass:"mt-1"},[_vm.invoice_pos.sale&&_vm.invoice_pos.sale.Ref&&_vm.pos_settings.show_reference!==0?_c("small",[_vm._v("\n                  "+_vm._s(_vm.$t("Reference"))+" : "+_vm._s(_vm.invoice_pos.sale.Ref)+"\n                ")]):_vm._e(),_vm._v(" "),_vm.invoice_pos.sale&&_vm.invoice_pos.sale.Ref&&_vm.pos_settings.show_reference!==0?_c("br"):_vm._e(),_vm._v(" "),_c("small",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_date!==0,expression:"pos_settings.show_date !== 0"}]},[_vm._v("\n                  "+_vm._s(_vm.$t("date"))+" : "+_vm._s(_vm.invoice_pos.sale.date)+"\n                ")]),_c("br"),_vm._v(" "),_c("small",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_seller!==0,expression:"pos_settings.show_seller !== 0"}]},[_vm._v("\n                  "+_vm._s(_vm.$t("Seller"))+" : "+_vm._s(_vm.invoice_pos.sale.seller_name)+"\n                ")]),_c("br"),_vm._v(" "),_c("small",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_customer,expression:"pos_settings.show_customer"}]},[_vm._v("\n                  "+_vm._s(_vm.$t("Customer"))+" : "+_vm._s(_vm.invoice_pos.sale.client_name)+"\n                ")]),_c("br"),_vm._v(" "),_c("small",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_Warehouse,expression:"pos_settings.show_Warehouse"}]},[_vm._v("\n                  "+_vm._s(_vm.$t("warehouse"))+" : "+_vm._s(_vm.invoice_pos.sale.warehouse_name)+"\n                ")])])]),_vm._v(" "),_c("table",{staticClass:"table_data mt-2",staticStyle:{width:"100%","font-size":"11px"}},[_c("thead",[_c("tr",[_c("th",{staticStyle:{"text-align":"left"}},[_vm._v(_vm._s(_vm.$t("ProductName")))]),_vm._v(" "),_c("th",{staticStyle:{"text-align":"center"}},[_vm._v(_vm._s(_vm.$t("Quantity")))]),_vm._v(" "),_c("th",{staticStyle:{"text-align":"right"}},[_vm._v(_vm._s(_vm.$t("Price")))]),_vm._v(" "),_c("th",{staticStyle:{"text-align":"right"}},[_vm._v(_vm._s(_vm.$t("Total")))])])]),_vm._v(" "),_c("tbody",[_vm._l(_vm.invoice_pos.details,function(detail_invoice){return[_c("tr",{key:"l2-item-"+detail_invoice.detail_id},[_c("td",[_vm._v("\n                      "+_vm._s(detail_invoice.name)+"\n                      "),_c("br",{directives:[{name:"show",rawName:"v-show",value:detail_invoice.is_imei&&detail_invoice.imei_number!==null,expression:"detail_invoice.is_imei && detail_invoice.imei_number !==null"}]}),_vm._v(" "),_c("small",{directives:[{name:"show",rawName:"v-show",value:detail_invoice.is_imei&&detail_invoice.imei_number!==null,expression:"detail_invoice.is_imei && detail_invoice.imei_number !==null "}]},[_vm._v(_vm._s(_vm.$t("IMEI_SN"))+" : "+_vm._s(detail_invoice.imei_number))]),_vm._v(" "),detail_invoice.pack_name&&Number(detail_invoice.pack_multiplier)>1?_c("br"):_vm._e(),_vm._v(" "),detail_invoice.pack_name&&Number(detail_invoice.pack_multiplier)>1?_c("small",{staticStyle:{color:"#666"}},[_vm._v("(×"+_vm._s(detail_invoice.pack_multiplier)+") = "+_vm._s(_vm.formatNumber(detail_invoice.quantity*detail_invoice.pack_multiplier,2))+" "+_vm._s(detail_invoice.unit_sale||_vm.$t("Pcs")||"pcs"))]):_vm._e()]),_vm._v(" "),_c("td",{staticStyle:{"text-align":"center"}},[_vm._v("\n                      "+_vm._s(_vm.formatNumber(detail_invoice.quantity,2))+" "+_vm._s(_vm.packLineUnit(detail_invoice))+"\n                    ")]),_vm._v(" "),_c("td",{staticStyle:{"text-align":"right"}},[_vm._v("\n                      "+_vm._s(_vm.formatNumber(detail_invoice.total/detail_invoice.quantity,2))+"\n                    ")]),_vm._v(" "),_c("td",{staticStyle:{"text-align":"right"}},[_vm._v("\n                      "+_vm._s(_vm.formatNumber(detail_invoice.total,2))+"\n                    ")])]),_vm._v(" "),_vm.pos_settings.show_product_discount!==0&&Number(detail_invoice.DiscountNet||0)>0?_c("tr",{key:"l2-disc-"+detail_invoice.detail_id},[_c("td",{staticStyle:{color:"#888","font-style":"italic","font-size":"10px","padding-left":"8px"},attrs:{colspan:"4"}},[_vm._v("\n                      "+_vm._s(_vm.$t("Discount"))+": -"+_vm._s(_vm.formatPriceDisplay(Number(detail_invoice.DiscountNet)*Number(detail_invoice.quantity),2))+"\n                    ")])]):_vm._e()];})],2)]),_vm._v(" "),_c("table",{staticClass:"table_data mt-2",staticStyle:{width:"100%","font-size":"11px"}},[_c("tbody",[_c("tr",[_c("td",{staticClass:"total"},[_vm._v(_vm._s(_vm.$t("pos.Subtotal")))]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[_vm._v("\n                    "+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoiceSubtotal,2))+"\n                  ")])]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_tax,expression:"pos_settings.show_tax"}]},[_c("td",{staticClass:"total"},[_vm._v(_vm._s(_vm.$t("OrderTax")))]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[_vm._v("\n                    "+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.taxe,2))+" ("+_vm._s(_vm.formatNumber(_vm.invoice_pos.sale.tax_rate,2))+" %)\n                  ")])]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_discount,expression:"pos_settings.show_discount"}]},[_c("td",{staticClass:"total"},[_vm._v(_vm._s(_vm.$t("Discount")))]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[String(_vm.invoice_pos.sale.discount_Method||"2")==="1"?[_vm._v("\n                      "+_vm._s(_vm.formatNumber(_vm.invoice_pos.sale.discount,2))+"% ("+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.calculatedManualDiscountAmount,2))+")\n                    ")]:[_vm._v("\n                      "+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.calculatedManualDiscountAmount,2))+"\n                    ")]],2)]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_discount&&_vm.invoice_pos.sale.discount_from_points&&Number(_vm.invoice_pos.sale.discount_from_points)>0,expression:"pos_settings.show_discount && invoice_pos.sale.discount_from_points && Number(invoice_pos.sale.discount_from_points) > 0"}]},[_c("td",{staticClass:"total"},[_vm._v(_vm._s(_vm.$t("Discount_from_Points")))]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[_vm._v("\n                    "+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.discount_from_points,2))+"\n                  ")])]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_shipping,expression:"pos_settings.show_shipping"}]},[_c("td",{staticClass:"total"},[_vm._v(_vm._s(_vm.$t("Shipping")))]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[_vm._v("\n                    "+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.shipping,2))+"\n                  ")])]),_vm._v(" "),_c("tr",[_c("td",{staticClass:"total"},[_vm._v(_vm._s(_vm.$t("Total")))]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[_vm._v("\n                    "+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.GrandTotal,2))+"\n                  ")])]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_paid!==0,expression:"pos_settings.show_paid !== 0"}]},[_c("td",{staticClass:"total"},[_vm._v(_vm._s(_vm.$t("Paid")))]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[_vm._v("\n                    "+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.paid_amount,2))+"\n                  ")])]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_due!==0,expression:"pos_settings.show_due !== 0"}]},[_c("td",{staticClass:"total"},[_vm._v(_vm._s(_vm.$t("Due")))]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[_vm._v("\n                    "+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.GrandTotal-_vm.invoice_pos.sale.paid_amount,2))+"\n                  ")])])])]),_vm._v(" "),_c("table",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_payments!==0&&_vm.invoice_pos.sale.paid_amount>0,expression:"pos_settings.show_payments !== 0 && invoice_pos.sale.paid_amount > 0"}],staticClass:"change mt-2",staticStyle:{"font-size":"10px",width:"100%"}},[_c("thead",[_c("tr",{staticStyle:{background:"#eee"}},[_c("th",{staticStyle:{"text-align":"left"},attrs:{colspan:"1"}},[_vm._v(_vm._s(_vm.$t("PayeBy"))+":")]),_vm._v(" "),_c("th",{staticStyle:{"text-align":"center"},attrs:{colspan:"2"}},[_vm._v(_vm._s(_vm.$t("Amount"))+":")]),_vm._v(" "),_c("th",{staticStyle:{"text-align":"right"},attrs:{colspan:"1"}},[_vm._v(_vm._s(_vm.$t("Change"))+":")])])]),_vm._v(" "),_c("tbody",[_vm._l(_vm.payments,function(payment_pos){return[_c("tr",{key:"pay2-"+payment_pos.id},[_c("td",{staticStyle:{"text-align":"left"},attrs:{colspan:"1"}},[_vm._v(_vm._s(payment_pos.payment_method?payment_pos.payment_method.name:"---"))]),_vm._v(" "),_c("td",{staticStyle:{"text-align":"center"},attrs:{colspan:"2"}},[_vm._v("\n                      "+_vm._s(_vm.formatNumber(payment_pos.montant,2))+"\n                    ")]),_vm._v(" "),_c("td",{staticStyle:{"text-align":"right"},attrs:{colspan:"1"}},[_vm._v("\n                      "+_vm._s(_vm.formatNumber(payment_pos.change,2))+"\n                    ")])]),_vm._v(" "),payment_pos.notes?_c("tr",{key:"pay2-note-"+payment_pos.id},[_c("td",{staticStyle:{"font-size":"9px","font-style":"italic","padding-bottom":"4px","white-space":"pre-line"},attrs:{colspan:"4"}},[_vm._v("\n                      "+_vm._s(_vm.$t("Payment_note"))+": "+_vm._s(payment_pos.notes)+"\n                    ")])]):_vm._e()];})],2)]),_vm._v(" "),_c("div",{staticClass:"ml-2",attrs:{id:"legalcopy"}},[_vm.invoice_pos.sale&&_vm.invoice_pos.sale.notes?_c("p",{staticStyle:{"font-size":"9px","font-style":"italic","padding-bottom":"4px","white-space":"pre-line",margin:"0"}},[_vm._v("\n                "+_vm._s(_vm.$t("sale_note"))+": "+_vm._s(_vm.invoice_pos.sale.notes)+"\n              ")]):_vm._e(),_vm._v(" "),_c("p",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_note,expression:"pos_settings.show_note"}],staticClass:"legal",staticStyle:{"white-space":"pre-line"}},[_c("strong",[_vm._v(_vm._s(_vm.pos_settings.note_customer))])]),_vm._v(" "),_vm.invoice_pos.setting&&_vm.invoice_pos.setting.zatca_enabled&&_vm.invoice_pos.zatca_qr&&_vm.pos_settings.show_zatca_qr!==0||_vm.pos_settings.show_barcode!==0&&_vm.invoice_pos.sale&&_vm.invoice_pos.sale.Ref?_c("div",{staticClass:"receipt-qr-row mt-2"},[_vm.invoice_pos.setting&&_vm.invoice_pos.setting.zatca_enabled&&_vm.invoice_pos.zatca_qr&&_vm.pos_settings.show_zatca_qr!==0?_c("div",{staticClass:"receipt-qr-block"},[_c("div",{staticClass:"receipt-qr-title"},[_vm._v("ZATCA QR")]),_vm._v(" "),_c("div",{ref:"zatcaQrcodePos",staticClass:"receipt-qr-canvas"})]):_vm._e(),_vm._v(" "),_vm.pos_settings.show_barcode!==0&&_vm.invoice_pos.sale&&_vm.invoice_pos.sale.Ref?_c("div",{staticClass:"receipt-qr-block"},[_c("div",{staticClass:"receipt-qr-title"},[_vm._v("Invoice QR")]),_vm._v(" "),_c("div",{ref:"invoiceUrlQr",staticClass:"receipt-qr-canvas"})]):_vm._e()]):_vm._e()])]):_vm.currentReceiptLayout===3?_c("div",[_c("div",{staticClass:"info mb-2"},[_c("div",{staticClass:"d-flex justify-content-between"},[_c("div",[_c("strong",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_store_name!==0,expression:"pos_settings.show_store_name !== 0"}]},[_vm._v(_vm._s(_vm.invoice_pos.setting.CompanyName))]),_c("br"),_vm._v(" "),_c("span",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_address,expression:"pos_settings.show_address"}]},[_vm._v(_vm._s(_vm.invoice_pos.setting.CompanyAdress))]),_c("br",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_address,expression:"pos_settings.show_address"}]}),_vm._v(" "),_c("span",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_phone,expression:"pos_settings.show_phone"}]},[_vm._v(_vm._s(_vm.invoice_pos.setting.CompanyPhone))]),_c("br",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_phone,expression:"pos_settings.show_phone"}]}),_vm._v(" "),_c("span",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_email,expression:"pos_settings.show_email"}]},[_vm._v(_vm._s(_vm.invoice_pos.setting.email))])]),_vm._v(" "),_c("div",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_logo!==0,expression:"pos_settings.show_logo !== 0"}],staticClass:"invoice_logo text-center mb-2"},[_c("img",{attrs:{src:_vm.$imgUrl("settings",_vm.invoice_pos.setting.logo),alt:"",width:_vm.pos_settings.logo_size||60,height:_vm.pos_settings.logo_size||60}})])]),_vm._v(" "),_c("div",{staticClass:"mt-2",staticStyle:{"font-size":"11px"}},[_vm.invoice_pos.sale&&_vm.invoice_pos.sale.Ref&&_vm.pos_settings.show_reference!==0?_c("div",[_vm._v("\n                  "+_vm._s(_vm.$t("Reference"))+" : "+_vm._s(_vm.invoice_pos.sale.Ref)+"\n                ")]):_vm._e(),_vm._v(" "),_c("div",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_date!==0,expression:"pos_settings.show_date !== 0"}]},[_vm._v("\n                  "+_vm._s(_vm.$t("date"))+" : "+_vm._s(_vm.invoice_pos.sale.date)+"\n                ")]),_vm._v(" "),_c("div",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_seller!==0,expression:"pos_settings.show_seller !== 0"}]},[_vm._v("\n                  "+_vm._s(_vm.$t("Seller"))+" : "+_vm._s(_vm.invoice_pos.sale.seller_name)+"\n                ")]),_vm._v(" "),_c("div",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_customer,expression:"pos_settings.show_customer"}]},[_vm._v("\n                  "+_vm._s(_vm.$t("Customer"))+" : "+_vm._s(_vm.invoice_pos.sale.client_name)+"\n                ")]),_vm._v(" "),_c("div",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_Warehouse,expression:"pos_settings.show_Warehouse"}]},[_vm._v("\n                  "+_vm._s(_vm.$t("warehouse"))+" : "+_vm._s(_vm.invoice_pos.sale.warehouse_name)+"\n                ")])])]),_vm._v(" "),_c("table",{staticClass:"table_data w-100 mb-2",staticStyle:{"font-size":"11px"}},[_c("tbody",_vm._l(_vm.invoice_pos.details,function(detail_invoice){return _c("tr",[_c("td",{attrs:{colspan:"2"}},[_c("strong",[_vm._v(_vm._s(detail_invoice.name))]),_vm._v(" "),_c("br",{directives:[{name:"show",rawName:"v-show",value:detail_invoice.is_imei&&detail_invoice.imei_number!==null,expression:"detail_invoice.is_imei && detail_invoice.imei_number !==null"}]}),_vm._v(" "),_c("span",{directives:[{name:"show",rawName:"v-show",value:detail_invoice.is_imei&&detail_invoice.imei_number!==null,expression:"detail_invoice.is_imei && detail_invoice.imei_number !==null "}]},[_vm._v(_vm._s(_vm.$t("IMEI_SN"))+" : "+_vm._s(detail_invoice.imei_number))]),_vm._v(" "),_c("br"),_vm._v(" "),_c("small",[_vm._v(_vm._s(_vm.formatNumber(detail_invoice.quantity,2))+" "+_vm._s(_vm.packLineUnit(detail_invoice))+" x "+_vm._s(_vm.formatPriceDisplay(detail_invoice.total/detail_invoice.quantity,2)))]),_vm._v(" "),detail_invoice.pack_name&&Number(detail_invoice.pack_multiplier)>1?_c("br"):_vm._e(),_vm._v(" "),detail_invoice.pack_name&&Number(detail_invoice.pack_multiplier)>1?_c("small",{staticStyle:{color:"#666"}},[_vm._v("(×"+_vm._s(detail_invoice.pack_multiplier)+") = "+_vm._s(_vm.formatNumber(detail_invoice.quantity*detail_invoice.pack_multiplier,2))+" "+_vm._s(detail_invoice.unit_sale||_vm.$t("Pcs")||"pcs"))]):_vm._e(),_vm._v(" "),_vm.pos_settings.show_product_discount!==0&&Number(detail_invoice.DiscountNet||0)>0?_c("br"):_vm._e(),_vm._v(" "),_vm.pos_settings.show_product_discount!==0&&Number(detail_invoice.DiscountNet||0)>0?_c("small",{staticStyle:{color:"#888","font-style":"italic"}},[_vm._v(_vm._s(_vm.$t("Discount"))+": -"+_vm._s(_vm.formatPriceDisplay(Number(detail_invoice.DiscountNet)*Number(detail_invoice.quantity),2)))]):_vm._e()]),_vm._v(" "),_c("td",{staticStyle:{"text-align":"right","vertical-align":"bottom"}},[_vm._v("\n                    "+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,detail_invoice.total,2))+"\n                  ")])]);}),0)]),_vm._v(" "),_c("table",{staticClass:"table_data w-100 mt-2",staticStyle:{"font-size":"11px"}},[_c("tbody",[_c("tr",[_c("td",{staticClass:"total"},[_vm._v(_vm._s(_vm.$t("pos.Subtotal")))]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[_vm._v("\n                    "+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoiceSubtotal,2))+"\n                  ")])]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_tax,expression:"pos_settings.show_tax"}]},[_c("td",{staticClass:"total"},[_vm._v(_vm._s(_vm.$t("OrderTax")))]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[_vm._v("\n                    "+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.taxe,2))+" ("+_vm._s(_vm.formatNumber(_vm.invoice_pos.sale.tax_rate,2))+" %)\n                  ")])]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_discount,expression:"pos_settings.show_discount"}]},[_c("td",{staticClass:"total"},[_vm._v(_vm._s(_vm.$t("Discount")))]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[String(_vm.invoice_pos.sale.discount_Method||"2")==="1"?[_vm._v("\n                      "+_vm._s(_vm.formatNumber(_vm.invoice_pos.sale.discount,2))+"% ("+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.calculatedManualDiscountAmount,2))+")\n                    ")]:[_vm._v("\n                      "+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.calculatedManualDiscountAmount,2))+"\n                    ")]],2)]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_discount&&_vm.invoice_pos.sale.discount_from_points&&Number(_vm.invoice_pos.sale.discount_from_points)>0,expression:"pos_settings.show_discount && invoice_pos.sale.discount_from_points && Number(invoice_pos.sale.discount_from_points) > 0"}]},[_c("td",{staticClass:"total"},[_vm._v(_vm._s(_vm.$t("Discount_from_Points")))]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[_vm._v("\n                    "+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.discount_from_points,2))+"\n                  ")])]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_shipping,expression:"pos_settings.show_shipping"}]},[_c("td",{staticClass:"total"},[_vm._v(_vm._s(_vm.$t("Shipping")))]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[_vm._v("\n                    "+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.shipping,2))+"\n                  ")])]),_vm._v(" "),_c("tr",[_c("td",{staticClass:"total"},[_vm._v(_vm._s(_vm.$t("Total")))]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[_vm._v("\n                    "+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.GrandTotal,2))+"\n                  ")])]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_paid!==0,expression:"pos_settings.show_paid !== 0"}]},[_c("td",{staticClass:"total"},[_vm._v(_vm._s(_vm.$t("Paid")))]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[_vm._v("\n                    "+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.paid_amount,2))+"\n                  ")])]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_due!==0,expression:"pos_settings.show_due !== 0"}]},[_c("td",{staticClass:"total"},[_vm._v(_vm._s(_vm.$t("Due")))]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[_vm._v("\n                    "+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.GrandTotal-_vm.invoice_pos.sale.paid_amount,2))+"\n                  ")])])])]),_vm._v(" "),_c("table",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_payments!==0&&_vm.invoice_pos.sale.paid_amount>0,expression:"pos_settings.show_payments !== 0 && invoice_pos.sale.paid_amount > 0"}],staticClass:"change mt-3",staticStyle:{"font-size":"10px",width:"100%"}},[_c("thead",[_c("tr",{staticStyle:{background:"#eee"}},[_c("th",{staticStyle:{"text-align":"left"},attrs:{colspan:"1"}},[_vm._v(_vm._s(_vm.$t("PayeBy"))+":")]),_vm._v(" "),_c("th",{staticStyle:{"text-align":"center"},attrs:{colspan:"2"}},[_vm._v(_vm._s(_vm.$t("Amount"))+":")]),_vm._v(" "),_c("th",{staticStyle:{"text-align":"right"},attrs:{colspan:"1"}},[_vm._v(_vm._s(_vm.$t("Change"))+":")])])]),_vm._v(" "),_c("tbody",[_vm._l(_vm.payments,function(payment_pos){return[_c("tr",{key:"pay3-"+payment_pos.id},[_c("td",{staticStyle:{"text-align":"left"},attrs:{colspan:"1"}},[_vm._v(_vm._s(payment_pos.payment_method?payment_pos.payment_method.name:"---"))]),_vm._v(" "),_c("td",{staticStyle:{"text-align":"center"},attrs:{colspan:"2"}},[_vm._v("\n                      "+_vm._s(_vm.formatNumber(payment_pos.montant,2))+"\n                    ")]),_vm._v(" "),_c("td",{staticStyle:{"text-align":"right"},attrs:{colspan:"1"}},[_vm._v("\n                      "+_vm._s(_vm.formatNumber(payment_pos.change,2))+"\n                    ")])]),_vm._v(" "),payment_pos.notes?_c("tr",{key:"pay3-note-"+payment_pos.id},[_c("td",{staticStyle:{"font-size":"9px","font-style":"italic","padding-bottom":"4px","white-space":"pre-line"},attrs:{colspan:"4"}},[_vm._v("\n                      "+_vm._s(_vm.$t("Payment_note"))+": "+_vm._s(payment_pos.notes)+"\n                    ")])]):_vm._e()];})],2)]),_vm._v(" "),_c("div",{staticClass:"ml-2",attrs:{id:"legalcopy"}},[_vm.invoice_pos.sale&&_vm.invoice_pos.sale.notes?_c("p",{staticStyle:{"font-size":"9px","font-style":"italic","padding-bottom":"4px","white-space":"pre-line",margin:"0"}},[_vm._v("\n                "+_vm._s(_vm.$t("sale_note"))+": "+_vm._s(_vm.invoice_pos.sale.notes)+"\n              ")]):_vm._e(),_vm._v(" "),_c("p",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_note,expression:"pos_settings.show_note"}],staticClass:"legal",staticStyle:{"white-space":"pre-line"}},[_c("strong",[_vm._v(_vm._s(_vm.pos_settings.note_customer))])]),_vm._v(" "),_vm.invoice_pos.setting&&_vm.invoice_pos.setting.zatca_enabled&&_vm.invoice_pos.zatca_qr&&_vm.pos_settings.show_zatca_qr!==0||_vm.pos_settings.show_barcode!==0&&_vm.invoice_pos.sale&&_vm.invoice_pos.sale.Ref?_c("div",{staticClass:"receipt-qr-row mt-2"},[_vm.invoice_pos.setting&&_vm.invoice_pos.setting.zatca_enabled&&_vm.invoice_pos.zatca_qr&&_vm.pos_settings.show_zatca_qr!==0?_c("div",{staticClass:"receipt-qr-block"},[_c("div",{staticClass:"receipt-qr-title"},[_vm._v("ZATCA QR")]),_vm._v(" "),_c("div",{ref:"zatcaQrcodePos",staticClass:"receipt-qr-canvas"})]):_vm._e(),_vm._v(" "),_vm.pos_settings.show_barcode!==0&&_vm.invoice_pos.sale&&_vm.invoice_pos.sale.Ref?_c("div",{staticClass:"receipt-qr-block"},[_c("div",{staticClass:"receipt-qr-title"},[_vm._v("Invoice QR")]),_vm._v(" "),_c("div",{ref:"invoiceUrlQr",staticClass:"receipt-qr-canvas"})]):_vm._e()]):_vm._e()])]):_vm.currentReceiptLayout===4?_c("div",{staticClass:"receipt-layout-4"},[_c("div",{staticClass:"info text-center"},[_c("div",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_logo!==0,expression:"pos_settings.show_logo !== 0"}],staticClass:"invoice_logo mb-2"},[_c("img",{attrs:{src:_vm.$imgUrl("settings",_vm.invoice_pos.setting.logo),alt:"",width:_vm.pos_settings.logo_size||60,height:_vm.pos_settings.logo_size||60}})]),_vm._v(" "),_c("div",[_c("strong",{staticStyle:{"font-size":"13px"}},[_vm._v(_vm._s(_vm.invoice_pos.setting.company_name_ar))]),_c("br"),_vm._v(" "),_c("strong",{staticStyle:{"font-size":"12px"}},[_vm._v(_vm._s(_vm.invoice_pos.setting.CompanyName))])]),_vm._v(" "),_vm.invoice_pos.setting.CompanyAdress?_c("div",{staticStyle:{"font-size":"10px","margin-top":"2px"}},[_vm._v(_vm._s(_vm.invoice_pos.setting.CompanyAdress))]):_vm._e(),_vm._v(" "),_vm.invoice_pos.setting.CompanyPhone?_c("div",{staticStyle:{"font-size":"10px"}},[_vm._v(_vm._s(_vm.invoice_pos.setting.CompanyPhone))]):_vm._e(),_vm._v(" "),_vm.invoice_pos.setting.email?_c("div",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_email,expression:"pos_settings.show_email"}],staticStyle:{"font-size":"10px"}},[_vm._v(_vm._s(_vm.invoice_pos.setting.email))]):_vm._e(),_vm._v(" "),_vm.invoice_pos.setting.vat_number?_c("div",{staticStyle:{"font-size":"11px","font-weight":"bold","margin-top":"4px"}},[_vm._v("\n                الرقم الضريبي / TRN : "+_vm._s(_vm.invoice_pos.setting.vat_number)+"\n              ")]):_vm._e(),_vm._v(" "),_c("div",{staticClass:"mt-2 mb-2",staticStyle:{"border-top":"1px dashed #000","border-bottom":"1px dashed #000",padding:"4px 0"}},[_c("strong",[_vm._v("فاتورة ضريبية مبسطة")]),_c("br"),_vm._v(" "),_c("strong",[_vm._v("Simplified Tax Invoice")])])]),_vm._v(" "),_c("div",{staticStyle:{"font-size":"10px"}},[_vm.invoice_pos.sale&&_vm.invoice_pos.sale.Ref&&_vm.pos_settings.show_reference!==0?_c("div",{staticStyle:{display:"flex","justify-content":"space-between"}},[_c("span",[_vm._v("Invoice No")]),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.invoice_pos.sale.Ref))]),_vm._v(" "),_c("span",[_vm._v("رقم الفاتورة")])]):_vm._e(),_vm._v(" "),_c("div",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_date!==0,expression:"pos_settings.show_date !== 0"}],staticStyle:{display:"flex","justify-content":"space-between"}},[_c("span",[_vm._v("Date")]),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.invoice_pos.sale.date))]),_vm._v(" "),_c("span",[_vm._v("تاريخ")])]),_vm._v(" "),_c("div",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_seller!==0,expression:"pos_settings.show_seller !== 0"}],staticStyle:{display:"flex","justify-content":"space-between"}},[_c("span",[_vm._v("Seller")]),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.invoice_pos.sale.seller_name))]),_vm._v(" "),_c("span",[_vm._v("البائع")])]),_vm._v(" "),_c("div",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_customer,expression:"pos_settings.show_customer"}],staticStyle:{display:"flex","justify-content":"space-between"}},[_c("span",[_vm._v("Customer")]),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.invoice_pos.sale.client_name))]),_vm._v(" "),_c("span",[_vm._v("العميل")])]),_vm._v(" "),_c("div",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_Warehouse,expression:"pos_settings.show_Warehouse"}],staticStyle:{display:"flex","justify-content":"space-between"}},[_c("span",[_vm._v("Warehouse")]),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.invoice_pos.sale.warehouse_name))]),_vm._v(" "),_c("span",[_vm._v("المستودع")])])]),_vm._v(" "),_c("table",{staticStyle:{width:"100%","margin-top":"8px","font-size":"10px","border-top":"1px dashed #000"}},[_c("thead",[_c("tr",[_c("th",{staticStyle:{"text-align":"left",padding:"4px 0"}},[_vm._v("Product"),_c("br"),_vm._v("المنتج")]),_vm._v(" "),_c("th",{staticStyle:{"text-align":"center",padding:"4px 0"}},[_vm._v("Qty"),_c("br"),_vm._v("كمية")]),_vm._v(" "),_c("th",{staticStyle:{"text-align":"center",padding:"4px 0"}},[_vm._v("Rate"),_c("br"),_vm._v("معدل")]),_vm._v(" "),_c("th",{staticStyle:{"text-align":"right",padding:"4px 0"}},[_vm._v("Amount"),_c("br"),_vm._v("مجموع")])])]),_vm._v(" "),_c("tbody",_vm._l(_vm.invoice_pos.details,function(detail_invoice){return _c("tr",{staticStyle:{"border-bottom":"1px dashed #eee"}},[_c("td",[_vm._v("\n                    "+_vm._s(detail_invoice.name)+"\n                    "),Number(detail_invoice.tax_percent||detail_invoice.tax_rate||0)>0?_c("br"):_vm._e(),_vm._v(" "),Number(detail_invoice.tax_percent||detail_invoice.tax_rate||0)>0?_c("small",[_vm._v("VAT @ "+_vm._s(_vm.formatNumber(Number(detail_invoice.tax_percent||detail_invoice.tax_rate||0),2))+"% ("+_vm._s(_vm.formatPriceDisplay(detail_invoice.total*Number(detail_invoice.tax_percent||detail_invoice.tax_rate||0)/100,2))+")")]):_vm._e(),_vm._v(" "),_vm.pos_settings.show_product_discount!==0&&Number(detail_invoice.DiscountNet||0)>0?_c("br"):_vm._e(),_vm._v(" "),_vm.pos_settings.show_product_discount!==0&&Number(detail_invoice.DiscountNet||0)>0?_c("small",{staticStyle:{color:"#666","font-style":"italic"}},[_vm._v("Discount / تخفيض: -"+_vm._s(_vm.formatPriceDisplay(Number(detail_invoice.DiscountNet)*Number(detail_invoice.quantity),2)))]):_vm._e(),_vm._v(" "),_c("br",{directives:[{name:"show",rawName:"v-show",value:detail_invoice.is_imei&&detail_invoice.imei_number!==null,expression:"detail_invoice.is_imei && detail_invoice.imei_number !==null"}]}),_vm._v(" "),_c("span",{directives:[{name:"show",rawName:"v-show",value:detail_invoice.is_imei&&detail_invoice.imei_number!==null,expression:"detail_invoice.is_imei && detail_invoice.imei_number !==null "}]},[_vm._v("IMEI/SN الرقم التسلسلي : "+_vm._s(detail_invoice.imei_number))]),_vm._v(" "),detail_invoice.pack_name&&Number(detail_invoice.pack_multiplier)>1?_c("br"):_vm._e(),_vm._v(" "),detail_invoice.pack_name&&Number(detail_invoice.pack_multiplier)>1?_c("small",{staticStyle:{color:"#666"}},[_vm._v("(×"+_vm._s(detail_invoice.pack_multiplier)+") = "+_vm._s(_vm.formatNumber(detail_invoice.quantity*detail_invoice.pack_multiplier,2))+" "+_vm._s(detail_invoice.unit_sale||_vm.$t("Pcs")||"pcs"))]):_vm._e()]),_vm._v(" "),_c("td",{staticStyle:{"text-align":"center"}},[_vm._v(_vm._s(_vm.formatNumber(detail_invoice.quantity,2))+" "+_vm._s(_vm.packLineUnit(detail_invoice)))]),_vm._v(" "),_c("td",{staticStyle:{"text-align":"center"}},[_vm._v(_vm._s(_vm.formatPriceDisplay(detail_invoice.total/detail_invoice.quantity,2)))]),_vm._v(" "),_c("td",{staticStyle:{"text-align":"right"}},[_vm._v(_vm._s(_vm.formatPriceDisplay(detail_invoice.total,2)))])]);}),0)]),_vm._v(" "),_c("table",{staticStyle:{width:"100%","font-size":"10px","border-top":"1px dashed #000","margin-top":"4px"}},[_c("colgroup",[_c("col",{staticStyle:{width:"35%"}}),_c("col",{staticStyle:{width:"5%"}}),_c("col",{staticStyle:{width:"25%"}}),_c("col",{staticStyle:{width:"35%"}})]),_vm._v(" "),_c("tbody",[_c("tr",[_c("td",{staticClass:"total",staticStyle:{"text-align":"left"}},[_vm._v("Sub Total")]),_vm._v(" "),_c("td",{staticClass:"total"},[_vm._v(":")]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"center"}},[_vm._v(_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoiceSubtotal-_vm.invoiceDetailsTaxTotal,2)))]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[_vm._v("المجموع الفرعي")])]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_discount,expression:"pos_settings.show_discount"}]},[_c("td",{staticClass:"total",staticStyle:{"text-align":"left"}},[_vm._v("Discount")]),_vm._v(" "),_c("td",{staticClass:"total"},[_vm._v(":")]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"center"}},[String(_vm.invoice_pos.sale.discount_Method||"2")==="1"?[_vm._v("\n                      "+_vm._s(_vm.formatNumber(_vm.invoice_pos.sale.discount,2))+"% ("+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.calculatedManualDiscountAmount,2))+")\n                    ")]:[_vm._v("\n                      "+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.calculatedManualDiscountAmount,2))+"\n                    ")]],2),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[_vm._v("تخفيض")])]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_discount&&_vm.invoice_pos.sale.discount_from_points&&Number(_vm.invoice_pos.sale.discount_from_points)>0,expression:"pos_settings.show_discount && invoice_pos.sale.discount_from_points && Number(invoice_pos.sale.discount_from_points) > 0"}]},[_c("td",{staticClass:"total",staticStyle:{"text-align":"left"}},[_vm._v("Discount from Points")]),_vm._v(" "),_c("td",{staticClass:"total"},[_vm._v(":")]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"center"}},[_vm._v(_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.discount_from_points,2)))]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[_vm._v("خصم من النقاط")])]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_tax&&Number(_vm.invoice_pos.sale.taxe||0)>0,expression:"pos_settings.show_tax && Number(invoice_pos.sale.taxe || 0) > 0"}]},[_c("td",{staticClass:"total",staticStyle:{"text-align":"left"}},[_vm._v("VAT @ Total")]),_vm._v(" "),_c("td",{staticClass:"total"},[_vm._v(":")]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"center"}},[_vm._v(_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.taxe,2)))]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[_vm._v("قيمة الضريبة")])]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_shipping,expression:"pos_settings.show_shipping"}]},[_c("td",{staticClass:"total",staticStyle:{"text-align":"left"}},[_vm._v("Shipping")]),_vm._v(" "),_c("td",{staticClass:"total"},[_vm._v(":")]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"center"}},[_vm._v(_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.shipping,2)))]),_vm._v(" "),_c("td",{staticClass:"total",staticStyle:{"text-align":"right"}},[_vm._v("الشحن")])])])]),_vm._v(" "),_c("table",{staticStyle:{width:"100%","font-size":"10px","font-weight":"bold","border-top":"1px dashed #000","border-bottom":"1px dashed #000","margin-top":"4px",padding:"4px 0"}},[_c("colgroup",[_c("col",{staticStyle:{width:"35%"}}),_c("col",{staticStyle:{width:"5%"}}),_c("col",{staticStyle:{width:"25%"}}),_c("col",{staticStyle:{width:"35%"}})]),_vm._v(" "),_c("tbody",[_c("tr",[_c("td",{staticStyle:{"text-align":"left"}},[_vm._v("Grand Total")]),_vm._v(" "),_c("td",[_vm._v(":")]),_vm._v(" "),_c("td",{staticStyle:{"text-align":"center"}},[_vm._v(_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.GrandTotal,2)))]),_vm._v(" "),_c("td",{staticStyle:{"text-align":"right"}},[_vm._v("المبلغ الإجمالي")])])])]),_vm._v(" "),_c("table",{staticStyle:{width:"100%","font-size":"10px","margin-top":"4px"}},[_c("colgroup",[_c("col",{staticStyle:{width:"35%"}}),_c("col",{staticStyle:{width:"5%"}}),_c("col",{staticStyle:{width:"25%"}}),_c("col",{staticStyle:{width:"35%"}})]),_vm._v(" "),_c("tbody",[_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_paid!==0,expression:"pos_settings.show_paid !== 0"}]},[_c("td",{staticStyle:{"text-align":"left"}},[_c("strong",[_vm._v("Paid Amount")])]),_vm._v(" "),_c("td",[_c("strong",[_vm._v(":")])]),_vm._v(" "),_c("td",{staticStyle:{"text-align":"center"}},[_vm._v(_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.paid_amount,2)))]),_vm._v(" "),_c("td",{staticStyle:{"text-align":"right"}},[_c("strong",[_vm._v("المبلغ المدفوع")])])]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_due!==0,expression:"pos_settings.show_due !== 0"}]},[_c("td",{staticStyle:{"text-align":"left"}},[_c("strong",[_vm._v("Balance")])]),_vm._v(" "),_c("td",[_c("strong",[_vm._v(":")])]),_vm._v(" "),_c("td",{staticStyle:{"text-align":"center"}},[_vm._v(_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.GrandTotal-_vm.invoice_pos.sale.paid_amount,2)))]),_vm._v(" "),_c("td",{staticStyle:{"text-align":"right"}},[_c("strong",[_vm._v("الرصيد")])])])])]),_vm._v(" "),_c("table",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_payments!==0&&_vm.invoice_pos.sale.paid_amount>0,expression:"pos_settings.show_payments !== 0 && invoice_pos.sale.paid_amount > 0"}],staticClass:"change mt-3",staticStyle:{"font-size":"10px",width:"100%"}},[_c("thead",[_c("tr",{staticStyle:{background:"#eee"}},[_c("th",{staticStyle:{"text-align":"left"},attrs:{colspan:"1"}},[_vm._v("Paid By / طريقة الدفع:")]),_vm._v(" "),_c("th",{staticStyle:{"text-align":"center"},attrs:{colspan:"2"}},[_vm._v("Amount / المبلغ:")]),_vm._v(" "),_c("th",{staticStyle:{"text-align":"right"},attrs:{colspan:"1"}},[_vm._v("Change / الباقي:")])])]),_vm._v(" "),_c("tbody",[_vm._l(_vm.payments,function(payment_pos){return[_c("tr",{key:"pay4-"+payment_pos.id},[_c("td",{staticStyle:{"text-align":"left"},attrs:{colspan:"1"}},[_vm._v(_vm._s(payment_pos.payment_method?payment_pos.payment_method.name:"---"))]),_vm._v(" "),_c("td",{staticStyle:{"text-align":"center"},attrs:{colspan:"2"}},[_vm._v(_vm._s(_vm.formatPriceDisplay(payment_pos.montant,2)))]),_vm._v(" "),_c("td",{staticStyle:{"text-align":"right"},attrs:{colspan:"1"}},[_vm._v(_vm._s(_vm.formatPriceDisplay(payment_pos.change,2)))])]),_vm._v(" "),payment_pos.notes?_c("tr",{key:"pay4-note-"+payment_pos.id},[_c("td",{staticStyle:{"font-size":"9px","font-style":"italic","padding-bottom":"4px","white-space":"pre-line"},attrs:{colspan:"4"}},[_vm._v("\n                      "+_vm._s(_vm.$t("Payment_note"))+" / ملاحظة الدفع: "+_vm._s(payment_pos.notes)+"\n                    ")])]):_vm._e()];})],2)]),_vm._v(" "),_c("div",{staticClass:"ml-2",attrs:{id:"legalcopy"}},[_vm.invoice_pos.sale&&_vm.invoice_pos.sale.notes?_c("div",{staticStyle:{"font-size":"9px","font-style":"italic","padding-bottom":"4px","white-space":"pre-line"}},[_vm._v("\n                "+_vm._s(_vm.$t("sale_note"))+" / ملاحظة البيع: "+_vm._s(_vm.invoice_pos.sale.notes)+"\n              ")]):_vm._e(),_vm._v(" "),_c("div",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_note&&_vm.pos_settings.note_customer,expression:"pos_settings.show_note && pos_settings.note_customer"}],staticClass:"mt-3",staticStyle:{"border-top":"1px dashed #000","padding-top":"6px","font-size":"9px","line-height":"1.5","text-align":"center","white-space":"pre-line"}},[_c("strong",[_vm._v(_vm._s(_vm.pos_settings.note_customer))])]),_vm._v(" "),_vm.invoice_pos.setting&&_vm.invoice_pos.setting.zatca_enabled&&_vm.invoice_pos.zatca_qr&&_vm.pos_settings.show_zatca_qr!==0||_vm.pos_settings.show_barcode!==0&&_vm.invoice_pos.sale&&_vm.invoice_pos.sale.Ref?_c("div",{staticClass:"receipt-qr-row mt-2"},[_vm.invoice_pos.setting&&_vm.invoice_pos.setting.zatca_enabled&&_vm.invoice_pos.zatca_qr&&_vm.pos_settings.show_zatca_qr!==0?_c("div",{staticClass:"receipt-qr-block"},[_c("div",{staticClass:"receipt-qr-title"},[_vm._v("ZATCA QR")]),_vm._v(" "),_c("div",{ref:"zatcaQrcodePos",staticClass:"receipt-qr-canvas"})]):_vm._e(),_vm._v(" "),_vm.pos_settings.show_barcode!==0&&_vm.invoice_pos.sale&&_vm.invoice_pos.sale.Ref?_c("div",{staticClass:"receipt-qr-block"},[_c("div",{staticClass:"receipt-qr-title"},[_vm._v("Invoice QR")]),_vm._v(" "),_c("div",{ref:"invoiceUrlQr",staticClass:"receipt-qr-canvas"})]):_vm._e()]):_vm._e()])]):_vm.currentReceiptLayout===5?_c("div",{staticClass:"receipt-layout-5"},[_c("div",{staticClass:"info text-center mb-2"},[_c("div",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_logo!==0,expression:"pos_settings.show_logo !== 0"}],staticClass:"invoice_logo mb-2"},[_c("img",{attrs:{src:_vm.$imgUrl("settings",_vm.invoice_pos.setting.logo),alt:"",width:_vm.pos_settings.logo_size||60,height:_vm.pos_settings.logo_size||60}})]),_vm._v(" "),_c("div",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_store_name!==0,expression:"pos_settings.show_store_name !== 0"}],staticClass:"minimal-store-name"},[_vm._v(_vm._s(_vm.invoice_pos.setting.CompanyName))]),_vm._v(" "),_vm.invoice_pos.setting.CompanyAdress||_vm.invoice_pos.setting.CompanyPhone?_c("div",{staticClass:"minimal-contact"},[_c("span",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_address,expression:"pos_settings.show_address"}]},[_vm._v(_vm._s(_vm.invoice_pos.setting.CompanyAdress))]),_vm._v(" "),_c("span",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_address&&_vm.pos_settings.show_phone,expression:"pos_settings.show_address && pos_settings.show_phone"}]},[_vm._v(" · ")]),_vm._v(" "),_c("span",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_phone,expression:"pos_settings.show_phone"}]},[_vm._v(_vm._s(_vm.invoice_pos.setting.CompanyPhone))])]):_vm._e(),_vm._v(" "),_vm.invoice_pos.setting.email?_c("div",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_email,expression:"pos_settings.show_email"}],staticClass:"minimal-contact"},[_vm._v(_vm._s(_vm.invoice_pos.setting.email))]):_vm._e()]),_vm._v(" "),_c("div",{staticClass:"minimal-divider"}),_vm._v(" "),_c("div",{staticClass:"minimal-meta"},[_vm.invoice_pos.sale&&_vm.invoice_pos.sale.Ref&&_vm.pos_settings.show_reference!==0?_c("div",{staticClass:"minimal-meta-row"},[_c("span",[_vm._v(_vm._s(_vm.$t("Reference")))]),_c("span",[_vm._v(_vm._s(_vm.invoice_pos.sale.Ref))])]):_vm._e(),_vm._v(" "),_c("div",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_date!==0,expression:"pos_settings.show_date !== 0"}],staticClass:"minimal-meta-row"},[_c("span",[_vm._v(_vm._s(_vm.$t("date")))]),_c("span",[_vm._v(_vm._s(_vm.invoice_pos.sale.date))])]),_vm._v(" "),_c("div",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_seller!==0,expression:"pos_settings.show_seller !== 0"}],staticClass:"minimal-meta-row"},[_c("span",[_vm._v(_vm._s(_vm.$t("Seller")))]),_c("span",[_vm._v(_vm._s(_vm.invoice_pos.sale.seller_name))])]),_vm._v(" "),_c("div",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_customer,expression:"pos_settings.show_customer"}],staticClass:"minimal-meta-row"},[_c("span",[_vm._v(_vm._s(_vm.$t("Customer")))]),_c("span",[_vm._v(_vm._s(_vm.invoice_pos.sale.client_name))])]),_vm._v(" "),_c("div",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_Warehouse,expression:"pos_settings.show_Warehouse"}],staticClass:"minimal-meta-row"},[_c("span",[_vm._v(_vm._s(_vm.$t("warehouse")))]),_c("span",[_vm._v(_vm._s(_vm.invoice_pos.sale.warehouse_name))])])]),_vm._v(" "),_c("div",{staticClass:"minimal-divider"}),_vm._v(" "),_c("table",{staticClass:"minimal-items"},[_c("tbody",_vm._l(_vm.invoice_pos.details,function(detail_invoice){return _c("tr",{key:"min-item-"+detail_invoice.id},[_c("td",[_c("div",{staticClass:"minimal-item-name"},[_vm._v(_vm._s(detail_invoice.name))]),_vm._v(" "),_c("div",{staticClass:"minimal-item-qty"},[_vm._v(_vm._s(_vm.formatNumber(detail_invoice.quantity,2))+" "+_vm._s(_vm.packLineUnit(detail_invoice))+" × "+_vm._s(_vm.formatPriceDisplay(detail_invoice.total/detail_invoice.quantity,2)))]),_vm._v(" "),detail_invoice.pack_name&&Number(detail_invoice.pack_multiplier)>1?_c("div",{staticClass:"minimal-item-qty"},[_vm._v("(×"+_vm._s(detail_invoice.pack_multiplier)+") = "+_vm._s(_vm.formatNumber(detail_invoice.quantity*detail_invoice.pack_multiplier,2))+" "+_vm._s(detail_invoice.unit_sale||_vm.$t("Pcs")||"pcs"))]):_vm._e(),_vm._v(" "),_vm.pos_settings.show_product_discount!==0&&Number(detail_invoice.DiscountNet||0)>0?_c("div",{staticClass:"minimal-item-discount"},[_vm._v(_vm._s(_vm.$t("Discount"))+" −"+_vm._s(_vm.formatPriceDisplay(Number(detail_invoice.DiscountNet)*Number(detail_invoice.quantity),2)))]):_vm._e(),_vm._v(" "),_c("div",{directives:[{name:"show",rawName:"v-show",value:detail_invoice.is_imei&&detail_invoice.imei_number!==null,expression:"detail_invoice.is_imei && detail_invoice.imei_number !== null"}],staticClass:"minimal-item-qty"},[_vm._v("IMEI/SN: "+_vm._s(detail_invoice.imei_number))])]),_vm._v(" "),_c("td",{staticClass:"minimal-item-total"},[_vm._v(_vm._s(_vm.formatPriceDisplay(detail_invoice.total,2)))])]);}),0)]),_vm._v(" "),_c("div",{staticClass:"minimal-divider"}),_vm._v(" "),_c("table",{staticClass:"minimal-totals"},[_c("tbody",[_c("tr",[_c("td",[_vm._v(_vm._s(_vm.$t("Subtotal")))]),_vm._v(" "),_c("td",[_vm._v(_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoiceSubtotal-_vm.invoiceDetailsTaxTotal,2)))])]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_tax&&Number(_vm.invoice_pos.sale.taxe||0)>0,expression:"pos_settings.show_tax && Number(invoice_pos.sale.taxe || 0) > 0"}]},[_c("td",[_vm._v(_vm._s(_vm.$t("Tax")))]),_vm._v(" "),_c("td",[_vm._v(_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.taxe,2)))])]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_discount,expression:"pos_settings.show_discount"}]},[_c("td",[_vm._v(_vm._s(_vm.$t("Discount")))]),_vm._v(" "),_c("td",[String(_vm.invoice_pos.sale.discount_Method||"2")==="1"?[_vm._v("\n                      "+_vm._s(_vm.formatNumber(_vm.invoice_pos.sale.discount,2))+"%\n                    ")]:[_vm._v("\n                      "+_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.calculatedManualDiscountAmount,2))+"\n                    ")]],2)]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_discount&&_vm.invoice_pos.sale.discount_from_points&&Number(_vm.invoice_pos.sale.discount_from_points)>0,expression:"pos_settings.show_discount && invoice_pos.sale.discount_from_points && Number(invoice_pos.sale.discount_from_points) > 0"}]},[_c("td",[_vm._v(_vm._s(_vm.$t("Discount_from_Points")))]),_vm._v(" "),_c("td",[_vm._v(_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.discount_from_points,2)))])]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_shipping,expression:"pos_settings.show_shipping"}]},[_c("td",[_vm._v(_vm._s(_vm.$t("Shipping")))]),_vm._v(" "),_c("td",[_vm._v(_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.shipping,2)))])]),_vm._v(" "),_c("tr",{staticClass:"minimal-grand"},[_c("td",[_vm._v(_vm._s(_vm.$t("Total")))]),_vm._v(" "),_c("td",[_vm._v(_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.GrandTotal,2)))])]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_paid!==0,expression:"pos_settings.show_paid !== 0"}]},[_c("td",[_vm._v(_vm._s(_vm.$t("Paid")))]),_vm._v(" "),_c("td",[_vm._v(_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.paid_amount,2)))])]),_vm._v(" "),_c("tr",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_due!==0,expression:"pos_settings.show_due !== 0"}]},[_c("td",[_vm._v(_vm._s(_vm.$t("Due")))]),_vm._v(" "),_c("td",[_vm._v(_vm._s(_vm.formatPriceWithSymbol(_vm.invoice_pos.symbol,_vm.invoice_pos.sale.GrandTotal-_vm.invoice_pos.sale.paid_amount,2)))])])])]),_vm._v(" "),_c("table",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_payments!==0&&_vm.invoice_pos.sale.paid_amount>0,expression:"pos_settings.show_payments !== 0 && invoice_pos.sale.paid_amount > 0"}],staticClass:"minimal-payments"},[_c("thead",[_c("tr",[_c("th",[_vm._v(_vm._s(_vm.$t("PayeBy")))]),_vm._v(" "),_c("th",[_vm._v(_vm._s(_vm.$t("Amount")))]),_vm._v(" "),_c("th",[_vm._v(_vm._s(_vm.$t("Change")))])])]),_vm._v(" "),_c("tbody",[_vm._l(_vm.payments,function(payment_pos){return[_c("tr",{key:"pay5-"+payment_pos.id},[_c("td",[_vm._v(_vm._s(payment_pos.payment_method?payment_pos.payment_method.name:"---"))]),_vm._v(" "),_c("td",[_vm._v(_vm._s(_vm.formatPriceDisplay(payment_pos.montant,2)))]),_vm._v(" "),_c("td",[_vm._v(_vm._s(_vm.formatPriceDisplay(payment_pos.change,2)))])])];})],2)]),_vm._v(" "),_c("p",{directives:[{name:"show",rawName:"v-show",value:_vm.pos_settings.show_note&&_vm.pos_settings.note_customer,expression:"pos_settings.show_note && pos_settings.note_customer"}],staticClass:"minimal-note",staticStyle:{"white-space":"pre-line"}},[_vm._v("\n              "+_vm._s(_vm.pos_settings.note_customer)+"\n            ")]),_vm._v(" "),_vm.invoice_pos.setting&&_vm.invoice_pos.setting.zatca_enabled&&_vm.invoice_pos.zatca_qr&&_vm.pos_settings.show_zatca_qr!==0||_vm.pos_settings.show_barcode!==0&&_vm.invoice_pos.sale&&_vm.invoice_pos.sale.Ref?_c("div",{staticClass:"receipt-qr-row mt-2"},[_vm.invoice_pos.setting&&_vm.invoice_pos.setting.zatca_enabled&&_vm.invoice_pos.zatca_qr&&_vm.pos_settings.show_zatca_qr!==0?_c("div",{staticClass:"receipt-qr-block"},[_c("div",{staticClass:"receipt-qr-title"},[_vm._v("ZATCA QR")]),_vm._v(" "),_c("div",{ref:"zatcaQrcodePos",staticClass:"receipt-qr-canvas"})]):_vm._e(),_vm._v(" "),_vm.pos_settings.show_barcode!==0&&_vm.invoice_pos.sale&&_vm.invoice_pos.sale.Ref?_c("div",{staticClass:"receipt-qr-block"},[_c("div",{staticClass:"receipt-qr-title"},[_vm._v("Invoice QR")]),_vm._v(" "),_c("div",{ref:"invoiceUrlQr",staticClass:"receipt-qr-canvas"})]):_vm._e()]):_vm._e()]):_vm._e()])]),_vm._v(" "),_c("button",{staticClass:"btn btn-outline-primary",on:{click:function click($event){return _vm.print_pos();}}},[_c("lucide-icon",{attrs:{name:"receipt"}}),_vm._v("\n          "+_vm._s(_vm.$t("print"))+"\n        ")],1)]),_vm._v(" "),_c("b-modal",{attrs:{id:"show_draft_sales",size:"lg","hide-footer":"",title:_vm.$t("Recent_Drafts")}},[_c("div",[_c("table",{staticClass:"table table-sm"},[_c("thead",[_c("tr",[_c("th",[_vm._v(_vm._s(_vm.$t("date")))]),_vm._v(" "),_c("th",[_vm._v(_vm._s(_vm.$t("Reference")))]),_vm._v(" "),_c("th",[_vm._v(_vm._s(_vm.$t("Customer")))]),_vm._v(" "),_c("th",{staticClass:"text-right"},[_vm._v(_vm._s(_vm.$t("Total")))]),_vm._v(" "),_c("th",{staticClass:"text-right"},[_vm._v(_vm._s(_vm.$t("Action")))])])]),_vm._v(" "),_c("tbody",[_vm.draft_sales.length===0?_c("tr",[_c("td",{staticClass:"text-center text-muted py-3",attrs:{colspan:"5"}},[_vm._v(_vm._s(_vm.$t("NodataAvailable")))])]):_vm._e(),_vm._v(" "),_vm._l(_vm.draft_sales,function(d){return _c("tr",{key:d.id},[_c("td",[_vm._v(_vm._s(d.date))]),_vm._v(" "),_c("td",[_vm._v(_vm._s(d.Ref))]),_vm._v(" "),_c("td",[_vm._v(_vm._s(d.client_name))]),_vm._v(" "),_c("td",{staticClass:"text-right"},[_vm._v(_vm._s(_vm.formatNumber(d.GrandTotal,2)))]),_vm._v(" "),_c("td",{staticClass:"text-right"},[_c("b-button",{staticClass:"mr-2",attrs:{size:"sm",variant:"outline-success",disabled:_vm.openingDraftId===d.id,title:_vm.openingDraftId===d.id?_vm.$t("Loading"):_vm.$t("Open")},on:{click:function click($event){return _vm.loadDraftSale(d.id);}}},[_vm.openingDraftId===d.id?[_c("span",{staticClass:"spinner sm spinner-primary"})]:[_c("lucide-icon",{attrs:{name:"arrow-right"}})]],2),_vm._v(" "),_c("b-button",{attrs:{size:"sm",variant:"outline-danger",title:_vm.$t("Delete")},on:{click:function click($event){return _vm.Remove_Draft_Sale(d.id);}}},[_c("lucide-icon",{attrs:{name:"trash-2"}})],1)],1)]);})],2)]),_vm._v(" "),_vm.totalRows_draft_sales>_vm.limit?_c("div",{staticClass:"d-flex justify-content-between align-items-center mt-3"},[_c("div",{staticClass:"text-muted"},[_vm._v("\n        "+_vm._s(_vm.$t("Showing"))+" "+_vm._s(_vm.draft_sales.length)+" "+_vm._s(_vm.$t("of"))+" "+_vm._s(_vm.totalRows_draft_sales)+" "+_vm._s(_vm.$t("entries"))+"\n      ")]),_vm._v(" "),_c("b-pagination",{attrs:{"total-rows":_vm.totalRows_draft_sales,"per-page":parseInt(_vm.limit),align:"right",size:"sm"},on:{change:_vm.onPageChangeDraftSales},model:{value:_vm.draft_sales_page,callback:function callback($$v){_vm.draft_sales_page=$$v;},expression:"draft_sales_page"}})],1):_vm._e()])]),_vm._v(" "),_c("validation-observer",{ref:"Update_Detail"},[_c("b-modal",{attrs:{"hide-footer":"",size:"lg",id:"form_Update_Detail",title:_vm.detail.name}},[_c("b-form",{on:{submit:function submit($event){$event.preventDefault();return _vm.submit_Update_Detail.apply(null,arguments);}}},[_c("b-row",[_vm.detailLoading?_c("b-col",{staticClass:"mb-2",attrs:{lg:"12"}},[_c("div",{staticClass:"text-center py-3"},[_c("div",{staticClass:"spinner sm spinner-primary"})])]):_vm._e(),_vm._v(" "),_c("b-col",{directives:[{name:"show",rawName:"v-show",value:!_vm.detailLoading,expression:"!detailLoading"}],attrs:{lg:"6",md:"6",sm:"12"}},[_c("validation-provider",{attrs:{name:"Product Price",rules:{required:true,regex:/^\d*\.?\d*$/}},scopedSlots:_vm._u([{key:"default",fn:function fn(validationContext){return[_c("b-form-group",{attrs:{label:_vm.$t("ProductPrice")+" "+"*",id:"Price-input"}},[_c("div",{staticClass:"d-flex align-items-center"},[_c("b-form-input",{staticClass:"mr-2",attrs:{label:"Product Price",state:_vm.getValidationState(validationContext),"aria-describedby":"Price-feedback"},model:{value:_vm.detail.Unit_price,callback:function callback($$v){_vm.$set(_vm.detail,"Unit_price",$$v);},expression:"detail.Unit_price"}}),_vm._v(" "),_c("select",{directives:[{name:"model",rawName:"v-model",value:_vm.detail.price_type,expression:"detail.price_type"}],staticClass:"form-control pos-price-select",on:{change:[function($event){var $$selectedVal=Array.prototype.filter.call($event.target.options,function(o){return o.selected;}).map(function(o){var val="_value"in o?o._value:o.value;return val;});_vm.$set(_vm.detail,"price_type",$event.target.multiple?$$selectedVal:$$selectedVal[0]);},function($event){return _vm.onChangePriceType(_vm.detail);}]}},[_c("option",{domProps:{value:"retail"}},[_vm._v(_vm._s(_vm.$t("Retail Price")))]),_vm._v(" "),_c("option",{domProps:{value:"wholesale"}},[_vm._v(_vm._s(_vm.$t("Wholesale Price")))])])],1),_vm._v(" "),_c("b-form-invalid-feedback",{attrs:{id:"Price-feedback"}},[_vm._v(_vm._s(validationContext.errors[0]))])],1)];}}])})],1),_vm._v(" "),_vm.detail.product_type!="is_service"?_c("b-col",{directives:[{name:"show",rawName:"v-show",value:!_vm.detailLoading,expression:"!detailLoading"}],attrs:{lg:"6",md:"6",sm:"12"}},[_c("validation-provider",{attrs:{name:"Unit Sale",rules:{required:true}},scopedSlots:_vm._u([{key:"default",fn:function fn(_ref){var valid=_ref.valid,errors=_ref.errors;return _c("b-form-group",{attrs:{label:_vm.$t("UnitSale")+" "+"*"}},[_c("v-select",{"class":{"is-invalid":!!errors.length},attrs:{state:errors[0]?false:valid?true:null,placeholder:_vm.$t("Choose_Unit_Sale"),reduce:function reduce(label){return label.value;},options:_vm.units.map(function(units){return{label:units.name,value:units.id};})},model:{value:_vm.detail.sale_unit_id,callback:function callback($$v){_vm.$set(_vm.detail,"sale_unit_id",$$v);},expression:"detail.sale_unit_id"}}),_vm._v(" "),_c("b-form-invalid-feedback",[_vm._v(_vm._s(errors[0]))])],1);}}],null,false,1636962053)})],1):_vm._e(),_vm._v(" "),_c("b-col",{directives:[{name:"show",rawName:"v-show",value:!_vm.detailLoading,expression:"!detailLoading"}],attrs:{lg:"6",md:"6",sm:"12"}},[_c("validation-provider",{attrs:{name:"Tax",rules:{required:true,regex:/^\d*\.?\d*$/}},scopedSlots:_vm._u([{key:"default",fn:function fn(validationContext){return[_c("b-form-group",{attrs:{label:_vm.$t("Tax")+" "+"*"}},[_c("b-input-group",{attrs:{append:"%"}},[_c("b-form-input",{attrs:{label:"Tax",state:_vm.getValidationState(validationContext),"aria-describedby":"Tax-feedback"},model:{value:_vm.detail.tax_percent,callback:function callback($$v){_vm.$set(_vm.detail,"tax_percent",$$v);},expression:"detail.tax_percent"}})],1),_vm._v(" "),_c("b-form-invalid-feedback",{attrs:{id:"Tax-feedback"}},[_vm._v(_vm._s(validationContext.errors[0]))])],1)];}}])})],1),_vm._v(" "),_c("b-col",{directives:[{name:"show",rawName:"v-show",value:!_vm.detailLoading,expression:"!detailLoading"}],attrs:{lg:"6",md:"6",sm:"12"}},[_c("validation-provider",{attrs:{name:"Tax Method",rules:{required:true}},scopedSlots:_vm._u([{key:"default",fn:function fn(_ref2){var valid=_ref2.valid,errors=_ref2.errors;return _c("b-form-group",{attrs:{label:_vm.$t("TaxMethod")+" "+"*"}},[_c("v-select",{"class":{"is-invalid":!!errors.length},attrs:{state:errors[0]?false:valid?true:null,reduce:function reduce(label){return label.value;},placeholder:_vm.$t("Choose_Method"),options:[{label:"Exclusive",value:1},{label:"Inclusive",value:2}]},model:{value:_vm.detail.tax_method,callback:function callback($$v){_vm.$set(_vm.detail,"tax_method",$$v);},expression:"detail.tax_method"}}),_vm._v(" "),_c("b-form-invalid-feedback",[_vm._v(_vm._s(errors[0]))])],1);}}])})],1),_vm._v(" "),_c("b-col",{directives:[{name:"show",rawName:"v-show",value:!_vm.detailLoading,expression:"!detailLoading"}],attrs:{lg:"6",md:"6",sm:"12"}},[_c("validation-provider",{attrs:{name:"Discount Rate",rules:{required:true,regex:/^\d*\.?\d*$/}},scopedSlots:_vm._u([{key:"default",fn:function fn(validationContext){return[_c("b-form-group",{attrs:{label:_vm.$t("Discount")+" "+"*"}},[_c("b-form-input",{attrs:{label:"Discount",state:_vm.getValidationState(validationContext),"aria-describedby":"Discount-feedback"},model:{value:_vm.detail.discount,callback:function callback($$v){_vm.$set(_vm.detail,"discount",$$v);},expression:"detail.discount"}}),_vm._v(" "),_c("b-form-invalid-feedback",{attrs:{id:"Discount-feedback"}},[_vm._v(_vm._s(validationContext.errors[0]))])],1)];}}])})],1),_vm._v(" "),_c("b-col",{directives:[{name:"show",rawName:"v-show",value:!_vm.detailLoading,expression:"!detailLoading"}],attrs:{lg:"6",md:"6",sm:"12"}},[_c("validation-provider",{attrs:{name:"Discount Method",rules:{required:true}},scopedSlots:_vm._u([{key:"default",fn:function fn(_ref3){var valid=_ref3.valid,errors=_ref3.errors;return _c("b-form-group",{attrs:{label:_vm.$t("Discount_Method")+" "+"*"}},[_c("v-select",{"class":{"is-invalid":!!errors.length},attrs:{reduce:function reduce(label){return label.value;},placeholder:_vm.$t("Choose_Method"),state:errors[0]?false:valid?true:null,options:[{label:"Percent %",value:"1"},{label:"Fixed",value:"2"}]},model:{value:_vm.detail.discount_Method,callback:function callback($$v){_vm.$set(_vm.detail,"discount_Method",$$v);},expression:"detail.discount_Method"}}),_vm._v(" "),_c("b-form-invalid-feedback",[_vm._v(_vm._s(errors[0]))])],1);}}])})],1),_vm._v(" "),_c("b-col",{attrs:{md:"12"}},[_c("b-form-group",[_c("b-button",{attrs:{variant:"primary",type:"submit"}},[_vm._v(_vm._s(_vm.$t("submit")))])],1)],1)],1)],1)],1)],1),_vm._v(" "),_c("validation-observer",{ref:"Create_Customer"},[_c("b-modal",{attrs:{id:"New_Customer","hide-footer":"",size:"lg",title:_vm.$t("New_Customer")}},[_c("b-form",{staticClass:"new-customer-form",on:{submit:function submit($event){$event.preventDefault();return _vm.Submit_Customer.apply(null,arguments);}}},[_c("b-row",[_c("b-col",{attrs:{md:"6",sm:"12"}},[_c("b-form-group",{attrs:{label:_vm.$t("Name")}},[_c("b-form-input",{attrs:{placeholder:_vm.$t("Name"),required:""},model:{value:_vm.client.name,callback:function callback($$v){_vm.$set(_vm.client,"name",$$v);},expression:"client.name"}})],1)],1),_vm._v(" "),_c("b-col",{attrs:{md:"6",sm:"12"}},[_c("b-form-group",{attrs:{label:_vm.$t("Email")}},[_c("b-form-input",{attrs:{type:"email",placeholder:_vm.$t("Email")},model:{value:_vm.client.email,callback:function callback($$v){_vm.$set(_vm.client,"email",$$v);},expression:"client.email"}})],1)],1),_vm._v(" "),_c("b-col",{attrs:{md:"6",sm:"12"}},[_c("b-form-group",{attrs:{label:_vm.$t("Phone")}},[_c("b-form-input",{attrs:{placeholder:_vm.$t("Phone")},model:{value:_vm.client.phone,callback:function callback($$v){_vm.$set(_vm.client,"phone",$$v);},expression:"client.phone"}})],1)],1),_vm._v(" "),_c("b-col",{attrs:{md:"6",sm:"12"}},[_c("b-form-group",{attrs:{label:_vm.$t("Tax_Number")}},[_c("b-form-input",{attrs:{placeholder:_vm.$t("Tax_Number")},model:{value:_vm.client.tax_number,callback:function callback($$v){_vm.$set(_vm.client,"tax_number",$$v);},expression:"client.tax_number"}})],1)],1),_vm._v(" "),_c("b-col",{attrs:{md:"6",sm:"12"}},[_c("b-form-group",{attrs:{label:_vm.$t("Country")}},[_c("b-form-input",{attrs:{placeholder:_vm.$t("Country")},model:{value:_vm.client.country,callback:function callback($$v){_vm.$set(_vm.client,"country",$$v);},expression:"client.country"}})],1)],1),_vm._v(" "),_c("b-col",{attrs:{md:"6",sm:"12"}},[_c("b-form-group",{attrs:{label:_vm.$t("City")}},[_c("b-form-input",{attrs:{placeholder:_vm.$t("City")},model:{value:_vm.client.city,callback:function callback($$v){_vm.$set(_vm.client,"city",$$v);},expression:"client.city"}})],1)],1),_vm._v(" "),_c("b-col",{attrs:{md:"12"}},[_c("b-form-group",{attrs:{label:_vm.$t("Adress")}},[_c("b-form-input",{attrs:{placeholder:_vm.$t("Adress")},model:{value:_vm.client.adresse,callback:function callback($$v){_vm.$set(_vm.client,"adresse",$$v);},expression:"client.adresse"}})],1)],1),_vm._v(" "),_c("b-col",{attrs:{md:"12"}},[_c("b-form-group",[_c("div",{staticClass:"loyalty-eligible-row"},[_c("b-form-checkbox",{staticClass:"mb-0 loyalty-switch",attrs:{"switch":""},model:{value:_vm.client.is_royalty_eligible,callback:function callback($$v){_vm.$set(_vm.client,"is_royalty_eligible",$$v);},expression:"client.is_royalty_eligible"}},[_vm._v("\n              "+_vm._s(_vm.$t("Loyalty_Eligible"))+"\n            ")]),_vm._v(" "),_c("small",{staticClass:"loyalty-help text-muted"},[_vm._v(_vm._s(_vm.$t("Loyalty_Points_Help")))])],1)])],1),_vm._v(" "),_c("b-col",{staticClass:"d-flex justify-content-end",attrs:{cols:"12"}},[_c("b-button",{staticClass:"mr-2",attrs:{variant:"secondary"},on:{click:function click($event){return _vm.$bvModal.hide("New_Customer");}}},[_vm._v(_vm._s(_vm.$t("Close")))]),_vm._v(" "),_c("b-button",{attrs:{variant:"primary",type:"submit"}},[_vm._v(_vm._s(_vm.$t("Save")))])],1)],1)],1)],1)],1),_vm._v(" "),_c("validation-observer",{ref:"Quick_Add_Customer_Form"},[_c("b-modal",{attrs:{"hide-footer":"",size:"lg",id:"Quick_Add_Customer",title:_vm.$t("Quick_Add_Customer")}},[_c("b-form",{staticClass:"quick-add-customer-form",on:{submit:function submit($event){$event.preventDefault();return _vm.Submit_Quick_Add_Customer.apply(null,arguments);}}},[_c("b-row",[_c("b-col",{attrs:{md:"6",sm:"12"}},[_c("validation-provider",{attrs:{name:"Name Customer",rules:{required:true}},scopedSlots:_vm._u([{key:"default",fn:function fn(validationContext){return[_c("b-form-group",{attrs:{label:_vm.$t("CustomerName")+" "+"*"}},[_c("b-form-input",{attrs:{state:_vm.getValidationState(validationContext),"aria-describedby":"name-feedback",label:"name",placeholder:_vm.$t("CustomerName")},model:{value:_vm.client.name,callback:function callback($$v){_vm.$set(_vm.client,"name",$$v);},expression:"client.name"}}),_vm._v(" "),_c("b-form-invalid-feedback",{attrs:{id:"name-feedback"}},[_vm._v(_vm._s(validationContext.errors[0]))])],1)];}}])})],1),_vm._v(" "),_c("b-col",{attrs:{md:"6",sm:"12"}},[_c("b-form-group",{attrs:{label:_vm.$t("Email")}},[_c("b-form-input",{attrs:{label:"email",placeholder:_vm.$t("Email")},model:{value:_vm.client.email,callback:function callback($$v){_vm.$set(_vm.client,"email",$$v);},expression:"client.email"}})],1)],1),_vm._v(" "),_c("b-col",{attrs:{md:"6",sm:"12"}},[_c("b-form-group",{attrs:{label:_vm.$t("Phone")}},[_c("b-form-input",{attrs:{label:"Phone",placeholder:_vm.$t("Phone")},model:{value:_vm.client.phone,callback:function callback($$v){_vm.$set(_vm.client,"phone",$$v);},expression:"client.phone"}})],1)],1),_vm._v(" "),_c("b-col",{attrs:{md:"6",sm:"12"}},[_c("b-form-group",{attrs:{label:_vm.$t("Country")}},[_c("b-form-input",{attrs:{label:"Country",placeholder:_vm.$t("Country")},model:{value:_vm.client.country,callback:function callback($$v){_vm.$set(_vm.client,"country",$$v);},expression:"client.country"}})],1)],1),_vm._v(" "),_c("b-col",{attrs:{md:"6",sm:"12"}},[_c("b-form-group",{attrs:{label:_vm.$t("City")}},[_c("b-form-input",{attrs:{label:"City",placeholder:_vm.$t("City")},model:{value:_vm.client.city,callback:function callback($$v){_vm.$set(_vm.client,"city",$$v);},expression:"client.city"}})],1)],1),_vm._v(" "),_c("b-col",{attrs:{md:"6",sm:"12"}},[_c("b-form-group",{attrs:{label:_vm.$t("Tax_Number")}},[_c("b-form-input",{attrs:{label:"Tax Number",placeholder:_vm.$t("Tax_Number")},model:{value:_vm.client.tax_number,callback:function callback($$v){_vm.$set(_vm.client,"tax_number",$$v);},expression:"client.tax_number"}})],1)],1),_vm._v(" "),_c("b-col",{attrs:{md:"12",sm:"12"}},[_c("b-form-group",{attrs:{label:_vm.$t("Adress")}},[_c("textarea",{directives:[{name:"model",rawName:"v-model",value:_vm.client.adresse,expression:"client.adresse"}],staticClass:"form-control",attrs:{label:"Adress",rows:"4",placeholder:_vm.$t("Adress")},domProps:{value:_vm.client.adresse},on:{input:function input($event){if($event.target.composing)return;_vm.$set(_vm.client,"adresse",$event.target.value);}}})])],1),_vm._v(" "),_c("b-col",{staticClass:"mt-4 mb-4",attrs:{md:"6",sm:"12"}},[_c("div",{staticClass:"psx-form-check"},[_c("input",{directives:[{name:"model",rawName:"v-model",value:_vm.client.is_royalty_eligible,expression:"client.is_royalty_eligible"}],staticClass:"psx-checkbox psx-form-check-input",attrs:{type:"checkbox",id:"is_royalty_eligible"},domProps:{checked:Array.isArray(_vm.client.is_royalty_eligible)?_vm._i(_vm.client.is_royalty_eligible,null)>-1:_vm.client.is_royalty_eligible},on:{change:function change($event){var $$a=_vm.client.is_royalty_eligible,$$el=$event.target,$$c=$$el.checked?true:false;if(Array.isArray($$a)){var $$v=null,$$i=_vm._i($$a,$$v);if($$el.checked){$$i<0&&_vm.$set(_vm.client,"is_royalty_eligible",$$a.concat([$$v]));}else{$$i>-1&&_vm.$set(_vm.client,"is_royalty_eligible",$$a.slice(0,$$i).concat($$a.slice($$i+1)));}}else{_vm.$set(_vm.client,"is_royalty_eligible",$$c);}}}}),_vm._v(" "),_c("label",{staticClass:"psx-form-check-label",attrs:{"for":"is_royalty_eligible"}},[_c("h5",[_vm._v(_vm._s(_vm.$t("Is_Royalty_Eligible")))])])])]),_vm._v(" "),_c("b-col",{staticClass:"mt-3",attrs:{md:"12",sm:"12"}},[_c("CustomFieldsForm",{attrs:{"entity-type":"client"},model:{value:_vm.quickAddCustomFieldValues,callback:function callback($$v){_vm.quickAddCustomFieldValues=$$v;},expression:"quickAddCustomFieldValues"}})],1),_vm._v(" "),_c("b-col",{staticClass:"mt-3",attrs:{md:"12"}},[_c("b-button",{staticClass:"mr-2",attrs:{variant:"secondary"},on:{click:function click($event){return _vm.$bvModal.hide("Quick_Add_Customer");}}},[_vm._v(_vm._s(_vm.$t("Cancel")))]),_vm._v(" "),_c("b-button",{attrs:{variant:"primary",type:"submit",disabled:_vm.SubmitProcessing}},[_vm._v(_vm._s(_vm.$t("submit")))]),_vm._v(" "),_vm.SubmitProcessing?_vm._m(0):_vm._e()],1)],1)],1)],1)],1),_vm._v(" "),_c("b-modal",{attrs:{id:"modal_today_sales","hide-footer":"","hide-header":"",size:"lg","modal-class":"ts-modal-modern","body-class":"ts-modal-body-wrap",title:_vm.$t("Today_Sales")}},[_c("div",{staticClass:"ts-modal-body"},[_c("div",{staticClass:"ts-hero"},[_c("button",{staticClass:"ts-close",attrs:{type:"button","aria-label":_vm.$t("Close")},on:{click:function click($event){return _vm.$bvModal.hide("modal_today_sales");}}},[_c("lucide-icon",{attrs:{name:"x"}})],1),_vm._v(" "),_c("div",{staticClass:"ts-hero-top"},[_c("div",{staticClass:"ts-hero-title"},[_c("div",{staticClass:"ts-hero-eyebrow"},[_c("lucide-icon",{attrs:{name:"calendar"}}),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.today_sales.today||_vm.$t("Today")))])],1),_vm._v(" "),_c("div",{staticClass:"ts-hero-heading"},[_vm._v(_vm._s(_vm.$t("Today_Sales")))])])]),_vm._v(" "),_c("div",{staticClass:"ts-hero-amount-wrap"},[_c("div",{staticClass:"ts-hero-label"},[_vm._v(_vm._s(_vm.$t("Total_Sales")))]),_vm._v(" "),_c("div",{staticClass:"ts-hero-amount"},[_vm._v("\n          "+_vm._s(_vm.formatPriceWithCurrentCurrency(_vm.today_sales.total_sales_amount||0,2))+"\n        ")])]),_vm._v(" "),_c("div",{staticClass:"ts-hero-stats"},[_c("div",{staticClass:"ts-hero-stat"},[_c("div",{staticClass:"ts-hero-stat-icon paid"},[_c("lucide-icon",{attrs:{name:"check-circle"}})],1),_vm._v(" "),_c("div",{staticClass:"ts-hero-stat-info"},[_c("div",{staticClass:"ts-hero-stat-label"},[_vm._v(_vm._s(_vm.$t("Total_Amount_Paid")))]),_vm._v(" "),_c("div",{staticClass:"ts-hero-stat-val"},[_vm._v("\n              "+_vm._s(_vm.formatPriceWithCurrentCurrency(_vm.today_sales.total_amount_paid||0,2))+"\n            ")])])]),_vm._v(" "),_c("div",{staticClass:"ts-hero-divider"}),_vm._v(" "),_c("div",{staticClass:"ts-hero-stat"},[_c("div",{staticClass:"ts-hero-stat-icon due"},[_c("lucide-icon",{attrs:{name:"clock"}})],1),_vm._v(" "),_c("div",{staticClass:"ts-hero-stat-info"},[_c("div",{staticClass:"ts-hero-stat-label"},[_vm._v(_vm._s(_vm.$t("Due")||"Due"))]),_vm._v(" "),_c("div",{staticClass:"ts-hero-stat-val"},[_vm._v("\n              "+_vm._s(_vm.formatPriceWithCurrentCurrency(Math.max(0,(Number(_vm.today_sales.total_sales_amount)||0)-(Number(_vm.today_sales.total_amount_paid)||0)),2))+"\n            ")])])])])]),_vm._v(" "),(_vm.today_sales.payment_methods||[]).length?_c("div",{staticClass:"ts-section"},[_c("div",{staticClass:"ts-section-head"},[_c("div",{staticClass:"ts-section-title"},[_c("lucide-icon",{attrs:{name:"credit-card"}}),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.$t("Payment_Methods")||"Payment Methods"))])],1),_vm._v(" "),_c("div",{staticClass:"ts-section-sub"},[_vm._v("\n          "+_vm._s(_vm.formatPriceWithCurrentCurrency(_vm.today_sales.total_amount_paid||0,2))+"\n        ")])]),_vm._v(" "),_c("div",{staticClass:"ts-methods"},_vm._l(_vm.today_sales.payment_methods||[],function(method){return _c("div",{key:method.id,staticClass:"ts-method"},[_c("div",{staticClass:"ts-method-icon"},[_c("lucide-icon",{attrs:{name:"credit-card"}})],1),_vm._v(" "),_c("div",{staticClass:"ts-method-body"},[_c("div",{staticClass:"ts-method-row"},[_c("div",{staticClass:"ts-method-name"},[_vm._v(_vm._s(method.name))]),_vm._v(" "),_c("div",{staticClass:"ts-method-amount"},[_vm._v("\n                "+_vm._s(_vm.formatPriceWithCurrentCurrency(method.total||0,2))+"\n              ")])]),_vm._v(" "),_c("div",{staticClass:"ts-method-bar-wrap"},[_c("div",{staticClass:"ts-method-bar",style:{width:(Number(method.total)||0)/Math.max(1,Number(_vm.today_sales.total_amount_paid)||0)*100+"%"}})])])]);}),0)]):_c("div",{staticClass:"ts-empty"},[_c("div",{staticClass:"ts-empty-icon"},[_c("lucide-icon",{attrs:{name:"inbox"}})],1),_vm._v(" "),_c("div",{staticClass:"ts-empty-text"},[_vm._v(_vm._s(_vm.$t("No_Payment_Methods")||"No payments recorded yet today"))])])])]),_vm._v(" "),_c("b-modal",{attrs:{id:"modal_pos_settings","hide-footer":"","hide-header":"",size:"lg","modal-class":"ps-modal-modern","body-class":"ps-modal-body-wrap",title:_vm.$t("POS_Settings")}},[_c("div",{staticClass:"ps-modal-body"},[_c("div",{staticClass:"ps-hero"},[_c("button",{staticClass:"ps-close",attrs:{type:"button","aria-label":_vm.$t("Close")},on:{click:function click($event){return _vm.$bvModal.hide("modal_pos_settings");}}},[_c("lucide-icon",{attrs:{name:"x"}})],1),_vm._v(" "),_c("div",{staticClass:"ps-hero-eyebrow"},[_c("lucide-icon",{attrs:{name:"settings"}}),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.$t("Settings")||"Settings"))])],1),_vm._v(" "),_c("div",{staticClass:"ps-hero-heading"},[_vm._v(_vm._s(_vm.$t("POS_Settings")))]),_vm._v(" "),_c("div",{staticClass:"ps-hero-sub"},[_vm._v("\n        "+_vm._s(_vm.$t("Pos_Settings_Modal_Sub")||"Configure POS behavior, display, and printing — changes apply immediately.")+"\n      ")])]),_vm._v(" "),_vm.ps_loading?_c("div",{staticClass:"ps-loading"},[_c("div",{staticClass:"spinner spinner-primary"})]):_c("validation-observer",{ref:"Submit_Pos_Settings_Modal"},[_c("b-form",{on:{submit:function submit($event){$event.preventDefault();return _vm.Submit_Pos_Settings_Modal.apply(null,arguments);}}},[_c("div",{staticClass:"ps-section"},[_c("div",{staticClass:"ps-section-title"},[_c("lucide-icon",{attrs:{name:"zap"}}),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.$t("Behavior")||"Behavior"))])],1),_vm._v(" "),_c("div",{staticClass:"ps-grid"},[_c("label",{staticClass:"ps-toggle"},[_c("div",{staticClass:"ps-toggle-info"},[_c("div",{staticClass:"ps-toggle-label"},[_vm._v(_vm._s(_vm.$t("Quick_Add_Customer")))]),_vm._v(" "),_c("div",{staticClass:"ps-toggle-help"},[_vm._v(_vm._s(_vm.$t("Enable_Quick_Add_Customer_popup_in_POS")))])]),_vm._v(" "),_c("span",{staticClass:"ps-switch"},[_c("input",{directives:[{name:"model",rawName:"v-model",value:_vm.pos_settings.quick_add_customer,expression:"pos_settings.quick_add_customer"}],attrs:{type:"checkbox"},domProps:{checked:Array.isArray(_vm.pos_settings.quick_add_customer)?_vm._i(_vm.pos_settings.quick_add_customer,null)>-1:_vm.pos_settings.quick_add_customer},on:{change:function change($event){var $$a=_vm.pos_settings.quick_add_customer,$$el=$event.target,$$c=$$el.checked?true:false;if(Array.isArray($$a)){var $$v=null,$$i=_vm._i($$a,$$v);if($$el.checked){$$i<0&&_vm.$set(_vm.pos_settings,"quick_add_customer",$$a.concat([$$v]));}else{$$i>-1&&_vm.$set(_vm.pos_settings,"quick_add_customer",$$a.slice(0,$$i).concat($$a.slice($$i+1)));}}else{_vm.$set(_vm.pos_settings,"quick_add_customer",$$c);}}}}),_vm._v(" "),_c("span",{staticClass:"ps-switch-slider"})])]),_vm._v(" "),_c("label",{staticClass:"ps-toggle"},[_c("div",{staticClass:"ps-toggle-info"},[_c("div",{staticClass:"ps-toggle-label"},[_vm._v(_vm._s(_vm.$t("Barcode_Scanning_Sound")))]),_vm._v(" "),_c("div",{staticClass:"ps-toggle-help"},[_vm._v(_vm._s(_vm.$t("Enable_sound_when_scanning_barcodes_in_POS")))])]),_vm._v(" "),_c("span",{staticClass:"ps-switch"},[_c("input",{directives:[{name:"model",rawName:"v-model",value:_vm.pos_settings.barcode_scanning_sound,expression:"pos_settings.barcode_scanning_sound"}],attrs:{type:"checkbox"},domProps:{checked:Array.isArray(_vm.pos_settings.barcode_scanning_sound)?_vm._i(_vm.pos_settings.barcode_scanning_sound,null)>-1:_vm.pos_settings.barcode_scanning_sound},on:{change:function change($event){var $$a=_vm.pos_settings.barcode_scanning_sound,$$el=$event.target,$$c=$$el.checked?true:false;if(Array.isArray($$a)){var $$v=null,$$i=_vm._i($$a,$$v);if($$el.checked){$$i<0&&_vm.$set(_vm.pos_settings,"barcode_scanning_sound",$$a.concat([$$v]));}else{$$i>-1&&_vm.$set(_vm.pos_settings,"barcode_scanning_sound",$$a.slice(0,$$i).concat($$a.slice($$i+1)));}}else{_vm.$set(_vm.pos_settings,"barcode_scanning_sound",$$c);}}}}),_vm._v(" "),_c("span",{staticClass:"ps-switch-slider"})])]),_vm._v(" "),_c("label",{staticClass:"ps-toggle"},[_c("div",{staticClass:"ps-toggle-info"},[_c("div",{staticClass:"ps-toggle-label"},[_vm._v(_vm._s(_vm.$t("Enable_Hold_Sales")))]),_vm._v(" "),_c("div",{staticClass:"ps-toggle-help"},[_vm._v(_vm._s(_vm.$t("Enable_disable_Hold_Sales_feature_in_POS")))])]),_vm._v(" "),_c("span",{staticClass:"ps-switch"},[_c("input",{directives:[{name:"model",rawName:"v-model",value:_vm.pos_settings.enable_hold_sales,expression:"pos_settings.enable_hold_sales"}],attrs:{type:"checkbox"},domProps:{checked:Array.isArray(_vm.pos_settings.enable_hold_sales)?_vm._i(_vm.pos_settings.enable_hold_sales,null)>-1:_vm.pos_settings.enable_hold_sales},on:{change:function change($event){var $$a=_vm.pos_settings.enable_hold_sales,$$el=$event.target,$$c=$$el.checked?true:false;if(Array.isArray($$a)){var $$v=null,$$i=_vm._i($$a,$$v);if($$el.checked){$$i<0&&_vm.$set(_vm.pos_settings,"enable_hold_sales",$$a.concat([$$v]));}else{$$i>-1&&_vm.$set(_vm.pos_settings,"enable_hold_sales",$$a.slice(0,$$i).concat($$a.slice($$i+1)));}}else{_vm.$set(_vm.pos_settings,"enable_hold_sales",$$c);}}}}),_vm._v(" "),_c("span",{staticClass:"ps-switch-slider"})])]),_vm._v(" "),_c("label",{staticClass:"ps-toggle"},[_c("div",{staticClass:"ps-toggle-info"},[_c("div",{staticClass:"ps-toggle-label"},[_vm._v(_vm._s(_vm.$t("Enable_Customer_Points_in_POS")))]),_vm._v(" "),_c("div",{staticClass:"ps-toggle-help"},[_vm._v(_vm._s(_vm.$t("Enable_disable_customer_points_system_in_POS")))])]),_vm._v(" "),_c("span",{staticClass:"ps-switch"},[_c("input",{directives:[{name:"model",rawName:"v-model",value:_vm.pos_settings.enable_customer_points,expression:"pos_settings.enable_customer_points"}],attrs:{type:"checkbox"},domProps:{checked:Array.isArray(_vm.pos_settings.enable_customer_points)?_vm._i(_vm.pos_settings.enable_customer_points,null)>-1:_vm.pos_settings.enable_customer_points},on:{change:function change($event){var $$a=_vm.pos_settings.enable_customer_points,$$el=$event.target,$$c=$$el.checked?true:false;if(Array.isArray($$a)){var $$v=null,$$i=_vm._i($$a,$$v);if($$el.checked){$$i<0&&_vm.$set(_vm.pos_settings,"enable_customer_points",$$a.concat([$$v]));}else{$$i>-1&&_vm.$set(_vm.pos_settings,"enable_customer_points",$$a.slice(0,$$i).concat($$a.slice($$i+1)));}}else{_vm.$set(_vm.pos_settings,"enable_customer_points",$$c);}}}}),_vm._v(" "),_c("span",{staticClass:"ps-switch-slider"})])]),_vm._v(" "),_c("label",{staticClass:"ps-toggle"},[_c("div",{staticClass:"ps-toggle-info"},[_c("div",{staticClass:"ps-toggle-label"},[_vm._v(_vm._s(_vm.$t("Allow_overselling")||"Allow Overselling"))]),_vm._v(" "),_c("div",{staticClass:"ps-toggle-help"},[_vm._v(_vm._s(_vm.$t("Allow_overselling_help")||"Allow selling products even when stock is zero or negative."))])]),_vm._v(" "),_c("span",{staticClass:"ps-switch"},[_c("input",{directives:[{name:"model",rawName:"v-model",value:_vm.pos_settings.allow_overselling,expression:"pos_settings.allow_overselling"}],attrs:{type:"checkbox"},domProps:{checked:Array.isArray(_vm.pos_settings.allow_overselling)?_vm._i(_vm.pos_settings.allow_overselling,null)>-1:_vm.pos_settings.allow_overselling},on:{change:function change($event){var $$a=_vm.pos_settings.allow_overselling,$$el=$event.target,$$c=$$el.checked?true:false;if(Array.isArray($$a)){var $$v=null,$$i=_vm._i($$a,$$v);if($$el.checked){$$i<0&&_vm.$set(_vm.pos_settings,"allow_overselling",$$a.concat([$$v]));}else{$$i>-1&&_vm.$set(_vm.pos_settings,"allow_overselling",$$a.slice(0,$$i).concat($$a.slice($$i+1)));}}else{_vm.$set(_vm.pos_settings,"allow_overselling",$$c);}}}}),_vm._v(" "),_c("span",{staticClass:"ps-switch-slider"})])]),_vm._v(" "),_c("label",{staticClass:"ps-toggle"},[_c("div",{staticClass:"ps-toggle-info"},[_c("div",{staticClass:"ps-toggle-label"},[_vm._v(_vm._s(_vm.$t("Enable_Print_Invoice")))]),_vm._v(" "),_c("div",{staticClass:"ps-toggle-help"},[_vm._v(_vm._s(_vm.$t("Enable_Print_Invoice_Help")||"Auto-print receipt after each sale."))])]),_vm._v(" "),_c("span",{staticClass:"ps-switch"},[_c("input",{directives:[{name:"model",rawName:"v-model",value:_vm.pos_settings.is_printable,expression:"pos_settings.is_printable"}],attrs:{type:"checkbox","true-value":1,"false-value":0},domProps:{checked:Array.isArray(_vm.pos_settings.is_printable)?_vm._i(_vm.pos_settings.is_printable,null)>-1:_vm._q(_vm.pos_settings.is_printable,1)},on:{change:function change($event){var $$a=_vm.pos_settings.is_printable,$$el=$event.target,$$c=$$el.checked?1:0;if(Array.isArray($$a)){var $$v=null,$$i=_vm._i($$a,$$v);if($$el.checked){$$i<0&&_vm.$set(_vm.pos_settings,"is_printable",$$a.concat([$$v]));}else{$$i>-1&&_vm.$set(_vm.pos_settings,"is_printable",$$a.slice(0,$$i).concat($$a.slice($$i+1)));}}else{_vm.$set(_vm.pos_settings,"is_printable",$$c);}}}}),_vm._v(" "),_c("span",{staticClass:"ps-switch-slider"})])])])]),_vm._v(" "),_c("div",{staticClass:"ps-section"},[_c("div",{staticClass:"ps-section-title"},[_c("lucide-icon",{attrs:{name:"eye"}}),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.$t("Display")||"Display"))])],1),_vm._v(" "),_c("div",{staticClass:"ps-grid"},[_c("label",{staticClass:"ps-toggle"},[_c("div",{staticClass:"ps-toggle-info"},[_c("div",{staticClass:"ps-toggle-label"},[_vm._v(_vm._s(_vm.$t("Show_Product_Images_in_POS")))]),_vm._v(" "),_c("div",{staticClass:"ps-toggle-help"},[_vm._v(_vm._s(_vm.$t("Show_hide_product_images_in_POS_product_listing")))])]),_vm._v(" "),_c("span",{staticClass:"ps-switch"},[_c("input",{directives:[{name:"model",rawName:"v-model",value:_vm.pos_settings.show_product_images,expression:"pos_settings.show_product_images"}],attrs:{type:"checkbox"},domProps:{checked:Array.isArray(_vm.pos_settings.show_product_images)?_vm._i(_vm.pos_settings.show_product_images,null)>-1:_vm.pos_settings.show_product_images},on:{change:function change($event){var $$a=_vm.pos_settings.show_product_images,$$el=$event.target,$$c=$$el.checked?true:false;if(Array.isArray($$a)){var $$v=null,$$i=_vm._i($$a,$$v);if($$el.checked){$$i<0&&_vm.$set(_vm.pos_settings,"show_product_images",$$a.concat([$$v]));}else{$$i>-1&&_vm.$set(_vm.pos_settings,"show_product_images",$$a.slice(0,$$i).concat($$a.slice($$i+1)));}}else{_vm.$set(_vm.pos_settings,"show_product_images",$$c);}}}}),_vm._v(" "),_c("span",{staticClass:"ps-switch-slider"})])]),_vm._v(" "),_c("label",{staticClass:"ps-toggle"},[_c("div",{staticClass:"ps-toggle-info"},[_c("div",{staticClass:"ps-toggle-label"},[_vm._v(_vm._s(_vm.$t("Show_Stock_Quantity_in_POS")))]),_vm._v(" "),_c("div",{staticClass:"ps-toggle-help"},[_vm._v(_vm._s(_vm.$t("Show_hide_stock_quantity_in_POS")))])]),_vm._v(" "),_c("span",{staticClass:"ps-switch"},[_c("input",{directives:[{name:"model",rawName:"v-model",value:_vm.pos_settings.show_stock_quantity,expression:"pos_settings.show_stock_quantity"}],attrs:{type:"checkbox"},domProps:{checked:Array.isArray(_vm.pos_settings.show_stock_quantity)?_vm._i(_vm.pos_settings.show_stock_quantity,null)>-1:_vm.pos_settings.show_stock_quantity},on:{change:function change($event){var $$a=_vm.pos_settings.show_stock_quantity,$$el=$event.target,$$c=$$el.checked?true:false;if(Array.isArray($$a)){var $$v=null,$$i=_vm._i($$a,$$v);if($$el.checked){$$i<0&&_vm.$set(_vm.pos_settings,"show_stock_quantity",$$a.concat([$$v]));}else{$$i>-1&&_vm.$set(_vm.pos_settings,"show_stock_quantity",$$a.slice(0,$$i).concat($$a.slice($$i+1)));}}else{_vm.$set(_vm.pos_settings,"show_stock_quantity",$$c);}}}}),_vm._v(" "),_c("span",{staticClass:"ps-switch-slider"})])]),_vm._v(" "),_c("label",{staticClass:"ps-toggle"},[_c("div",{staticClass:"ps-toggle-info"},[_c("div",{staticClass:"ps-toggle-label"},[_vm._v(_vm._s(_vm.$t("Show_Categories_in_POS")))]),_vm._v(" "),_c("div",{staticClass:"ps-toggle-help"},[_vm._v(_vm._s(_vm.$t("Show_hide_categories_in_POS")))])]),_vm._v(" "),_c("span",{staticClass:"ps-switch"},[_c("input",{directives:[{name:"model",rawName:"v-model",value:_vm.pos_settings.show_categories,expression:"pos_settings.show_categories"}],attrs:{type:"checkbox"},domProps:{checked:Array.isArray(_vm.pos_settings.show_categories)?_vm._i(_vm.pos_settings.show_categories,null)>-1:_vm.pos_settings.show_categories},on:{change:function change($event){var $$a=_vm.pos_settings.show_categories,$$el=$event.target,$$c=$$el.checked?true:false;if(Array.isArray($$a)){var $$v=null,$$i=_vm._i($$a,$$v);if($$el.checked){$$i<0&&_vm.$set(_vm.pos_settings,"show_categories",$$a.concat([$$v]));}else{$$i>-1&&_vm.$set(_vm.pos_settings,"show_categories",$$a.slice(0,$$i).concat($$a.slice($$i+1)));}}else{_vm.$set(_vm.pos_settings,"show_categories",$$c);}}}}),_vm._v(" "),_c("span",{staticClass:"ps-switch-slider"})])]),_vm._v(" "),_c("label",{staticClass:"ps-toggle"},[_c("div",{staticClass:"ps-toggle-info"},[_c("div",{staticClass:"ps-toggle-label"},[_vm._v(_vm._s(_vm.$t("Show_Brands_in_POS")))]),_vm._v(" "),_c("div",{staticClass:"ps-toggle-help"},[_vm._v(_vm._s(_vm.$t("Show_hide_brands_in_POS")))])]),_vm._v(" "),_c("span",{staticClass:"ps-switch"},[_c("input",{directives:[{name:"model",rawName:"v-model",value:_vm.pos_settings.show_brands,expression:"pos_settings.show_brands"}],attrs:{type:"checkbox"},domProps:{checked:Array.isArray(_vm.pos_settings.show_brands)?_vm._i(_vm.pos_settings.show_brands,null)>-1:_vm.pos_settings.show_brands},on:{change:function change($event){var $$a=_vm.pos_settings.show_brands,$$el=$event.target,$$c=$$el.checked?true:false;if(Array.isArray($$a)){var $$v=null,$$i=_vm._i($$a,$$v);if($$el.checked){$$i<0&&_vm.$set(_vm.pos_settings,"show_brands",$$a.concat([$$v]));}else{$$i>-1&&_vm.$set(_vm.pos_settings,"show_brands",$$a.slice(0,$$i).concat($$a.slice($$i+1)));}}else{_vm.$set(_vm.pos_settings,"show_brands",$$c);}}}}),_vm._v(" "),_c("span",{staticClass:"ps-switch-slider"})])])]),_vm._v(" "),_c("div",{staticClass:"ps-field"},[_c("validation-provider",{attrs:{name:"products_per_page",rules:{required:true}},scopedSlots:_vm._u([{key:"default",fn:function fn(validationContext){return[_c("label",{staticClass:"ps-field-label"},[_vm._v(_vm._s(_vm.$t("How_many_items_to_display_in_POS")||"How many items do you want to display in POS")+" *")]),_vm._v(" "),_c("b-form-input",{staticClass:"ps-input",attrs:{state:_vm.getValidationState(validationContext),type:"text"},model:{value:_vm.pos_settings.products_per_page,callback:function callback($$v){_vm.$set(_vm.pos_settings,"products_per_page",$$v);},expression:"pos_settings.products_per_page"}}),_vm._v(" "),_c("b-form-invalid-feedback",[_vm._v(_vm._s(validationContext.errors[0]))])];}}])})],1)]),_vm._v(" "),_c("div",{staticClass:"ps-section"},[_c("div",{staticClass:"ps-section-title"},[_c("lucide-icon",{attrs:{name:"banknote"}}),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.$t("Cash_Drawer_Settings")))])],1),_vm._v(" "),_c("div",{staticClass:"ps-help-banner"},[_vm._v(_vm._s(_vm.$t("Cash_Drawer_Auto_Open_Help")))]),_vm._v(" "),_c("div",{staticClass:"ps-grid"},[_c("label",{staticClass:"ps-toggle"},[_c("div",{staticClass:"ps-toggle-info"},[_c("div",{staticClass:"ps-toggle-label"},[_vm._v(_vm._s(_vm.$t("Cash_Drawer_Auto_Open")))])]),_vm._v(" "),_c("span",{staticClass:"ps-switch"},[_c("input",{directives:[{name:"model",rawName:"v-model",value:_vm.pos_settings.cash_drawer_auto_open,expression:"pos_settings.cash_drawer_auto_open"}],attrs:{type:"checkbox","true-value":true,"false-value":false},domProps:{checked:Array.isArray(_vm.pos_settings.cash_drawer_auto_open)?_vm._i(_vm.pos_settings.cash_drawer_auto_open,null)>-1:_vm.pos_settings.cash_drawer_auto_open},on:{change:function change($event){var $$a=_vm.pos_settings.cash_drawer_auto_open,$$el=$event.target,$$c=$$el.checked?true:false;if(Array.isArray($$a)){var $$v=null,$$i=_vm._i($$a,$$v);if($$el.checked){$$i<0&&_vm.$set(_vm.pos_settings,"cash_drawer_auto_open",$$a.concat([$$v]));}else{$$i>-1&&_vm.$set(_vm.pos_settings,"cash_drawer_auto_open",$$a.slice(0,$$i).concat($$a.slice($$i+1)));}}else{_vm.$set(_vm.pos_settings,"cash_drawer_auto_open",$$c);}}}}),_vm._v(" "),_c("span",{staticClass:"ps-switch-slider"})])])]),_vm._v(" "),_c("div",{staticClass:"ps-field"},[_c("label",{staticClass:"ps-field-label"},[_vm._v(_vm._s(_vm.$t("Cash_Drawer_Printer_Name")))]),_vm._v(" "),_c("b-form-input",{staticClass:"ps-input",attrs:{placeholder:_vm.$t("Leave_blank_for_default_receipt_printer"),maxlength:"192"},model:{value:_vm.pos_settings.cash_drawer_printer_name,callback:function callback($$v){_vm.$set(_vm.pos_settings,"cash_drawer_printer_name",$$v);},expression:"pos_settings.cash_drawer_printer_name"}}),_vm._v(" "),_c("small",{staticClass:"ps-field-help"},[_vm._v(_vm._s(_vm.$t("Cash_Drawer_Printer_Name_Help")))])],1)]),_vm._v(" "),_c("div",{staticClass:"ps-section"},[_c("div",{staticClass:"ps-section-title"},[_c("lucide-icon",{attrs:{name:"receipt"}}),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.$t("Receipt")||"Receipt"))])],1),_vm._v(" "),_c("div",{staticClass:"ps-field"},[_c("label",{staticClass:"ps-field-label"},[_vm._v(_vm._s(_vm.$t("Invoice_Format")))]),_vm._v(" "),_c("b-form-radio-group",{attrs:{options:_vm.ps_invoiceFormatOptions.map(function(opt){return{value:opt.value,text:_vm.$t(opt.textKey)};}),buttons:"","button-variant":"outline-primary",size:"sm"},model:{value:_vm.invoice_format,callback:function callback($$v){_vm.invoice_format=$$v;},expression:"invoice_format"}}),_vm._v(" "),_c("small",{staticClass:"ps-field-help d-block mt-1"},[_vm._v(_vm._s(_vm.$t("Invoice_Format_help")))])],1)]),_vm._v(" "),_c("div",{staticClass:"ps-footer"},[_c("button",{staticClass:"ps-btn ps-btn-secondary",attrs:{type:"button"},on:{click:function click($event){return _vm.$bvModal.hide("modal_pos_settings");}}},[_vm._v("\n            "+_vm._s(_vm.$t("Cancel")||"Cancel")+"\n          ")]),_vm._v(" "),_c("button",{staticClass:"ps-btn ps-btn-primary",attrs:{type:"submit",disabled:_vm.ps_saving}},[!_vm.ps_saving?_c("lucide-icon",{attrs:{name:"check"}}):_vm._e(),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.ps_saving?_vm.$t("Saving")||"Saving…":_vm.$t("submit")||"Save"))])],1)])])],1)],1)]),_vm._v(" "),_c("b-modal",{attrs:{id:"OpenRegisterModal",title:_vm.$t("Open Register"),"hide-footer":""}},[_c("div",{staticClass:"form-group"},[_c("label",[_vm._v(_vm._s(_vm.$t("warehouse")))]),_vm._v(" "),_c("b-form-select",{attrs:{options:_vm.warehouseOptions},model:{value:_vm.registerForm.warehouse_id,callback:function callback($$v){_vm.$set(_vm.registerForm,"warehouse_id",$$v);},expression:"registerForm.warehouse_id"}})],1),_vm._v(" "),_c("div",{staticClass:"form-group"},[_c("label",[_vm._v(_vm._s(_vm.$t("Opening_Balance")))]),_vm._v(" "),_c("input",{directives:[{name:"model",rawName:"v-model.number",value:_vm.registerForm.opening_balance,expression:"registerForm.opening_balance",modifiers:{number:true}}],staticClass:"form-control",attrs:{type:"text",min:"0",step:"0.01"},domProps:{value:_vm.registerForm.opening_balance},on:{input:function input($event){if($event.target.composing)return;_vm.$set(_vm.registerForm,"opening_balance",_vm._n($event.target.value));},blur:function blur($event){return _vm.$forceUpdate();}}})]),_vm._v(" "),_c("div",{staticClass:"form-group"},[_c("label",[_vm._v(_vm._s(_vm.$t("notes")))]),_vm._v(" "),_c("textarea",{directives:[{name:"model",rawName:"v-model",value:_vm.registerForm.notes,expression:"registerForm.notes"}],staticClass:"form-control",domProps:{value:_vm.registerForm.notes},on:{input:function input($event){if($event.target.composing)return;_vm.$set(_vm.registerForm,"notes",$event.target.value);}}})]),_vm._v(" "),_c("div",{staticClass:"text-right"},[_c("b-button",{staticClass:"mr-2",attrs:{variant:"secondary"},on:{click:function click($event){return _vm.$bvModal.hide("OpenRegisterModal");}}},[_vm._v(_vm._s(_vm.$t("Cancel")))]),_vm._v(" "),_c("b-button",{attrs:{variant:"success",disabled:_vm.registerBusy},on:{click:_vm.submitOpenRegister}},[_vm._v(_vm._s(_vm.$t("Open Register")))])],1)]),_vm._v(" "),_c("b-modal",{attrs:{id:"CloseRegisterModal",title:_vm.$t("Close Register"),"hide-footer":""}},[_c("div",{staticClass:"form-group"},[_c("label",[_vm._v(_vm._s(_vm.$t("Counted_Cash")))]),_vm._v(" "),_c("input",{directives:[{name:"model",rawName:"v-model.number",value:_vm.closeForm.counted_cash,expression:"closeForm.counted_cash",modifiers:{number:true}}],staticClass:"form-control",attrs:{type:"text",min:"0",step:"0.01"},domProps:{value:_vm.closeForm.counted_cash},on:{input:function input($event){if($event.target.composing)return;_vm.$set(_vm.closeForm,"counted_cash",_vm._n($event.target.value));},blur:function blur($event){return _vm.$forceUpdate();}}})]),_vm._v(" "),_c("div",{staticClass:"form-group"},[_c("label",[_vm._v(_vm._s(_vm.$t("Closing_Notes")))]),_vm._v(" "),_c("textarea",{directives:[{name:"model",rawName:"v-model",value:_vm.closeForm.notes,expression:"closeForm.notes"}],staticClass:"form-control",domProps:{value:_vm.closeForm.notes},on:{input:function input($event){if($event.target.composing)return;_vm.$set(_vm.closeForm,"notes",$event.target.value);}}})]),_vm._v(" "),_c("div",{staticClass:"text-right"},[_c("b-button",{staticClass:"mr-2",attrs:{variant:"secondary"},on:{click:function click($event){return _vm.$bvModal.hide("CloseRegisterModal");}}},[_vm._v(_vm._s(_vm.$t("Cancel")))]),_vm._v(" "),_c("b-button",{attrs:{variant:"danger",disabled:_vm.registerBusy},on:{click:_vm.submitCloseRegister}},[_vm._v(_vm._s(_vm.$t("Close Register")))])],1)]),_vm._v(" "),_c("b-modal",{attrs:{id:"OnlineReloadModal","hide-footer":true,"hide-header-close":true,"no-close-on-backdrop":true,"no-close-on-esc":true,size:"md",centered:"",title:_vm.$t("pos.InternetRestored")||"Internet connection restored"},model:{value:_vm.onlineReloadModalVisible,callback:function callback($$v){_vm.onlineReloadModalVisible=$$v;},expression:"onlineReloadModalVisible"}},[_c("p",{staticClass:"mb-3"},[_vm._v("\n      "+_vm._s(_vm.$t("pos.ActiveCheckoutReloadQuestion")||"You have an active checkout. Would you like to reload the page now or after completing the sale?")+"\n    ")]),_vm._v(" "),_c("div",{staticClass:"d-flex justify-content-end"},[_c("b-button",{staticClass:"mr-2",attrs:{variant:"outline-primary"},on:{click:_vm.onOnlineReloadAfterSale}},[_vm._v("\n        "+_vm._s(_vm.$t("pos.ReloadAfterSale")||"After this sale")+"\n      ")]),_vm._v(" "),_c("b-button",{attrs:{variant:"primary"},on:{click:_vm.onOnlineReloadNow}},[_vm._v("\n        "+_vm._s(_vm.$t("pos.ReloadNow")||"Reload now")+"\n      ")])],1)]),_vm._v(" "),_c("b-modal",{attrs:{id:"pos-keyboard-shortcuts-help",size:"lg",scrollable:"","hide-footer":"",title:_vm.$t("Keyboard_Shortcuts")||"Keyboard Shortcuts"}},[_c("div",{staticClass:"pos-shortcuts-help"},[_c("p",{staticClass:"text-muted small mb-3"},[_vm._v("\n        "+_vm._s(_vm.$t("Keyboard_Shortcuts_Help_Intro")||"Speed up checkout with these shortcuts. Enable or disable them in POS Settings.")+"\n      ")]),_vm._v(" "),_c("table",{staticClass:"table table-sm table-hover"},[_c("thead",[_c("tr",[_c("th",{staticStyle:{width:"40%"}},[_vm._v(_vm._s(_vm.$t("Shortcut")||"Shortcut"))]),_vm._v(" "),_c("th",[_vm._v(_vm._s(_vm.$t("Action")||"Action"))])])]),_vm._v(" "),_c("tbody",_vm._l(_vm.posShortcutsList,function(s){return _c("tr",{key:s.id},[_c("td",[_c("kbd",{staticClass:"pos-shortcut-key"},[_vm._v(_vm._s(s.keys))])]),_vm._v(" "),_c("td",[_vm._v(_vm._s(_vm.$t(s.descriptionKey)!==s.descriptionKey?_vm.$t(s.descriptionKey):s.descriptionFallback))])]);}),0)])])]),_vm._v(" "),_c("b-modal",{attrs:{id:"pos-confirm-clear-cart","hide-footer":"","hide-header":"",centered:"",size:"sm","modal-class":"pos-confirm-clear-modal","body-class":"pos-confirm-clear-body"}},[_c("div",{staticClass:"pos-confirm-clear"},[_c("div",{staticClass:"pos-confirm-clear-icon",attrs:{"aria-hidden":"true"}},[_c("lucide-icon",{attrs:{name:"alert-triangle"}})],1),_vm._v(" "),_c("h3",{staticClass:"pos-confirm-clear-title"},[_vm._v("\n        "+_vm._s(_vm.$t("Confirm_Clear_Cart_Title")||"Are you sure you want to remove all items?")+"\n      ")]),_vm._v(" "),_c("p",{staticClass:"pos-confirm-clear-msg"},[_vm._v("\n        "+_vm._s(_vm.$t("Confirm_Clear_Cart_Subtitle")||"You can clear the cart, or save it as a draft to recall later.")+"\n      ")]),_vm._v(" "),_c("div",{staticClass:"pos-confirm-clear-actions"},[_c("button",{staticClass:"pos-confirm-btn pos-confirm-btn-secondary",attrs:{type:"button"},on:{click:function click($event){_vm.$bvModal.hide("pos-confirm-clear-cart");_vm.Submit_Draft();}}},[_c("lucide-icon",{attrs:{name:"bookmark"}}),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.$t("Draft_Hold")||"Draft / Hold"))])],1),_vm._v(" "),_c("button",{staticClass:"pos-confirm-btn pos-confirm-btn-danger",attrs:{type:"button"},on:{click:function click($event){_vm.$bvModal.hide("pos-confirm-clear-cart");_vm.Reset_Pos();}}},[_c("lucide-icon",{attrs:{name:"trash-2"}}),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.$t("Yes_Clear_It")||"Yes, Clear It"))])],1)])])]),_vm._v(" "),_c("transition",{attrs:{name:"cat-drawer"}},[_vm.catDrawerOpen?_c("div",{staticClass:"cat-drawer-backdrop",on:{click:function click($event){if($event.target!==$event.currentTarget)return null;_vm.catDrawerOpen=false;},keydown:function keydown($event){if(!$event.type.indexOf("key")&&_vm._k($event.keyCode,"esc",27,$event.key,["Esc","Escape"]))return null;_vm.catDrawerOpen=false;}}},[_c("aside",{staticClass:"cat-drawer",attrs:{role:"dialog","aria-label":_vm.$t("Categories")||"Categories"}},[_c("header",{staticClass:"cat-drawer-header"},[_c("div",{staticClass:"cat-drawer-title"},[_c("span",{staticClass:"cat-drawer-title-icon"},[_c("lucide-icon",{attrs:{name:"folder"}})],1),_vm._v(" "),_c("div",[_c("div",{staticClass:"cat-drawer-title-text"},[_vm._v(_vm._s(_vm.$t("Categories")||"Categories"))]),_vm._v(" "),_c("div",{staticClass:"cat-drawer-title-sub"},[_vm._v(_vm._s(_vm.categories.length)+" "+_vm._s(_vm.categories.length===1?_vm.$t("category")||"category":_vm.$t("categories")||"categories"))])])]),_vm._v(" "),_c("button",{staticClass:"cat-drawer-close",attrs:{type:"button","aria-label":_vm.$t("Close")},on:{click:function click($event){_vm.catDrawerOpen=false;}}},[_c("lucide-icon",{attrs:{name:"x"}})],1)]),_vm._v(" "),_c("div",{staticClass:"cat-drawer-search"},[_c("lucide-icon",{attrs:{name:"search"}}),_vm._v(" "),_c("input",{directives:[{name:"model",rawName:"v-model",value:_vm.catDrawerSearch,expression:"catDrawerSearch"}],attrs:{type:"text",placeholder:_vm.$t("Search_Categories")||"Search categories…"},domProps:{value:_vm.catDrawerSearch},on:{input:function input($event){if($event.target.composing)return;_vm.catDrawerSearch=$event.target.value;}}}),_vm._v(" "),_vm.catDrawerSearch?_c("button",{staticClass:"cat-drawer-search-clear",attrs:{type:"button","aria-label":_vm.$t("Clear")},on:{click:function click($event){_vm.catDrawerSearch="";}}},[_c("lucide-icon",{attrs:{name:"x"}})],1):_vm._e()],1),_vm._v(" "),_c("div",{staticClass:"cat-drawer-list"},[_c("button",{staticClass:"cat-drawer-item all","class":{active:!_vm.category_id},attrs:{type:"button"},on:{click:function click($event){return _vm.selectCategory(null);}}},[_c("span",{staticClass:"cat-drawer-item-icon all"},[_c("lucide-icon",{attrs:{name:"list"}})],1),_vm._v(" "),_c("span",{staticClass:"cat-drawer-item-name"},[_vm._v(_vm._s(_vm.$t("pos.All_Categories")||"All Categories"))]),_vm._v(" "),!_vm.category_id?_c("lucide-icon",{staticClass:"cat-drawer-item-check",attrs:{name:"check-circle"}}):_vm._e()],1),_vm._v(" "),_vm._l(_vm.filteredCategories,function(c){return _c("button",{key:c.id,staticClass:"cat-drawer-item","class":{active:_vm.category_id===c.id},attrs:{type:"button"},on:{click:function click($event){return _vm.selectCategory(c.id);}}},[_c("span",{staticClass:"cat-drawer-item-icon",style:{background:_vm.catColor(c.id),color:"#fff"}},[_vm._v(_vm._s(_vm.catInitial(c.name)))]),_vm._v(" "),_c("span",{staticClass:"cat-drawer-item-name"},[_vm._v(_vm._s(c.name))]),_vm._v(" "),_vm.category_id===c.id?_c("lucide-icon",{staticClass:"cat-drawer-item-check",attrs:{name:"check-circle"}}):_vm._e()],1);}),_vm._v(" "),!_vm.filteredCategories.length&&_vm.catDrawerSearch?_c("div",{staticClass:"cat-drawer-empty"},[_c("div",{staticClass:"cat-drawer-empty-icon"},[_c("lucide-icon",{attrs:{name:"search"}})],1),_vm._v(" "),_c("div",{staticClass:"cat-drawer-empty-text"},[_vm._v(_vm._s(_vm.$t("No_results")||"No results"))])]):_vm._e()],2)])]):_vm._e()]),_vm._v(" "),_c("transition",{attrs:{name:"cat-drawer"}},[_vm.brandDrawerOpen?_c("div",{staticClass:"cat-drawer-backdrop",on:{click:function click($event){if($event.target!==$event.currentTarget)return null;_vm.brandDrawerOpen=false;},keydown:function keydown($event){if(!$event.type.indexOf("key")&&_vm._k($event.keyCode,"esc",27,$event.key,["Esc","Escape"]))return null;_vm.brandDrawerOpen=false;}}},[_c("aside",{staticClass:"cat-drawer",attrs:{role:"dialog","aria-label":_vm.$t("Brands")||"Brands"}},[_c("header",{staticClass:"cat-drawer-header"},[_c("div",{staticClass:"cat-drawer-title"},[_c("span",{staticClass:"cat-drawer-title-icon"},[_c("lucide-icon",{attrs:{name:"tag"}})],1),_vm._v(" "),_c("div",[_c("div",{staticClass:"cat-drawer-title-text"},[_vm._v(_vm._s(_vm.$t("Brands")||"Brands"))]),_vm._v(" "),_c("div",{staticClass:"cat-drawer-title-sub"},[_vm._v(_vm._s(_vm.brands.length)+" "+_vm._s(_vm.brands.length===1?_vm.$t("brand")||"brand":_vm.$t("brands")||"brands"))])])]),_vm._v(" "),_c("button",{staticClass:"cat-drawer-close",attrs:{type:"button","aria-label":_vm.$t("Close")},on:{click:function click($event){_vm.brandDrawerOpen=false;}}},[_c("lucide-icon",{attrs:{name:"x"}})],1)]),_vm._v(" "),_c("div",{staticClass:"cat-drawer-search"},[_c("lucide-icon",{attrs:{name:"search"}}),_vm._v(" "),_c("input",{directives:[{name:"model",rawName:"v-model",value:_vm.brandDrawerSearch,expression:"brandDrawerSearch"}],attrs:{type:"text",placeholder:_vm.$t("Search_Brands")||"Search brands…"},domProps:{value:_vm.brandDrawerSearch},on:{input:function input($event){if($event.target.composing)return;_vm.brandDrawerSearch=$event.target.value;}}}),_vm._v(" "),_vm.brandDrawerSearch?_c("button",{staticClass:"cat-drawer-search-clear",attrs:{type:"button","aria-label":_vm.$t("Clear")},on:{click:function click($event){_vm.brandDrawerSearch="";}}},[_c("lucide-icon",{attrs:{name:"x"}})],1):_vm._e()],1),_vm._v(" "),_c("div",{staticClass:"cat-drawer-list"},[_c("button",{staticClass:"cat-drawer-item all","class":{active:!_vm.brand_id},attrs:{type:"button"},on:{click:function click($event){return _vm.selectBrand(null);}}},[_c("span",{staticClass:"cat-drawer-item-icon all"},[_c("lucide-icon",{attrs:{name:"list"}})],1),_vm._v(" "),_c("span",{staticClass:"cat-drawer-item-name"},[_vm._v(_vm._s(_vm.$t("pos.All_Brands")||"All Brands"))]),_vm._v(" "),!_vm.brand_id?_c("lucide-icon",{staticClass:"cat-drawer-item-check",attrs:{name:"check-circle"}}):_vm._e()],1),_vm._v(" "),_vm._l(_vm.filteredBrands,function(b){return _c("button",{key:b.id,staticClass:"cat-drawer-item","class":{active:_vm.brand_id===b.id},attrs:{type:"button"},on:{click:function click($event){return _vm.selectBrand(b.id);}}},[_c("span",{staticClass:"cat-drawer-item-icon",style:{background:_vm.catColor(b.id),color:"#fff"}},[_vm._v(_vm._s(_vm.catInitial(b.name)))]),_vm._v(" "),_c("span",{staticClass:"cat-drawer-item-name"},[_vm._v(_vm._s(b.name))]),_vm._v(" "),_vm.brand_id===b.id?_c("lucide-icon",{staticClass:"cat-drawer-item-check",attrs:{name:"check-circle"}}):_vm._e()],1);}),_vm._v(" "),!_vm.filteredBrands.length&&_vm.brandDrawerSearch?_c("div",{staticClass:"cat-drawer-empty"},[_c("div",{staticClass:"cat-drawer-empty-icon"},[_c("lucide-icon",{attrs:{name:"search"}})],1),_vm._v(" "),_c("div",{staticClass:"cat-drawer-empty-text"},[_vm._v(_vm._s(_vm.$t("No_results")||"No results"))])]):_vm._e()],2)])]):_vm._e()]),_vm._v(" "),_c("transition",{attrs:{name:"wh-drawer"}},[_vm.whDrawerOpen?_c("div",{staticClass:"wh-drawer-backdrop",on:{click:function click($event){if($event.target!==$event.currentTarget)return null;_vm.whDrawerOpen=false;},keydown:function keydown($event){if(!$event.type.indexOf("key")&&_vm._k($event.keyCode,"esc",27,$event.key,["Esc","Escape"]))return null;_vm.whDrawerOpen=false;}}},[_c("aside",{staticClass:"wh-drawer",attrs:{role:"dialog","aria-label":_vm.$t("Warehouses")||"Warehouses"}},[_c("header",{staticClass:"wh-drawer-header"},[_c("button",{staticClass:"wh-drawer-close",attrs:{type:"button","aria-label":_vm.$t("Close")},on:{click:function click($event){_vm.whDrawerOpen=false;}}},[_c("lucide-icon",{attrs:{name:"x"}})],1),_vm._v(" "),_c("div",{staticClass:"wh-drawer-hero-icon"},[_c("lucide-icon",{attrs:{name:"warehouse"}})],1),_vm._v(" "),_c("div",{staticClass:"wh-drawer-hero-text"},[_c("div",{staticClass:"wh-drawer-hero-eyebrow"},[_vm._v(_vm._s(_vm.$t("Locations")||"Locations"))]),_vm._v(" "),_c("div",{staticClass:"wh-drawer-hero-title"},[_vm._v(_vm._s(_vm.$t("Warehouses")||"Warehouses"))]),_vm._v(" "),_c("div",{staticClass:"wh-drawer-hero-sub"},[_vm._v("\n              "+_vm._s(_vm.warehouses.length)+" "+_vm._s(_vm.warehouses.length===1?_vm.$t("warehouse")||"warehouse":_vm.$t("warehouses")||"warehouses")),_vm.sale.warehouse_id?_c("span",[_vm._v(" · "+_vm._s(_vm.$t("Currently_Active")||"1 active"))]):_vm._e()])])]),_vm._v(" "),_c("div",{staticClass:"wh-drawer-search"},[_c("lucide-icon",{attrs:{name:"search"}}),_vm._v(" "),_c("input",{directives:[{name:"model",rawName:"v-model",value:_vm.whDrawerSearch,expression:"whDrawerSearch"}],attrs:{type:"text",placeholder:_vm.$t("Search_Warehouses")||"Search warehouses…"},domProps:{value:_vm.whDrawerSearch},on:{input:function input($event){if($event.target.composing)return;_vm.whDrawerSearch=$event.target.value;}}}),_vm._v(" "),_vm.whDrawerSearch?_c("button",{staticClass:"wh-drawer-search-clear",attrs:{type:"button","aria-label":_vm.$t("Clear")},on:{click:function click($event){_vm.whDrawerSearch="";}}},[_c("lucide-icon",{attrs:{name:"x"}})],1):_vm._e()],1),_vm._v(" "),_c("div",{staticClass:"wh-drawer-list"},[_c("button",{staticClass:"wh-drawer-card wh-drawer-card-clear","class":{active:!_vm.sale.warehouse_id},attrs:{type:"button"},on:{click:function click($event){return _vm.selectWarehouse(null);}}},[_c("div",{staticClass:"wh-drawer-card-icon clear"},[_c("lucide-icon",{attrs:{name:"x-circle"}})],1),_vm._v(" "),_c("div",{staticClass:"wh-drawer-card-body"},[_c("div",{staticClass:"wh-drawer-card-name"},[_vm._v(_vm._s(_vm.$t("No_Warehouse")||"No warehouse"))]),_vm._v(" "),_c("div",{staticClass:"wh-drawer-card-meta"},[_c("span",{staticClass:"wh-drawer-card-hint"},[_vm._v(_vm._s(_vm.$t("Clear_Selection")||"Clear selection"))])])]),_vm._v(" "),_c("div",{staticClass:"wh-drawer-card-arrow"},[!_vm.sale.warehouse_id?_c("lucide-icon",{attrs:{name:"check-circle"}}):_c("lucide-icon",{attrs:{name:"chevron-right"}})],1)]),_vm._v(" "),_vm._l(_vm.filteredWarehouses,function(wh){return _c("button",{key:wh.id,staticClass:"wh-drawer-card","class":{active:_vm.sale.warehouse_id===wh.id},attrs:{type:"button"},on:{click:function click($event){return _vm.selectWarehouse(wh.id);}}},[_c("div",{staticClass:"wh-drawer-card-icon"},[_c("lucide-icon",{attrs:{name:"warehouse"}})],1),_vm._v(" "),_c("div",{staticClass:"wh-drawer-card-body"},[_c("div",{staticClass:"wh-drawer-card-name"},[_vm._v(_vm._s(wh.name))]),_vm._v(" "),_c("div",{staticClass:"wh-drawer-card-meta"},[_c("span",{staticClass:"wh-drawer-card-id"},[_vm._v("#"+_vm._s(wh.id))]),_vm._v(" "),_vm.sale.warehouse_id===wh.id?_c("span",{staticClass:"wh-drawer-card-active-pill"},[_c("span",{staticClass:"wh-drawer-card-active-dot"}),_vm._v("\n                  "+_vm._s(_vm.$t("Active")||"Active")+"\n                ")]):_vm._e()])]),_vm._v(" "),_c("div",{staticClass:"wh-drawer-card-arrow"},[_vm.sale.warehouse_id===wh.id?_c("lucide-icon",{attrs:{name:"check-circle"}}):_c("lucide-icon",{attrs:{name:"chevron-right"}})],1)]);}),_vm._v(" "),!_vm.filteredWarehouses.length&&_vm.whDrawerSearch?_c("div",{staticClass:"wh-drawer-empty"},[_c("div",{staticClass:"wh-drawer-empty-icon"},[_c("lucide-icon",{attrs:{name:"search"}})],1),_vm._v(" "),_c("div",{staticClass:"wh-drawer-empty-text"},[_vm._v(_vm._s(_vm.$t("No_results")||"No results"))])]):!_vm.warehouses.length?_c("div",{staticClass:"wh-drawer-empty"},[_c("div",{staticClass:"wh-drawer-empty-icon"},[_c("lucide-icon",{attrs:{name:"warehouse"}})],1),_vm._v(" "),_c("div",{staticClass:"wh-drawer-empty-text"},[_vm._v(_vm._s(_vm.$t("No_Warehouses")||"No warehouses available"))])]):_vm._e()],2)])]):_vm._e()]),_vm._v(" "),_c("transition",{attrs:{name:"cust-drawer"}},[_vm.custDrawerOpen?_c("div",{staticClass:"cust-drawer-backdrop",on:{click:function click($event){if($event.target!==$event.currentTarget)return null;_vm.custDrawerOpen=false;},keydown:function keydown($event){if(!$event.type.indexOf("key")&&_vm._k($event.keyCode,"esc",27,$event.key,["Esc","Escape"]))return null;_vm.custDrawerOpen=false;}}},[_c("section",{staticClass:"cust-drawer",attrs:{role:"dialog","aria-label":_vm.$t("Select_Customer")||"Select customer"}},[_c("button",{staticClass:"cust-drawer-close",attrs:{type:"button","aria-label":_vm.$t("Close")},on:{click:function click($event){_vm.custDrawerOpen=false;}}},[_c("lucide-icon",{attrs:{name:"x"}})],1),_vm._v(" "),_c("header",{staticClass:"cust-drawer-header"},[_c("div",{staticClass:"cust-drawer-hero-icon"},[_c("lucide-icon",{attrs:{name:"users"}})],1),_vm._v(" "),_c("div",{staticClass:"cust-drawer-hero-text"},[_c("div",{staticClass:"cust-drawer-hero-eyebrow"},[_vm._v(_vm._s(_vm.$t("Customer")||"Customer"))]),_vm._v(" "),_c("div",{staticClass:"cust-drawer-hero-title"},[_vm._v(_vm._s(_vm.$t("Select_Customer")||"Select Customer"))]),_vm._v(" "),_c("div",{staticClass:"cust-drawer-hero-sub"},[_vm._v("\n              "+_vm._s(_vm.filteredCustomers.length)+" / "+_vm._s(_vm.clients.length)+"\n            ")])]),_vm._v(" "),_vm.isQuickAddCustomerEnabled&&_vm.isOnline?_c("button",{staticClass:"cust-drawer-quick-add",attrs:{type:"button"},on:{click:function click($event){_vm.custDrawerOpen=false;_vm.Quick_Add_Client();}}},[_c("lucide-icon",{attrs:{name:"user-plus"}}),_vm._v(" "),_c("span",[_vm._v(_vm._s(_vm.$t("Quick_Add_Customer")||"Quick add"))])],1):_vm._e()]),_vm._v(" "),_c("div",{staticClass:"cust-drawer-search"},[_c("lucide-icon",{attrs:{name:"search"}}),_vm._v(" "),_c("input",{directives:[{name:"model",rawName:"v-model",value:_vm.custDrawerSearch,expression:"custDrawerSearch"}],ref:"custDrawerSearchInput",attrs:{type:"text",placeholder:_vm.$t("Search_Customers")||"Search by name or phone…"},domProps:{value:_vm.custDrawerSearch},on:{input:function input($event){if($event.target.composing)return;_vm.custDrawerSearch=$event.target.value;}}}),_vm._v(" "),_vm.custDrawerSearch?_c("button",{staticClass:"cust-drawer-search-clear",attrs:{type:"button","aria-label":_vm.$t("Clear")},on:{click:function click($event){_vm.custDrawerSearch="";}}},[_c("lucide-icon",{attrs:{name:"x"}})],1):_vm._e()],1),_vm._v(" "),_c("div",{staticClass:"cust-drawer-list"},[_c("button",{staticClass:"cust-drawer-card cust-drawer-card-clear","class":{active:!_vm.selectedClientId},attrs:{type:"button"},on:{click:function click($event){return _vm.selectCustomer(null);}}},[_c("span",{staticClass:"cust-drawer-card-avatar clear"},[_c("lucide-icon",{attrs:{name:"x-circle"}})],1),_vm._v(" "),_c("span",{staticClass:"cust-drawer-card-body"},[_c("span",{staticClass:"cust-drawer-card-name"},[_vm._v(_vm._s(_vm.$t("No_Customer")||"No customer"))]),_vm._v(" "),_c("span",{staticClass:"cust-drawer-card-meta"},[_c("span",[_vm._v(_vm._s(_vm.$t("Clear_Selection")||"Clear selection"))])])]),_vm._v(" "),!_vm.selectedClientId?_c("span",{staticClass:"cust-drawer-card-check"},[_c("lucide-icon",{attrs:{name:"check"}})],1):_vm._e()]),_vm._v(" "),_vm._l(_vm.filteredCustomers,function(c){return _c("button",{key:c.value,staticClass:"cust-drawer-card","class":{active:_vm.selectedClientId===c.value},attrs:{type:"button"},on:{click:function click($event){return _vm.selectCustomer(c.value);}}},[_c("span",{staticClass:"cust-drawer-card-avatar",style:{background:_vm.catColor(c.value)}},[_vm._v("\n              "+_vm._s(_vm.catInitial(c.name||c.label))+"\n            ")]),_vm._v(" "),_c("span",{staticClass:"cust-drawer-card-body"},[_c("span",{staticClass:"cust-drawer-card-name"},[_vm._v(_vm._s(c.name||c.label))]),_vm._v(" "),c.phone?_c("span",{staticClass:"cust-drawer-card-meta"},[_c("lucide-icon",{attrs:{name:"phone"}}),_vm._v(" "),_c("span",[_vm._v(_vm._s(c.phone))])],1):_vm._e()]),_vm._v(" "),_vm.selectedClientId===c.value?_c("span",{staticClass:"cust-drawer-card-check"},[_c("lucide-icon",{attrs:{name:"check"}})],1):_vm._e()]);}),_vm._v(" "),!_vm.filteredCustomers.length?_c("div",{staticClass:"cust-drawer-empty"},[_c("div",{staticClass:"cust-drawer-empty-icon"},[_c("lucide-icon",{attrs:{name:"users"}})],1),_vm._v(" "),_c("div",{staticClass:"cust-drawer-empty-text"},[_vm._v("\n              "+_vm._s(_vm.custDrawerSearch?_vm.$t("No_results")||"No results":_vm.$t("No_Customers")||"No customers")+"\n            ")])]):_vm._e()],2)])]):_vm._e()])],1);};var staticRenderFns=[function(){var _vm=this,_c=_vm._self._c;return _c("div",{staticClass:"typo__p"},[_c("div",{staticClass:"spinner sm spinner-primary mt-3"})]);}];render._withStripped=true;
 
 /***/ },
 

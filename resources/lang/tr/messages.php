@@ -824,4 +824,23 @@ return [
     'Default_ExploreCollection' => 'Koleksiyonu Keşfedin',
     'Default_BookPrivateViewing' => 'Özel Görüntüleme Ayırtın',
     'Default_StayInTouch' => 'İletişimde Kalın',
+
+    // --- Storefront theme translations (auto-merged) ---
+    'Default_HallmarkedGold' => '%100 Ayar Damgalı',
+    'Default_EveryPiece' => 'Doğrulanmış altın',
+    'Default_LifetimePolicy' => 'Ömür Boyu Bakım',
+    'Default_PolishAndResize' => 'Ücretsiz cila ve beden ayarı',
+    'Default_NewArrivals' => 'Yeni Gelenler',
+    'Default_FeaturedPieces' => 'Öne Çıkan Parçalar',
+    'Default_OurCraft' => 'Zanaatimiz',
+    'Default_WhyChooseUs' => 'Neden bizden alışveriş yapmalısınız',
+    'Default_WhyChooseUsBody' => 'Her parça gözünüzün önünde tartılır, damgalanır ve fiyatlandırılır — gizli işçilik ücreti yok, tahmin yok.',
+    'Default_TransparentPricing' => 'Şeffaf Fiyatlandırma',
+    'Default_TransparentPricingBody' => 'Canlı metal fiyatları, kalem kalem işçilik ücretleri ve her faturada ayrı gösterilen taş değeri.',
+    'Default_CertifiedSourcing' => 'Sertifikalı Tedarik',
+    'Default_CertifiedSourcingBody' => 'Elmaslar ve renkli taşlar, yalnızca mağaza garantisiyle değil, bağımsız laboratuvar sertifikalarıyla gönderilir.',
+    'Default_FreeResizing' => 'Ücretsiz Beden Ayarı',
+    'Default_FreeResizingBody' => 'Teslimattan sonraki 60 gün içinde bir ücretsiz beden ayarı, ayrıca ömür boyu indirimli cilalama.',
+    'Default_InsuredShipping' => 'Sigortalı Kargo',
+    'Default_InsuredShippingBody' => 'Her sipariş, kapıdan kapıya tam sigortalı, kurcalamaya karşı korumalı ve nötr ambalajla gönderilir.',
 ];

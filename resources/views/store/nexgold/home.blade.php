@@ -117,7 +117,7 @@
         <span class="eyebrow text-nx-navy/70 mb-2 block">{{ __('messages.Nexgold_GiftingMadeEasy') }}</span>
         <h3 class="font-serif italic text-2xl md:text-3xl mb-2">{{ __('messages.Nexgold_PerfectGiftBoxed') }}</h3>
         <p class="text-nx-navy/70 text-sm mb-5 max-w-sm">{{ __('messages.Nexgold_GiftingDesc') }}</p>
-        <a href="{{ route('store.contact') }}" class="inline-flex items-center gap-2 bg-nx-navy text-white font-bold px-5 py-2.5 rounded-lg text-sm w-fit hover:bg-black transition">{{ __('messages.Nexgold_ExploreGiftGuide') }}</a>
+        <a href="{{ route('store.contact') }}" class="inline-flex items-center gap-2 bg-nx-goldDark text-white font-bold px-5 py-2.5 rounded-lg text-sm w-fit hover:bg-black transition">{{ __('messages.Nexgold_ExploreGiftGuide') }}</a>
       </div>
     </div>
   </section>

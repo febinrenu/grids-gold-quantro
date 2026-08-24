@@ -899,4 +899,23 @@ return [
     'Default_ExploreCollection' => 'Découvrir la collection',
     'Default_BookPrivateViewing' => 'Réserver une visite privée',
     'Default_StayInTouch' => 'Restons en contact',
+
+    // --- Storefront theme translations (auto-merged) ---
+    'Default_HallmarkedGold' => '100 % poinçonné',
+    'Default_EveryPiece' => 'Or vérifié',
+    'Default_LifetimePolicy' => 'Entretien à vie',
+    'Default_PolishAndResize' => 'Polissage et redimensionnement gratuits',
+    'Default_NewArrivals' => 'Nouveautés',
+    'Default_FeaturedPieces' => 'Pièces en vedette',
+    'Default_OurCraft' => 'Notre savoir-faire',
+    'Default_WhyChooseUs' => 'Pourquoi nous choisir',
+    'Default_WhyChooseUsBody' => 'Chaque pièce est pesée, poinçonnée et tarifée devant vous — sans frais de façon cachés, sans conjecture.',
+    'Default_TransparentPricing' => 'Tarification transparente',
+    'Default_TransparentPricingBody' => 'Cours des métaux en direct, frais de façon détaillés et valeur des pierres indiqués séparément sur chaque facture.',
+    'Default_CertifiedSourcing' => 'Approvisionnement certifié',
+    'Default_CertifiedSourcingBody' => 'Les diamants et pierres de couleur sont livrés avec des certificats de laboratoire indépendants, pas seulement une garantie du magasin.',
+    'Default_FreeResizing' => 'Redimensionnement gratuit',
+    'Default_FreeResizingBody' => 'Un redimensionnement gratuit dans les 60 jours suivant la livraison, plus un polissage à prix réduit à vie.',
+    'Default_InsuredShipping' => 'Livraison assurée',
+    'Default_InsuredShippingBody' => 'Chaque commande est expédiée dans un emballage neutre et inviolable, entièrement assuré porte à porte.',
 ];

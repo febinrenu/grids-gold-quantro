@@ -36,7 +36,7 @@
           <option value="price_desc" @selected($sort === 'price_desc')>{{ __('messages.PriceDown') }}</option>
         </select>
       </div>
-      <button class="bg-nx-navy hover:bg-nx-blue transition text-white font-bold px-5 py-2 rounded-full text-sm" type="submit">{{ __('messages.Update') }}</button>
+      <button class="bg-nx-goldDark hover:bg-nx-blue transition text-white font-bold px-5 py-2 rounded-full text-sm" type="submit">{{ __('messages.Update') }}</button>
       <button class="border border-nx-border px-5 py-2 rounded-full text-sm font-bold lg:hidden" type="button" @click="window.StoreUI.open('filtersDrawer')">{{ __('messages.Filters') }}</button>
     </form>
   </div>
