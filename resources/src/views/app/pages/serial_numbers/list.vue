@@ -46,11 +46,59 @@
             <router-link :title="$t('History')" :to="'/app/serial_numbers/detail/' + props.row.id">
               <b-button size="sm" variant="primary"><lucide-icon name="history" /> {{ $t('History') || 'History' }}</b-button>
             </router-link>
+            <b-button size="sm" variant="info" class="ml-1" @click="openRfidModal(props.row)">
+              <lucide-icon name="tag" /> RFID
+            </b-button>
           </span>
           <span v-else>{{ props.formattedRow[props.column.field] }}</span>
         </template>
       </vue-good-table>
     </b-card>
+
+    <!-- RFID Assignment Modal -->
+    <b-modal id="rfid-modal" title="RFID Tag Assignment" hide-footer size="md" v-model="rfidModalOpen">
+      <div v-if="selectedSerial">
+        <div class="mb-3 p-3 bg-light rounded">
+          <strong>Product:</strong> {{ selectedSerial.product_name }} <br/>
+          <strong>Serial:</strong> {{ selectedSerial.serial_number }} <br/>
+          <strong>Branch:</strong> {{ selectedSerial.warehouse_name }}
+        </div>
+
+        <div v-if="activeTagLoading" class="text-center my-3">
+          <div class="spinner spinner-primary small"></div>
+        </div>
+
+        <div v-else>
+          <div v-if="activeEpc" class="alert alert-success d-flex justify-content-between align-items-center mb-3">
+            <span><strong>Active RFID Tag:</strong> <code>{{ activeEpc }}</code></span>
+            <b-button size="sm" variant="danger" @click="unassignRfid">Unassign</b-button>
+          </div>
+          <div v-else class="alert alert-warning mb-3">
+            No active RFID tag assigned to this item.
+          </div>
+
+          <b-form @submit.prevent="assignRfid">
+            <b-form-group label="RFID EPC Code (Scan or Type)">
+              <b-form-input
+                v-model="rfidForm.epc_number"
+                required
+                placeholder="Enter EPC Code (e.g. E28011052...)"
+                ref="epcInput"
+                autofocus
+              />
+            </b-form-group>
+
+            <div class="text-right mt-3">
+              <b-button size="sm" variant="secondary" class="mr-2" @click="rfidModalOpen = false">Close</b-button>
+              <b-button size="sm" variant="success" type="submit" :disabled="submittingRfid">
+                <span v-if="submittingRfid" class="spinner spinner-primary small mr-1"></span>
+                Assign Tag
+              </b-button>
+            </div>
+          </b-form>
+        </div>
+      </div>
+    </b-modal>
   </div>
 </template>
 
@@ -69,7 +117,15 @@ export default {
       serials: [],
       warehouses: [],
       warehouse_id: "",
-      status: ""
+      status: "",
+      rfidModalOpen: false,
+      selectedSerial: null,
+      activeTagLoading: false,
+      activeEpc: null,
+      submittingRfid: false,
+      rfidForm: {
+        epc_number: ""
+      }
     };
   },
   computed: {
@@ -96,6 +152,92 @@ export default {
     }
   },
   methods: {
+    openRfidModal(serial) {
+      this.selectedSerial = serial;
+      this.activeEpc = null;
+      this.rfidForm.epc_number = "";
+      this.rfidModalOpen = true;
+      this.activeTagLoading = true;
+
+      // Fetch active tag for this serial
+      axios.get("rfid-tags", {
+        params: {
+          product_serial_id: serial.id,
+          status: "active",
+          limit: 1
+        }
+      })
+      .then(response => {
+        if (response.data.data && response.data.data.length > 0) {
+          this.activeEpc = response.data.data[0].epc_number;
+        }
+        this.activeTagLoading = false;
+        this.$nextTick(() => {
+          if (this.$refs.epcInput) {
+            this.$refs.epcInput.focus();
+          }
+        });
+      })
+      .catch(() => {
+        this.activeTagLoading = false;
+      });
+    },
+    assignRfid() {
+      if (!this.rfidForm.epc_number) return;
+      this.submittingRfid = true;
+
+      axios.post("rfid-tags/assign", {
+        product_serial_id: this.selectedSerial.id,
+        epc_number: this.rfidForm.epc_number
+      })
+      .then(response => {
+        this.submittingRfid = false;
+        if (response.data.success) {
+          this.makeToast("success", response.data.message || "RFID Tag assigned successfully!");
+          this.rfidModalOpen = false;
+          this.loadItems(this.serverParams.page);
+        } else {
+          this.makeToast("danger", response.data.message || "Failed to assign RFID tag.");
+        }
+      })
+      .catch(error => {
+        this.submittingRfid = false;
+        const msg = error.response && error.response.data && error.response.data.message
+          ? error.response.data.message
+          : "Failed to assign RFID tag.";
+        this.makeToast("danger", msg);
+      });
+    },
+    unassignRfid() {
+      this.activeTagLoading = true;
+      axios.post("rfid-tags/unassign", {
+        product_serial_id: this.selectedSerial.id
+      })
+      .then(response => {
+        this.activeTagLoading = false;
+        if (response.data.success) {
+          this.makeToast("success", response.data.message || "RFID Tag unassigned successfully!");
+          this.activeEpc = null;
+          this.loadItems(this.serverParams.page);
+        } else {
+          this.makeToast("danger", response.data.message || "Failed to unassign RFID tag.");
+        }
+      })
+      .catch(error => {
+        this.activeTagLoading = false;
+        const msg = error.response && error.response.data && error.response.data.message
+          ? error.response.data.message
+          : "Failed to unassign RFID tag.";
+        this.makeToast("danger", msg);
+      });
+    },
+    makeToast(variant, msg, title) {
+      this.$bvToast.toast(msg, {
+        title: title || "RFID Tagging",
+        variant: variant,
+        solid: true
+      });
+    },
     statusLabel(s) {
       return this.$t("Status_" + s) || s;
     },

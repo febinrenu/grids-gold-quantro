@@ -1352,6 +1352,12 @@ Route::middleware(['auth:api', 'Is_Active', 'request.safety', 'tenant.subscribed
     Route::apiResource('certificates', 'Jewelry\\CertificateController');
     Route::apiResource('item-certificates', 'Jewelry\\ItemCertificateController');
     Route::apiResource('item-images', 'Jewelry\\ItemImageController');
+    // ======== RFID MVP ========
+    Route::post('rfid-tags/assign', 'Jewelry\\RfidTagController@assign');
+    Route::post('rfid-tags/unassign', 'Jewelry\\RfidTagController@unassign');
+    Route::get('rfid/lookup', 'Jewelry\\RfidTagController@lookup');
+    Route::get('pos/rfid-add', 'Jewelry\\RfidTagController@posRfidAdd');
+    Route::post('rfid/reconcile', 'Jewelry\\RfidTagController@reconcile');
     Route::apiResource('rfid-tags', 'Jewelry\\RfidTagController');
     Route::apiResource('barcode-registry', 'Jewelry\\BarcodeRegistryController');
     Route::apiResource('qr-registry', 'Jewelry\\QrRegistryController');

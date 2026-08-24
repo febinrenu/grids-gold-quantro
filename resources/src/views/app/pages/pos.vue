@@ -685,6 +685,24 @@
             </svg>
             <span>{{ $t('Scan') }}</span>
           </button>
+
+          <!-- RFID input block -->
+          <div class="pos-shell-rfid-wrap" style="width: 220px; position: relative;">
+            <lucide-icon name="tag" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; color: #8d6a1e; pointer-events: none;" />
+            <input
+              type="text"
+              placeholder="Scan RFID EPC..."
+              v-model="rfid_pos_input"
+              @keyup.enter="onPosRfidScan"
+              class="pos-shell-search-input"
+              style="width: 100%; height: 36px; padding: 0 12px 0 30px; background: #fdf6e8; border: 1px solid #f2dbb3; border-radius: 8px; font-size: 13px; color: #8d6a1e; outline: none; font-family: inherit; transition: border-color 120ms ease;"
+            />
+          </div>
+          <!-- Mock Scan Button for easy testing -->
+          <button @click="triggerMockRfidScan" class="pos-shell-action-btn" style="height: 36px; padding: 0 10px; background: #eaf7ef; color: #1e7a44; border: 1px solid #ccebda; border-radius: 8px; font-size: 11px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+            <lucide-icon name="laptop" />
+            <span>Mock Scan</span>
+          </button>
         </div>
 
 
@@ -1032,7 +1050,7 @@
 
 
   <!-- Modern Payment Modal Alternative -->
-  <modern-payment-modal 
+  <modern-payment-modal
     ref="modernPaymentModal"
     :payment-methods="payment_methods"
     :accounts="accounts"
@@ -1952,7 +1970,7 @@
           </tr>
         </tbody>
       </table>
-      
+
       <!-- Pagination -->
       <div class="d-flex justify-content-between align-items-center mt-3" v-if="totalRows_draft_sales > limit">
         <div class="text-muted">
@@ -2087,7 +2105,7 @@
             </validation-provider>
           </b-col>
 
-         
+
 
           <!-- Discount Method -->
           <b-col lg="6" md="6" sm="12" v-show="!detailLoading">
@@ -2109,9 +2127,9 @@
             </validation-provider>
           </b-col>
 
-         
 
-         
+
+
 
           <!-- Serial / IMEI numbers are selected inline in the cart (serial panel). -->
 
@@ -2212,7 +2230,7 @@
               </b-form-group>
             </validation-provider>
           </b-col>
-          
+
           <!-- Customer Email -->
           <b-col md="6" sm="12">
             <b-form-group :label="$t('Email')">
@@ -3221,6 +3239,7 @@ export default {
       // preferred layout survives a reload.
       cartAsideWidth: 600,
       cartAsideResizing: false,
+      rfid_pos_input: "",
 
       // ===== Mobile UI state (drives the phone layout) =====
       mobileActiveTab: 'home', // home | cart | hold | recent | more
@@ -3266,14 +3285,14 @@ export default {
 
       client_name:'',
       paymentLines: [
-        { 
+        {
           // only the first line shows Received Amount
-          amount: 0, 
-          payment_method_id: '', 
+          amount: 0,
+          payment_method_id: '',
         }
       ],
-      globalPaymentNote: '', 
-      selectedAccount: null, 
+      globalPaymentNote: '',
+      selectedAccount: null,
       payment_methods:[],
       SubmitProcessing: false,
       // --- Customer Display (broadcast, multi-screen) ---
@@ -3746,7 +3765,7 @@ export default {
     totalPaid() {
       return this.paymentLines.reduce((sum, p) => sum + Number(p.amount || 0), 0).toFixed(this.priceDecimals);
     },
-    
+
     // Calculate manual discount amount only (excluding points) for receipt display
     calculatedManualDiscountAmount() {
       try {
@@ -3755,7 +3774,7 @@ export default {
         const discountMethod = String(saleData.discount_Method || '2'); // Default to fixed for backward compatibility
         const discountValue = Number(saleData.discount || 0);
         const subtotal = this.invoiceSubtotal || this.total || 0;
-        
+
         if (discountMethod === '1') {
           // Percentage discount on subtotal (manual discount only, no points)
           return parseFloat((subtotal * (discountValue / 100)).toFixed(this.priceDecimals));
@@ -3767,7 +3786,7 @@ export default {
         return 0;
       }
     },
-    
+
     // Calculate actual discount amount for display (handles both percentage and fixed, includes points)
     calculatedDiscountAmount() {
       try {
@@ -3776,14 +3795,14 @@ export default {
         const discountMethod = String(saleData.discount_Method || '2'); // Default to fixed for backward compatibility
         const discountValue = Number(saleData.discount || 0);
         const subtotal = this.invoiceSubtotal || this.total || 0;
-        
+
         // Get discount_from_points from invoice_pos.sale if available, otherwise use current sale's discount_from_points
         const pointsDiscount = Number(
           (saleData.discount_from_points !== undefined && saleData.discount_from_points !== null)
             ? saleData.discount_from_points
             : (this.discount_from_points || 0)
         );
-        
+
         if (discountMethod === '1') {
           // Percentage discount on subtotal
           const percentAmount = parseFloat((subtotal * (discountValue / 100)).toFixed(this.priceDecimals));
@@ -3889,7 +3908,7 @@ export default {
           thClass: "text-left",
           sortable: false
         },
-       
+
         {
           label: this.$t("Total"),
           field: "GrandTotal",
@@ -3906,11 +3925,11 @@ export default {
           thClass: "text-left",
           sortable: false
         }
-     
+
       ];
     }
 
-    
+
 
   },
 
@@ -4186,12 +4205,85 @@ export default {
         );
       }
     },
+    onPosRfidScan() {
+      const epc = this.rfid_pos_input.trim();
+      if (!epc) return;
+      this.rfid_pos_input = "";
+      this.addRfidItemToCart(epc);
+    },
+    addRfidItemToCart(epc) {
+      if (!this.sale.warehouse_id) {
+        this.makeToast("warning", "Please select a warehouse before scanning RFID items.", "Warning");
+        return;
+      }
+      NProgress.start();
+      axios.get("pos/rfid-add", {
+        params: {
+          epc: epc,
+          warehouse_id: this.sale.warehouse_id
+        }
+      })
+      .then(response => {
+        NProgress.done();
+        if (response.data.success) {
+          const product = response.data.product;
+
+          // Mimics SearchProduct logic by calling Get_Product_Details directly
+          if (this.load_product) {
+            this.load_product = false;
+            this.product = {};
+            this.product.code = product.code;
+            this.product.current = product.qte_sale;
+            this.product.fix_stock = product.qte;
+            this.product.quantity = 1;
+            this.product.product_variant_id = product.product_variant_id;
+
+            this.Get_Product_Details(product.id, product.product_variant_id, product);
+            this.makeToast("success", `Added '${product.name}' via RFID!`);
+          } else {
+            this.makeToast("warning", this.$t("Please_wait_until_the_product_is_loaded"), this.$t("Warning"));
+          }
+        } else {
+          this.makeToast("danger", response.data.message || "Failed to add RFID item.");
+        }
+      })
+      .catch(error => {
+        NProgress.done();
+        const msg = error.response && error.response.data && error.response.data.message
+          ? error.response.data.message
+          : "Failed to add RFID item.";
+        this.makeToast("danger", msg);
+      });
+    },
+    triggerMockRfidScan() {
+      NProgress.start();
+      axios.get("rfid-tags", {
+        params: {
+          status: "active",
+          limit: 100
+        }
+      })
+      .then(response => {
+        NProgress.done();
+        const tags = response.data.data;
+        if (tags && tags.length > 0) {
+          // Trigger scan using the first active tag
+          const mockEpc = tags[0].epc_number;
+          this.addRfidItemToCart(mockEpc);
+        } else {
+          this.makeToast("warning", "No active RFID tags found in the database to mock-scan.");
+        }
+      })
+      .catch(() => {
+        NProgress.done();
+      });
+    },
     ...mapActions(["changeSidebarProperties", "changeThemeMode", "logout"]),
     // ... All methods from old_pos will be injected here
     logoutUser() {
       this.$store.dispatch("logout");
     },
-    
+
      handleFocus() {
       this.focused = true
     },
@@ -4199,10 +4291,10 @@ export default {
       this.focused = false
     },
 
-    
+
     showModal() {
       this.$bvModal.show('open_scan');
-      
+
     },
 
     onScan (decodedText, decodedResult) {
@@ -4277,7 +4369,7 @@ export default {
                 this.submit_showing_credit_card = false;
             });
 
-         
+
         }else{
           this.hasSavedPaymentMethod = false;
           this.useSavedPaymentMethod = false;
@@ -4576,9 +4668,9 @@ export default {
             const exceededAmount = newTotalDue - this.selectedClientCreditLimit;
             this.makeToast(
               "danger",
-              this.$t("Credit_Limit_Exceeded") + ": " + 
-              this.formatPriceWithCurrentCurrency(exceededAmount, 2) + " " + 
-              this.$t("exceeds_credit_limit_of") + " " + 
+              this.$t("Credit_Limit_Exceeded") + ": " +
+              this.formatPriceWithCurrentCurrency(exceededAmount, 2) + " " +
+              this.$t("exceeds_credit_limit_of") + " " +
               this.formatPriceWithCurrentCurrency(this.selectedClientCreditLimit, 2),
               this.$t("Warning")
             );
@@ -4829,7 +4921,7 @@ export default {
       const discountMethod = String(this.sale.discount_Method || '2');
       const discountValue = Number(this.sale.discount || 0);
       let discountAmount = 0;
-      
+
       if (discountMethod === '1') {
         // Percentage discount on subtotal
         const percentAmount = parseFloat((this.total * (discountValue / 100)).toFixed(this.priceDecimals));
@@ -4884,20 +4976,20 @@ export default {
         this.CalculTotal();
       }
     },
-    
+
     toggleDiscountType() {
       // Toggle between '1' (percentage) and '2' (fixed)
       this.sale.discount_Method = this.sale.discount_Method === '1' ? '2' : '1';
       this.CalculTotal();
     },
-    
+
     // Calculate discount amount for current sale (for display purposes)
     getCurrentSaleDiscountAmount() {
       try {
         const discountMethod = String(this.sale.discount_Method || '2'); // Default to fixed for backward compatibility
         const discountValue = Number(this.sale.discount || 0);
         const subtotal = this.total || 0;
-        
+
         if (discountMethod === '1') {
           // Percentage discount on subtotal
           const percentAmount = parseFloat((subtotal * (discountValue / 100)).toFixed(this.priceDecimals));
@@ -4966,7 +5058,7 @@ export default {
         this.product.sale_unit_id       = data.sale_unit_id;
         this.product.is_imei            = data.is_imei;
         this.product.imei_number        = '';
-        this.product.serial_numbers     = [];
+        this.product.serial_numbers     = data.scanned_serial_number ? [data.scanned_serial_number] : [];
         this.product.is_batch_tracked   = !!data.is_batch_tracked;
         this.product.image              = data.image;
 
@@ -4993,7 +5085,7 @@ export default {
         // Set current stock quantity from warehouse data (already adjusted for shadow stock if applied below)
         this.product.current = data.qte_sale || 0;
         this.product.fix_stock = data.qte || 0;
-        
+
         // Ensure a valid default quantity when adding directly from the grid
         if (this.product.product_type === 'is_service') {
           this.product.quantity = 1;
@@ -5214,11 +5306,16 @@ export default {
       if (existingIndex !== -1) {
         const row = this.details[existingIndex];
         const addQty = (typeof this.product.quantity === 'number' && this.product.quantity > 0) ? this.product.quantity : 1;
-        if (row.product_type !== 'is_service') {
+
+        if (row.is_imei && this.product.serial_numbers && this.product.serial_numbers.length > 0) {
+          const serialToAppend = this.product.serial_numbers[0];
+          if (!row.serial_numbers.includes(serialToAppend)) {
+            row.serial_numbers.push(serialToAppend);
+          }
+          row.quantity = row.serial_numbers.length;
+        } else if (row.product_type !== 'is_service') {
           const desiredQty = row.quantity + addQty;
           const _mult = Number(row.pack_multiplier) || 1;
-          // Stock guard skipped when overselling is allowed: cart can grow past available stock.
-          // For packs the guard is in base units: desiredQty × pack_multiplier.
           if (!this.isOversellingAllowed && desiredQty * _mult > row.current) {
             this.makeToast("warning", this.$t("LowStock"), this.$t("Warning"));
             row.quantity = _mult > 1 ? Math.floor(row.current / _mult) : row.current;
@@ -5228,6 +5325,7 @@ export default {
         } else {
           row.quantity = row.quantity + addQty;
         }
+
         this.CalculTotal();
         this.$forceUpdate();
         setTimeout(() => { this.load_product = true; }, 300);
@@ -5738,7 +5836,7 @@ export default {
       this.total = 0;
       this.category_id = "";
       this.brand_id = "";
-      
+
       this.selectedClientPoints = 0;
       this.points_to_convert = 0;
       this.used_points = 0;
@@ -5746,7 +5844,7 @@ export default {
       this.clientIsEligible = false;
       this.pointsConverted = false;
       try { this._cd_emit && this._cd_emit({ currency: (this.currentUser && this.currentUser.currency) || '', details: [], discount: 0, TaxNet: 0, GrandTotal: 0 }, true); } catch(e) {}
-      
+
       const client = this.clients.find(client => client.id === 1);
       if (client) {
         this.client_name = client.name;
@@ -5840,7 +5938,7 @@ export default {
             this.search_input= '';
             this.product_filter = [];
           }
-          
+
           const product_filter = this.products_pos.filter(product =>
             (product.product_type === 'is_service' || this.isOversellingAllowed || Number(product.qte_sale || 0) > 0) &&
             (product.code === this.search_input || String(product.barcode || '').includes(this.search_input))
@@ -5962,14 +6060,14 @@ export default {
         .then(response => {
           this.draft_sales = response.data.draft_sales;
           this.totalRows_draft_sales = response.data.totalRows;
-          
+
           // If current page is empty but we have data and we're not on page 1, go to previous page
           if (this.draft_sales.length === 0 && this.totalRows_draft_sales > 0 && page > 1) {
             this.draft_sales_page = page - 1;
             this.get_Draft_Sales(this.draft_sales_page);
             return;
           }
-          
+
           NProgress.done();
         })
         .catch(() => {
@@ -8070,7 +8168,7 @@ export default {
           }
         } catch (e) {}
 
-        try { 
+        try {
           this.invoice_pos.sale = s || {};
           // Backward compatibility: ensure discount_Method defaults to '2' (fixed) if not present
           if (this.invoice_pos.sale && !this.invoice_pos.sale.discount_Method) {
@@ -8154,7 +8252,7 @@ export default {
           this.clientIsEligible = response.data.default_client_eligible === true || response.data.default_client_eligible === 1;
           this.selectedClientPoints = this.clientIsEligible ? parseFloat(response.data.default_client_points) : 0;
           this.point_to_amount_rate = response.data.point_to_amount_rate;
-          
+
           // Set default tax from settings
           if (response.data.default_tax !== undefined && response.data.default_tax !== null) {
             this.sale.tax_rate = parseFloat(response.data.default_tax) || 0;
@@ -8577,7 +8675,7 @@ export default {
               s => s && (s.status === 'pending' || s.status === 'syncing')
             ).length;
             if (pendingCount > 0) {
-              const msg = pendingCount === 1 
+              const msg = pendingCount === 1
                 ? (this.$t ? this.$t('pos.Syncing_offline_sales') : 'Syncing offline sales')
                 : (this.$t ? `${this.$t('pos.Syncing_offline_sales')} (${pendingCount})` : `Syncing ${pendingCount} offline sales...`);
               this.makeToast && this.makeToast('info', msg, this.$t ? this.$t('Notice') : 'Notice');
@@ -9049,7 +9147,7 @@ export default {
     } catch (e) {
       // Ignore errors during cache clearing
     }
-    
+
     // Preload the offline-sync toggle from the cached company setting so the
     // POS knows upfront whether to skip the offline UI. Without this, a brief
     // window between initOfflineStatus() and GetElementsPos() resolving would
@@ -9148,7 +9246,7 @@ export default {
           payment_method_id:       2,
         }];
         this.globalPaymentNote = '';
-        this.selectedAccount= null; 
+        this.selectedAccount= null;
         this.$bvModal.show("Add_Payment");
         // Complete the animation of theprogress bar.
         NProgress.done();
@@ -9159,13 +9257,13 @@ export default {
       // Calculate if current page would be empty after deletion
       const itemsOnCurrentPage = this.draft_sales.length;
       let pageToLoad = this.draft_sales_page;
-      
+
       // If we're deleting the last item on a page that's not page 1, go to previous page
       if (itemsOnCurrentPage === 1 && this.draft_sales_page > 1) {
         pageToLoad = this.draft_sales_page - 1;
         this.draft_sales_page = pageToLoad;
       }
-      
+
       this.get_Draft_Sales(pageToLoad);
       // Complete the animation of theprogress bar.
       setTimeout(() => NProgress.done(), 500);
@@ -10216,7 +10314,7 @@ $transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       pointer-events: none;
       font-weight: 600;
     }
-    
+
     &.discount-input-group {
       .flat-input {
         padding-right: 38px;
@@ -10237,17 +10335,17 @@ $transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         transition: $transition-fast;
         min-width: 28px;
         text-align: center;
-        
+
         &:hover {
           border-color: #667eea;
           background: rgba(102, 126, 234, 0.06);
           color: #667eea;
         }
-        
+
         &:active {
           transform: scale(0.95);
         }
-        
+
         &:focus,
         &:focus-visible {
           outline: none;
@@ -13273,7 +13371,7 @@ $transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     .search-wrapper {
       height: 40px;
       margin-top: 20px;
-      
+
       > .action-btn-icon {
         width: 36px !important;
       }
@@ -13388,7 +13486,7 @@ $transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   }
   .pos-autocomplete-results { left: 0; right: 0; }
-  
+
   /* Filter section full width with 40/40/20 layout */
   .pos-header-filters {
     width: 100%;
@@ -13489,7 +13587,7 @@ $transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
     gap: 12px;
   }
-  
+
   /* Hide elements on small screens */
   .header-left { display: none !important; }
   .card.card-products .card-header > h3 { display: none !important; }

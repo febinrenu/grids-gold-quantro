@@ -917,6 +917,15 @@
               <span class="item-name">{{$t('Serial_Numbers')}}</span>
             </router-link>
           </li>
+          <li
+            class="nav-item"
+            v-if="currentUserPermissions && currentUserPermissions.includes('serial_numbers')"
+          >
+            <router-link tag="a" class to="/app/serial_numbers/reconcile">
+              <lucide-icon class="nav-icon" name="check-square" />
+              <span class="item-name">RFID Reconcile</span>
+            </router-link>
+          </li>
         </ul>
 
         <ul
