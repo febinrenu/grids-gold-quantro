@@ -145,6 +145,17 @@
           $isJewelry = (bool) ($p->is_jewelry_item ?? false);
           $metalTypeName = $isJewelry && $p->metalType ? $p->metalType->name : '';
           $karatName = $isJewelry && $p->karat ? $p->karat->name : '';
+          $grossWeight = $isJewelry ? (float) ($p->jewelry_gross_weight ?? 0) : '';
+          $netWeight = $isJewelry ? (float) ($p->jewelry_net_weight ?? 0) : '';
+          $metalWeight = $isJewelry ? (float) ($p->jewelry_metal_weight ?? 0) : '';
+          $stonesSummary = '';
+          if ($isJewelry && $p->relationLoaded('stones') && $p->stones) {
+              $stonesSummary = $p->stones->map(fn($st) => $st->quantity . 'x ' . ($st->stoneType->name ?? $st->stone_name ?? ''))->join(', ');
+          }
+          $pricingBreakdown = null;
+          if ($isJewelry) {
+              $pricingBreakdown = app(\App\Services\Jewelry\JewelryPricingService::class)->preview($p->id, $s->default_warehouse_id ?? null);
+          }
           $variants = $p->relationLoaded('variants') ? $p->variants : collect($p->variants ?? []);
           $variants = collect($variants);
           $variantPayload = $variants->map(function($v) use ($currency) {
@@ -187,6 +198,11 @@
                  data-is-jewelry="{{ $isJewelry ? '1' : '0' }}"
                  data-metal-type="{{ e($metalTypeName) }}"
                  data-karat="{{ e($karatName) }}"
+                 data-gross-weight="{{ $grossWeight }}"
+                 data-net-weight="{{ $netWeight }}"
+                 data-metal-weight="{{ $metalWeight }}"
+                 data-stones-summary="{{ e($stonesSummary) }}"
+                 data-pricing-breakdown='@json($pricingBreakdown)'
                  @click.prevent>
                 <img src="{{ $imgUrl }}" alt="{{ $p->name }}" class="w-full h-full object-cover">
               </a>
@@ -198,13 +214,35 @@
             </div>
 
             <div class="text-center space-y-2">
-              @if($isJewelry && ($metalTypeName || $karatName))
+              @if($isJewelry && ($metalTypeName || $karatName || $grossWeight))
                 <p class="text-[10px] text-deco-gold tracking-widest uppercase font-semibold">
                   {{ trim($metalTypeName . ' ' . $karatName) }}
+                  @if($grossWeight > 0) &bull; {{ $grossWeight }}g @endif
                 </p>
               @endif
               <h3 class="font-deco-logo text-xs text-white tracking-wider line-clamp-1" title="{{ $p->name }}">
-                {{ $p->name }}
+                <a href="#" class="js-quick-view hover:text-deco-gold transition"
+                   data-id="{{ $p->id }}"
+                   data-slug="{{ $productSlug }}"
+                   data-name="{{ e($p->name) }}"
+                   data-price="{{ number_format($price, 2, '.', '') }}"
+                   data-image="{{ $imgUrl }}"
+                   data-gallery='@json($galleryUrls)'
+                   data-currency="{{ $currency }}"
+                   data-description="{{ e($descShort) }}"
+                   data-stock="{{ $productStock }}"
+                   data-variants='@json($variantPayload)'
+                   data-is-jewelry="{{ $isJewelry ? '1' : '0' }}"
+                   data-metal-type="{{ e($metalTypeName) }}"
+                   data-karat="{{ e($karatName) }}"
+                   data-gross-weight="{{ $grossWeight }}"
+                   data-net-weight="{{ $netWeight }}"
+                   data-metal-weight="{{ $metalWeight }}"
+                   data-stones-summary="{{ e($stonesSummary) }}"
+                   data-pricing-breakdown='@json($pricingBreakdown)'
+                   @click.prevent>
+                  {{ $p->name }}
+                </a>
               </h3>
               <p class="font-deco-title text-sm text-deco-gold font-bold">
                 {{ $currency }}{{ number_format($price, 2, '.', ',') }}
@@ -255,6 +293,8 @@
       <p class="font-deco-title text-xs tracking-wider text-deco-gold uppercase font-bold">&mdash; Lady Charlotte V., London</p>
     </div>
   </section>
+
+  @include('store.partials.home-modals-scripts', ['currency' => $s->currency_code ?? '$', 'nlBtn' => __('messages.Subscribe')])
 
 </div>
 @endsection

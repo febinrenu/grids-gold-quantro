@@ -1477,4 +1477,24 @@ Route::middleware(['auth:api', 'Is_Active', 'request.safety', 'tenant.subscribed
     Route::apiResource('dashboard-widgets', 'Jewelry\\DashboardWidgetController');
     Route::apiResource('system-health', 'Jewelry\\SystemHealthController');
     Route::apiResource('api-tokens', 'Jewelry\\ApiTokenController');
+
+    // ======== Medium-priority competitor-gap features ========
+    Route::apiResource('gold-saving-schemes', 'Jewelry\\GoldSavingSchemeController');
+    Route::apiResource('gold-saving-scheme-deposits', 'Jewelry\\GoldSavingSchemeDepositController')->only(['index', 'store', 'show', 'destroy']);
+
+    Route::post('alloy-mix-calculations/preview', 'Jewelry\\AlloyCalculatorController@preview');
+    Route::post('alloy-mix-calculations/{id}/apply', 'Jewelry\\AlloyCalculatorController@apply');
+    Route::apiResource('alloy-mix-calculations', 'Jewelry\\AlloyCalculatorController')->only(['index', 'store', 'show', 'destroy']);
+
+    Route::post('scale-readings/capture', 'Jewelry\\ScaleReadingController@capture');
+    Route::apiResource('scale-readings', 'Jewelry\\ScaleReadingController')->only(['index', 'store', 'show', 'destroy']);
+
+    Route::apiResource('kyc-verifications', 'Jewelry\\KycVerificationController');
+    Route::apiResource('aml-flagged-transactions', 'Jewelry\\AmlFlaggedTransactionController')->only(['index', 'show', 'update']);
+
+    Route::post('consignment-settlements/{id}/settle', 'Jewelry\\ConsignmentSettlementController@settle');
+    Route::apiResource('consignment-settlements', 'Jewelry\\ConsignmentSettlementController')->only(['index', 'show']);
+
+    Route::get('diamond-price-rates-current', 'Jewelry\\DiamondPriceRateController@current');
+    Route::apiResource('diamond-price-rates', 'Jewelry\\DiamondPriceRateController')->only(['index', 'store', 'show', 'destroy']);
 });

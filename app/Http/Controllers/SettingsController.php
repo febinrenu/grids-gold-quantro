@@ -776,6 +776,29 @@ class SettingsController extends Controller
                 $item['metal_price_api_key'] = $settings->metal_price_api_key ?? null;
             }
 
+            // Weighing-scale integration (ST-3/PI-6)
+            $item['scale_integration_enabled'] = (bool) ($settings->scale_integration_enabled ?? false);
+            $item['scale_provider'] = $settings->scale_provider ?? 'http_bridge';
+            $item['scale_available_providers'] = \App\Services\Jewelry\WeighingScaleService::availableProviders();
+            $item['scale_bridge_url'] = $settings->scale_bridge_url ?? null;
+            $item['scale_api_key_set'] = ! empty($settings->scale_api_key);
+            if ($includeSecrets) {
+                $item['scale_api_key'] = $settings->scale_api_key ?? null;
+            }
+
+            // AML/KYC compliance (ST-2)
+            $item['aml_kyc_enabled'] = (bool) ($settings->aml_kyc_enabled ?? false);
+            $item['aml_transaction_threshold'] = $settings->aml_transaction_threshold ?? null;
+
+            // Live diamond price sync (ST-4/PI-4, diamond half)
+            $item['diamond_price_sync_enabled'] = (bool) ($settings->diamond_price_sync_enabled ?? false);
+            $item['diamond_price_provider'] = $settings->diamond_price_provider ?? 'http_feed';
+            $item['diamond_price_api_url'] = $settings->diamond_price_api_url ?? null;
+            $item['diamond_price_api_key_set'] = ! empty($settings->diamond_price_api_key);
+            if ($includeSecrets) {
+                $item['diamond_price_api_key'] = $settings->diamond_price_api_key ?? null;
+            }
+
             $zones_array = [];
             $timestamp = time();
             foreach (timezone_identifiers_list() as $key => $zone) {
@@ -1013,6 +1036,29 @@ class SettingsController extends Controller
             $item['metal_price_api_key_set'] = ! empty($settings->metal_price_api_key);
             if ($includeSecrets) {
                 $item['metal_price_api_key'] = $settings->metal_price_api_key ?? null;
+            }
+
+            // Weighing-scale integration (ST-3/PI-6)
+            $item['scale_integration_enabled'] = (bool) ($settings->scale_integration_enabled ?? false);
+            $item['scale_provider'] = $settings->scale_provider ?? 'http_bridge';
+            $item['scale_available_providers'] = \App\Services\Jewelry\WeighingScaleService::availableProviders();
+            $item['scale_bridge_url'] = $settings->scale_bridge_url ?? null;
+            $item['scale_api_key_set'] = ! empty($settings->scale_api_key);
+            if ($includeSecrets) {
+                $item['scale_api_key'] = $settings->scale_api_key ?? null;
+            }
+
+            // AML/KYC compliance (ST-2)
+            $item['aml_kyc_enabled'] = (bool) ($settings->aml_kyc_enabled ?? false);
+            $item['aml_transaction_threshold'] = $settings->aml_transaction_threshold ?? null;
+
+            // Live diamond price sync (ST-4/PI-4, diamond half)
+            $item['diamond_price_sync_enabled'] = (bool) ($settings->diamond_price_sync_enabled ?? false);
+            $item['diamond_price_provider'] = $settings->diamond_price_provider ?? 'http_feed';
+            $item['diamond_price_api_url'] = $settings->diamond_price_api_url ?? null;
+            $item['diamond_price_api_key_set'] = ! empty($settings->diamond_price_api_key);
+            if ($includeSecrets) {
+                $item['diamond_price_api_key'] = $settings->diamond_price_api_key ?? null;
             }
 
             $zones_array = [];
@@ -1405,7 +1451,10 @@ class SettingsController extends Controller
             'default_wastage_value' => $nullableNumber($request->input('default_wastage_value', $setting->default_wastage_value ?? null)),
             'gold_rate_requires_approval' => $request->has('gold_rate_requires_approval') ? $bool($request->input('gold_rate_requires_approval')) : (int) ($setting->gold_rate_requires_approval ?? 0),
             'gold_rate_branch_override_enabled' => $request->has('gold_rate_branch_override_enabled') ? $bool($request->input('gold_rate_branch_override_enabled')) : (int) ($setting->gold_rate_branch_override_enabled ?? 1),
-        ] + $this->metalPriceSettingsPayload($request, $setting, $sanitizeEnum, $bool);
+        ] + $this->metalPriceSettingsPayload($request, $setting, $sanitizeEnum, $bool)
+          + $this->scaleSettingsPayload($request, $setting, $sanitizeEnum, $bool)
+          + $this->amlSettingsPayload($request, $setting, $bool)
+          + $this->diamondPriceSettingsPayload($request, $setting, $bool);
     }
 
     /**
@@ -1437,6 +1486,79 @@ class SettingsController extends Controller
         $newKey = $request->input('metal_price_api_key');
         if ($request->has('metal_price_api_key') && $newKey !== '' && $newKey !== null) {
             $payload['metal_price_api_key'] = Crypt::encryptString($newKey);
+        }
+
+        return $payload;
+    }
+
+    /**
+     * Weighing-scale hardware integration settings (ST-3/PI-6). Same
+     * hand-encrypted-key shape as metalPriceSettingsPayload() above, for the
+     * same reason: this is a query-builder mass update, not an Eloquent save.
+     */
+    protected function scaleSettingsPayload(Request $request, $setting, callable $sanitizeEnum, callable $bool): array
+    {
+        if (! \Schema::hasColumn('settings', 'scale_provider')) {
+            return [];
+        }
+
+        $payload = [
+            'scale_integration_enabled' => $request->has('scale_integration_enabled')
+                ? $bool($request->input('scale_integration_enabled'))
+                : (int) ($setting->scale_integration_enabled ?? 0),
+            'scale_provider' => $sanitizeEnum(
+                $request->input('scale_provider', $setting->scale_provider ?? 'http_bridge'),
+                \App\Services\Jewelry\WeighingScaleService::availableProviders()
+            ) ?? 'http_bridge',
+            'scale_bridge_url' => $request->input('scale_bridge_url', $setting->scale_bridge_url ?? null),
+        ];
+
+        $newKey = $request->input('scale_api_key');
+        if ($request->has('scale_api_key') && $newKey !== '' && $newKey !== null) {
+            $payload['scale_api_key'] = Crypt::encryptString($newKey);
+        }
+
+        return $payload;
+    }
+
+    /**
+     * AML/KYC compliance settings (ST-2).
+     */
+    protected function amlSettingsPayload(Request $request, $setting, callable $bool): array
+    {
+        if (! \Schema::hasColumn('settings', 'aml_kyc_enabled')) {
+            return [];
+        }
+
+        return [
+            'aml_kyc_enabled' => $request->has('aml_kyc_enabled')
+                ? $bool($request->input('aml_kyc_enabled'))
+                : (int) ($setting->aml_kyc_enabled ?? 0),
+            'aml_transaction_threshold' => $request->input('aml_transaction_threshold', $setting->aml_transaction_threshold ?? null),
+        ];
+    }
+
+    /**
+     * Live diamond price sync settings (ST-4/PI-4, diamond half). Same
+     * hand-encrypted-key shape as metalPriceSettingsPayload() above.
+     */
+    protected function diamondPriceSettingsPayload(Request $request, $setting, callable $bool): array
+    {
+        if (! \Schema::hasColumn('settings', 'diamond_price_provider')) {
+            return [];
+        }
+
+        $payload = [
+            'diamond_price_sync_enabled' => $request->has('diamond_price_sync_enabled')
+                ? $bool($request->input('diamond_price_sync_enabled'))
+                : (int) ($setting->diamond_price_sync_enabled ?? 0),
+            'diamond_price_provider' => $request->input('diamond_price_provider', $setting->diamond_price_provider ?? 'http_feed'),
+            'diamond_price_api_url' => $request->input('diamond_price_api_url', $setting->diamond_price_api_url ?? null),
+        ];
+
+        $newKey = $request->input('diamond_price_api_key');
+        if ($request->has('diamond_price_api_key') && $newKey !== '' && $newKey !== null) {
+            $payload['diamond_price_api_key'] = Crypt::encryptString($newKey);
         }
 
         return $payload;
