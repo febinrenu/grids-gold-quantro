@@ -2246,6 +2246,78 @@ const baseRoutes = [
                             )
                     },
 
+                    // gold_saving_schemes
+                    {
+                        name: "gold_saving_schemes",
+                        path: "gold_saving_schemes",
+                        component: () =>
+                            import(
+                                /* webpackChunkName: "gold_saving_schemes" */ "./views/app/pages/settings/gold_saving_schemes"
+                            )
+                    },
+
+                    // alloy_calculator
+                    {
+                        name: "alloy_calculator",
+                        path: "alloy_calculator",
+                        component: () =>
+                            import(
+                                /* webpackChunkName: "alloy_calculator" */ "./views/app/pages/settings/alloy_calculator"
+                            )
+                    },
+
+                    // scale_readings
+                    {
+                        name: "scale_readings",
+                        path: "scale_readings",
+                        component: () =>
+                            import(
+                                /* webpackChunkName: "scale_readings" */ "./views/app/pages/settings/scale_readings"
+                            )
+                    },
+
+                    // consignment_settlements
+                    {
+                        name: "consignment_settlements",
+                        path: "consignment_settlements",
+                        component: () =>
+                            import(
+                                /* webpackChunkName: "consignment_settlements" */ "./views/app/pages/settings/consignment_settlements"
+                            )
+                    },
+
+                    // kyc_verifications
+                    {
+                        name: "kyc_verifications",
+                        path: "kyc_verifications",
+                        meta: { title: "KYC Verifications" },
+                        component: () =>
+                            import(
+                                /* webpackChunkName: "kyc_verifications" */ "./views/app/pages/settings/kyc_verifications"
+                            )
+                    },
+
+                    // aml_flagged_transactions
+                    {
+                        name: "aml_flagged_transactions",
+                        path: "aml_flagged_transactions",
+                        meta: { title: "AML Flagged Transactions" },
+                        component: () =>
+                            import(
+                                /* webpackChunkName: "aml_flagged_transactions" */ "./views/app/pages/settings/aml_flagged_transactions"
+                            )
+                    },
+
+                    // diamond_price_rates
+                    {
+                        name: "diamond_price_rates",
+                        path: "diamond_price_rates",
+                        component: () =>
+                            import(
+                                /* webpackChunkName: "diamond_price_rates" */ "./views/app/pages/settings/diamond_price_rates"
+                            )
+                    },
+
                     // Backup
                     {
                         name: "Backup",

@@ -3532,6 +3532,117 @@
                         </div>
                       </b-col>
 
+                      <b-col lg="12" md="12" sm="12" class="mb-3">
+                        <div class="system-actions-card">
+                          <h5 class="mb-2">Weighing Scale Integration</h5>
+                          <p class="text-muted small">Capture weights straight from a connected scale via a local bridge agent, instead of typing them in by hand.</p>
+
+                          <label class="switch switch-primary mr-3">
+                            Enable Scale Integration
+                            <input type="checkbox" v-model="setting.scale_integration_enabled" :disabled="!setting.jewelry_mode">
+                            <span class="slider"></span>
+                          </label>
+
+                          <b-row class="mt-3">
+                            <b-col lg="4" md="6" sm="12" class="mb-3">
+                              <b-form-group label="Provider">
+                                <b-form-select
+                                  v-model="setting.scale_provider"
+                                  :options="scaleProviderOptions"
+                                  :disabled="!setting.jewelry_mode || !setting.scale_integration_enabled"
+                                ></b-form-select>
+                              </b-form-group>
+                            </b-col>
+                            <b-col lg="4" md="6" sm="12" class="mb-3">
+                              <b-form-group label="Bridge URL">
+                                <b-form-input
+                                  v-model="setting.scale_bridge_url"
+                                  placeholder="http://localhost:9333"
+                                  :disabled="!setting.jewelry_mode || !setting.scale_integration_enabled"
+                                ></b-form-input>
+                                <small class="text-muted">A small local agent on the counter PC that talks to the physical scale over USB/serial and exposes it over HTTP.</small>
+                              </b-form-group>
+                            </b-col>
+                            <b-col lg="4" md="6" sm="12" class="mb-3">
+                              <b-form-group label="API Key">
+                                <b-form-input
+                                  type="password"
+                                  v-model="setting.scale_api_key"
+                                  :placeholder="setting.scale_api_key_set ? 'Saved — leave blank to keep it' : 'Optional'"
+                                  :disabled="!setting.jewelry_mode || !setting.scale_integration_enabled"
+                                  autocomplete="new-password"
+                                ></b-form-input>
+                              </b-form-group>
+                            </b-col>
+                          </b-row>
+                        </div>
+                      </b-col>
+
+                      <b-col lg="12" md="12" sm="12" class="mb-3">
+                        <div class="system-actions-card">
+                          <h5 class="mb-2">AML / KYC Compliance</h5>
+                          <p class="text-muted small">Automatically flag a sale for review when it crosses a cash-transaction threshold — this never blocks the sale, it just queues it for a human review.</p>
+
+                          <label class="switch switch-primary mr-3">
+                            Enable AML/KYC Flagging
+                            <input type="checkbox" v-model="setting.aml_kyc_enabled" :disabled="!setting.jewelry_mode">
+                            <span class="slider"></span>
+                          </label>
+
+                          <b-row class="mt-3">
+                            <b-col lg="6" md="6" sm="12" class="mb-3">
+                              <b-form-group label="Transaction Threshold">
+                                <b-form-input
+                                  v-model="setting.aml_transaction_threshold"
+                                  type="number"
+                                  min="0"
+                                  step="0.01"
+                                  placeholder="e.g. 10000"
+                                  :disabled="!setting.jewelry_mode || !setting.aml_kyc_enabled"
+                                ></b-form-input>
+                                <small class="text-muted">Sales at or above this amount are flagged automatically. Set to match your jurisdiction's cash-transaction reporting limit.</small>
+                              </b-form-group>
+                            </b-col>
+                          </b-row>
+                        </div>
+                      </b-col>
+
+                      <b-col lg="12" md="12" sm="12" class="mb-3">
+                        <div class="system-actions-card">
+                          <h5 class="mb-2">Live Diamond Price Sync</h5>
+                          <p class="text-muted small">Sync a per-carat price matrix (shape/color/clarity/carat) from your own Rapaport-compatible price feed subscription, hourly.</p>
+
+                          <label class="switch switch-primary mr-3">
+                            Enable Live Diamond Price Sync
+                            <input type="checkbox" v-model="setting.diamond_price_sync_enabled" :disabled="!setting.jewelry_mode">
+                            <span class="slider"></span>
+                          </label>
+
+                          <b-row class="mt-3">
+                            <b-col lg="4" md="6" sm="12" class="mb-3">
+                              <b-form-group label="Feed URL">
+                                <b-form-input
+                                  v-model="setting.diamond_price_api_url"
+                                  placeholder="https://your-feed-provider.example/prices"
+                                  :disabled="!setting.jewelry_mode || !setting.diamond_price_sync_enabled"
+                                ></b-form-input>
+                              </b-form-group>
+                            </b-col>
+                            <b-col lg="4" md="6" sm="12" class="mb-3">
+                              <b-form-group label="API Key">
+                                <b-form-input
+                                  type="password"
+                                  v-model="setting.diamond_price_api_key"
+                                  :placeholder="setting.diamond_price_api_key_set ? 'Saved — leave blank to keep it' : 'Paste your API key'"
+                                  :disabled="!setting.jewelry_mode || !setting.diamond_price_sync_enabled"
+                                  autocomplete="new-password"
+                                ></b-form-input>
+                              </b-form-group>
+                            </b-col>
+                          </b-row>
+                        </div>
+                      </b-col>
+
                       <b-col lg="12" md="12" sm="12" class="mt-2">
                         <b-button variant="primary" @click="Update_Settings()">
                           <lucide-icon class="me-2" name="check" /> {{ $t('submit') }}
@@ -4111,6 +4222,25 @@ export default {
         metal_price_available_providers: ["goldapi"],
         metal_price_api_key_set: false,
         metal_price_api_key: "",
+
+        // Weighing-scale integration
+        scale_integration_enabled: false,
+        scale_provider: "http_bridge",
+        scale_available_providers: ["http_bridge"],
+        scale_bridge_url: "",
+        scale_api_key_set: false,
+        scale_api_key: "",
+
+        // AML/KYC compliance
+        aml_kyc_enabled: false,
+        aml_transaction_threshold: "",
+
+        // Live diamond price sync
+        diamond_price_sync_enabled: false,
+        diamond_price_provider: "http_feed",
+        diamond_price_api_url: "",
+        diamond_price_api_key_set: false,
+        diamond_price_api_key: "",
       },
       // Custom Fields data
       customFieldsActiveTab: 0,
@@ -4349,6 +4479,12 @@ export default {
     metalPriceProviderOptions() {
       const labels = { goldapi: 'GoldAPI.io' };
       const providers = (this.setting && this.setting.metal_price_available_providers) || ['goldapi'];
+      return providers.map((value) => ({ value, text: labels[value] || value }));
+    },
+
+    scaleProviderOptions() {
+      const labels = { http_bridge: 'Local Bridge Agent (HTTP)' };
+      const providers = (this.setting && this.setting.scale_available_providers) || ['http_bridge'];
       return providers.map((value) => ({ value, text: labels[value] || value }));
     },
 
@@ -5020,6 +5156,25 @@ export default {
       self.data.append("metal_price_provider", self.setting.metal_price_provider || "goldapi");
       if (self.setting.metal_price_api_key) {
         self.data.append("metal_price_api_key", self.setting.metal_price_api_key);
+      }
+
+      // Weighing-scale integration. Same "blank means keep it" key handling.
+      self.data.append("scale_integration_enabled", self.setting.scale_integration_enabled ? 1 : 0);
+      self.data.append("scale_provider", self.setting.scale_provider || "http_bridge");
+      self.data.append("scale_bridge_url", self.setting.scale_bridge_url || "");
+      if (self.setting.scale_api_key) {
+        self.data.append("scale_api_key", self.setting.scale_api_key);
+      }
+
+      // AML/KYC compliance
+      self.data.append("aml_kyc_enabled", self.setting.aml_kyc_enabled ? 1 : 0);
+      self.data.append("aml_transaction_threshold", self.setting.aml_transaction_threshold || "");
+
+      // Live diamond price sync. Same "blank means keep it" key handling.
+      self.data.append("diamond_price_sync_enabled", self.setting.diamond_price_sync_enabled ? 1 : 0);
+      self.data.append("diamond_price_api_url", self.setting.diamond_price_api_url || "");
+      if (self.setting.diamond_price_api_key) {
+        self.data.append("diamond_price_api_key", self.setting.diamond_price_api_key);
       }
 
       self.data.append("_method", "put");
