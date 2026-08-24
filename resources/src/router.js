@@ -262,6 +262,14 @@ const baseRoutes = [
                             import(
                                 /* webpackChunkName: "serial_numbers_detail" */ "./views/app/pages/serial_numbers/detail"
                             )
+                    },
+                    {
+                        name: "rfid_reconcile",
+                        path: "reconcile",
+                        component: () =>
+                            import(
+                                /* webpackChunkName: "rfid_reconcile" */ "./views/app/pages/serial_numbers/reconcile"
+                            )
                     }
                 ]
             },
