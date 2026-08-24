@@ -522,6 +522,20 @@ class SalesController extends BaseController
             } catch (\Throwable $e) {
                 \Log::warning('Commission calculation failed (non-blocking): '.$e->getMessage(), ['sale_id' => $sale->id]);
             }
+
+            // ST-2: flag for AML review if the sale crosses the configured threshold.
+            try {
+                app(\App\Services\AmlComplianceService::class)->checkTransaction($sale->fresh());
+            } catch (\Throwable $e) {
+                \Log::warning('AML compliance check failed (non-blocking): '.$e->getMessage(), ['sale_id' => $sale->id]);
+            }
+
+            // PI-9: auto-settle consigned/memo line items with their owner.
+            try {
+                app(\App\Services\ConsignmentSettlementService::class)->settleForSale($sale->fresh());
+            } catch (\Throwable $e) {
+                \Log::warning('Consignment settlement failed (non-blocking): '.$e->getMessage(), ['sale_id' => $sale->id]);
+            }
         }
 
         // Fire the WhatsApp "invoice created" automation (non-blocking).
@@ -1082,6 +1096,20 @@ class SalesController extends BaseController
                 app(\App\Services\CommissionService::class)->calculateForSale($sale->fresh());
             } catch (\Throwable $e) {
                 \Log::warning('Commission calculation failed (non-blocking): '.$e->getMessage(), ['sale_id' => $sale->id]);
+            }
+
+            // ST-2: flag for AML review if the sale crosses the configured threshold.
+            try {
+                app(\App\Services\AmlComplianceService::class)->checkTransaction($sale->fresh());
+            } catch (\Throwable $e) {
+                \Log::warning('AML compliance check failed (non-blocking): '.$e->getMessage(), ['sale_id' => $sale->id]);
+            }
+
+            // PI-9: auto-settle consigned/memo line items with their owner.
+            try {
+                app(\App\Services\ConsignmentSettlementService::class)->settleForSale($sale->fresh());
+            } catch (\Throwable $e) {
+                \Log::warning('Consignment settlement failed (non-blocking): '.$e->getMessage(), ['sale_id' => $sale->id]);
             }
         }
 

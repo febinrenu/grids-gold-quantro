@@ -30,6 +30,12 @@ class Setting extends Model
         'enable_kitchen_display', 'enable_multi_pack_selling',
         // Live metal price sync (jewelry mode)
         'metal_price_sync_enabled', 'metal_price_provider', 'metal_price_api_key',
+        // Live diamond price sync (ST-4/PI-4)
+        'diamond_price_sync_enabled', 'diamond_price_provider', 'diamond_price_api_url', 'diamond_price_api_key',
+        // Weighing-scale hardware integration (ST-3/PI-6)
+        'scale_integration_enabled', 'scale_provider', 'scale_bridge_url', 'scale_api_key',
+        // AML/KYC compliance (ST-2)
+        'aml_kyc_enabled', 'aml_transaction_threshold',
     ];
 
     protected $casts = [
@@ -61,6 +67,12 @@ class Setting extends Model
         'google_calendar_refresh_token' => 'encrypted',
         'metal_price_sync_enabled' => 'boolean',
         'metal_price_api_key' => 'encrypted',
+        'diamond_price_sync_enabled' => 'boolean',
+        'diamond_price_api_key' => 'encrypted',
+        'scale_integration_enabled' => 'boolean',
+        'scale_api_key' => 'encrypted',
+        'aml_kyc_enabled' => 'boolean',
+        'aml_transaction_threshold' => 'double',
     ];
 
     public function Currency()

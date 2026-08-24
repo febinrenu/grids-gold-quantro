@@ -10,6 +10,7 @@ use App\Http\Controllers\StoreAuthController;
 use App\Http\Controllers\StoreFrontController;
 use App\Http\Controllers\Api\Store\AccountPagesController;
 use App\Http\Controllers\Api\Store\CheckoutController;
+use App\Http\Controllers\Api\Store\CustomOrderController;
 use App\Http\Controllers\Api\Store\MessageController;
 use App\Http\Controllers\Api\Store\MyOrdersApiController;
 use App\Http\Controllers\Api\Store\NewsletterController;
@@ -59,6 +60,11 @@ if ($installed === true) {
             Route::middleware(['web', 'auth:store'])->group(function () {
                 Route::view('/checkout', 'store.checkout')->name('checkout');
                 Route::view('/thank-you', 'store.thank-you')->name('store.thankyou');
+                // PI-7: customer portal custom-order builder.
+                Route::view('/custom-order', 'store.custom-order')->name('store.custom_order');
+                Route::get('/api/custom-order/options', [CustomOrderController::class, 'options'])->name('store.custom_order.options');
+                Route::post('/api/custom-order/quote', [CustomOrderController::class, 'quote'])->name('store.custom_order.quote');
+                Route::post('/api/custom-order/submit', [CustomOrderController::class, 'submit'])->name('store.custom_order.submit');
                 Route::get('/account', [AccountPagesController::class, 'account'])->name('account');
                 Route::put('/account', [AccountPagesController::class, 'update'])->name('account.update');
                 Route::get('/account/orders', [AccountPagesController::class, 'orders'])->name('account.orders');

@@ -41,6 +41,10 @@ class Kernel extends ConsoleKernel
         // free-tier cap of 100 requests/day (1 request per metal per run).
         $schedule->command('jewelry:refresh-metal-rates')->hourly()->withoutOverlapping();
 
+        // Diamond price matrix sync (ST-4/PI-4) — off by default per tenant
+        // (diamond_price_sync_enabled), since it needs a tenant-supplied feed URL.
+        $schedule->command('jewelry:refresh-diamond-prices')->hourly()->withoutOverlapping();
+
         $schedule->command('meetings:send-reminders')->everyMinute()->withoutOverlapping();
 
         $schedule->command('marketing:process-scheduled')->everyMinute()->withoutOverlapping();

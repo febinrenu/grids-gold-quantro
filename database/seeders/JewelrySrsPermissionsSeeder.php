@@ -55,6 +55,10 @@ class JewelrySrsPermissionsSeeder extends Seeder
         'integration_endpoints', 'integration_logs', 'scheduled_jobs', 'queue_jobs',
         'queue_failures', 'report_definitions', 'saved_report_filters', 'dashboards',
         'dashboard_widgets', 'system_health', 'api_tokens',
+        // Medium-priority competitor-gap features
+        'gold_saving_schemes', 'gold_saving_scheme_deposits', 'alloy_mix_calculations',
+        'scale_readings', 'kyc_verifications', 'aml_flagged_transactions',
+        'consignment_settlements', 'diamond_price_rates',
     ];
 
     public function run(): void
