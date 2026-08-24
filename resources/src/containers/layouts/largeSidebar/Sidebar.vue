@@ -530,6 +530,13 @@
                         || currentUserPermissions.includes('currency')
                         || currentUserPermissions.includes('gold_rates_view')
                         || currentUserPermissions.includes('gold_rates_manage')
+                        || currentUserPermissions.includes('gold_saving_schemes')
+                        || currentUserPermissions.includes('alloy_mix_calculations')
+                        || currentUserPermissions.includes('scale_readings')
+                        || currentUserPermissions.includes('consignment_settlements')
+                        || currentUserPermissions.includes('kyc_verifications')
+                        || currentUserPermissions.includes('aml_flagged_transactions')
+                        || currentUserPermissions.includes('diamond_price_rates')
                         || currentUserPermissions.includes('login_device_management')
                         || currentUserPermissions.includes('system_health_view')
                         || currentUserPermissions.includes('webhooks_view'))"
@@ -1983,7 +1990,77 @@
               <span class="item-name">{{$t('Gold_Rates') || 'Gold Rates'}}</span>
             </router-link>
           </li>
-         
+
+          <li
+            class="nav-item"
+            v-if="currentUserPermissions && currentUserPermissions.includes('gold_saving_schemes')"
+          >
+            <router-link tag="a" class to="/app/settings/gold_saving_schemes">
+              <lucide-icon class="nav-icon" name="piggy-bank" />
+              <span class="item-name">{{$t('Gold_Saving_Schemes') || 'Gold Saving Schemes'}}</span>
+            </router-link>
+          </li>
+
+          <li
+            class="nav-item"
+            v-if="currentUserPermissions && currentUserPermissions.includes('alloy_mix_calculations')"
+          >
+            <router-link tag="a" class to="/app/settings/alloy_calculator">
+              <lucide-icon class="nav-icon" name="flask-conical" />
+              <span class="item-name">{{$t('Alloy_Calculator') || 'Alloy Calculator'}}</span>
+            </router-link>
+          </li>
+
+          <li
+            class="nav-item"
+            v-if="currentUserPermissions && currentUserPermissions.includes('scale_readings')"
+          >
+            <router-link tag="a" class to="/app/settings/scale_readings">
+              <lucide-icon class="nav-icon" name="scale" />
+              <span class="item-name">{{$t('Weighing_Scale') || 'Weighing Scale'}}</span>
+            </router-link>
+          </li>
+
+          <li
+            class="nav-item"
+            v-if="currentUserPermissions && currentUserPermissions.includes('consignment_settlements')"
+          >
+            <router-link tag="a" class to="/app/settings/consignment_settlements">
+              <lucide-icon class="nav-icon" name="handshake" />
+              <span class="item-name">{{$t('Consignment_Settlements') || 'Consignment Settlements'}}</span>
+            </router-link>
+          </li>
+
+          <li
+            class="nav-item"
+            v-if="currentUserPermissions && currentUserPermissions.includes('kyc_verifications')"
+          >
+            <router-link tag="a" class to="/app/settings/kyc_verifications">
+              <lucide-icon class="nav-icon" name="user-check" />
+              <span class="item-name">{{$t('KYC_Verifications') || 'KYC Verifications'}}</span>
+            </router-link>
+          </li>
+
+          <li
+            class="nav-item"
+            v-if="currentUserPermissions && currentUserPermissions.includes('aml_flagged_transactions')"
+          >
+            <router-link tag="a" class to="/app/settings/aml_flagged_transactions">
+              <lucide-icon class="nav-icon" name="shield-alert" />
+              <span class="item-name">{{$t('AML_Flagged_Transactions') || 'AML Flagged Transactions'}}</span>
+            </router-link>
+          </li>
+
+          <li
+            class="nav-item"
+            v-if="currentUserPermissions && currentUserPermissions.includes('diamond_price_rates')"
+          >
+            <router-link tag="a" class to="/app/settings/diamond_price_rates">
+              <lucide-icon class="nav-icon" name="gem" />
+              <span class="item-name">{{$t('Diamond_Price_Rates') || 'Diamond Price Rates'}}</span>
+            </router-link>
+          </li>
+
           <li
             class="nav-item"
             v-if="currentUserPermissions && currentUserPermissions.includes('backup')"
