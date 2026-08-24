@@ -248,6 +248,16 @@ class AuthServiceProvider extends ServiceProvider
         'App\\Models\\SystemHealth' => 'App\\Policies\\Jewelry\\SystemHealthPolicy',
         'App\\Models\\ApiToken' => 'App\\Policies\\Jewelry\\ApiTokenPolicy',
 
+        // Medium-priority competitor-gap features (gem-logic/suntech-global/gopiro gap analysis)
+        'App\\Models\\GoldSavingScheme' => 'App\\Policies\\Jewelry\\GoldSavingSchemePolicy',
+        'App\\Models\\GoldSavingSchemeDeposit' => 'App\\Policies\\Jewelry\\GoldSavingSchemeDepositPolicy',
+        'App\\Models\\AlloyMixCalculation' => 'App\\Policies\\Jewelry\\AlloyMixCalculationPolicy',
+        'App\\Models\\ScaleReading' => 'App\\Policies\\Jewelry\\ScaleReadingPolicy',
+        'App\\Models\\KycVerification' => 'App\\Policies\\Jewelry\\KycVerificationPolicy',
+        'App\\Models\\AmlFlaggedTransaction' => 'App\\Policies\\Jewelry\\AmlFlaggedTransactionPolicy',
+        'App\\Models\\ConsignmentSettlement' => 'App\\Policies\\Jewelry\\ConsignmentSettlementPolicy',
+        'App\\Models\\DiamondPriceRate' => 'App\\Policies\\Jewelry\\DiamondPriceRatePolicy',
+
     ];
 
     /**
