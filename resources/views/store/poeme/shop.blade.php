@@ -10,8 +10,8 @@
 
 <section class="max-w-7xl mx-auto px-4 md:px-8 pt-14 pb-8">
   <div class="text-center mb-8">
-    <p class="font-poeme-serif text-poeme-grey italic text-sm mb-1">The Gallery Catalogue</p>
-    <h1 class="font-poeme-serif text-3xl md:text-4xl text-poeme-charcoal font-light">Fine Keepsakes Collection</h1>
+    <p class="font-poeme-serif text-poeme-grey italic text-sm mb-1">{{ __('messages.Poeme_GalleryCatalogue') }}</p>
+    <h1 class="font-poeme-serif text-3xl md:text-4xl text-poeme-charcoal font-light">{{ __('messages.Poeme_FineKeepsakesCollection') }}</h1>
     <div class="poeme-line max-w-xs mx-auto mt-4 mb-4"></div>
     <div class="text-xs text-poeme-grey italic">
       {{ trans_choice('messages.products', $total, ['count' => $total]) }}
@@ -28,12 +28,12 @@
       @endif
     @endforeach
     <select name="sort" class="h-9 py-1 px-3 bg-white border border-poeme-champagne rounded-full text-xs text-poeme-charcoal outline-none">
-      <option value="latest" @selected(($sort ?? 'latest') === 'latest')>SORT: LATEST</option>
-      <option value="price_asc" @selected($sort === 'price_asc')>SORT: PRICE_UP</option>
-      <option value="price_desc" @selected($sort === 'price_desc')>SORT: PRICE_DOWN</option>
+      <option value="latest" @selected(($sort ?? 'latest') === 'latest')>{{ __('messages.Poeme_SortLatest') }}</option>
+      <option value="price_asc" @selected($sort === 'price_asc')>{{ __('messages.Poeme_SortPriceUp') }}</option>
+      <option value="price_desc" @selected($sort === 'price_desc')>{{ __('messages.Poeme_SortPriceDown') }}</option>
     </select>
-    <button class="poeme-btn py-1 px-5 text-[11px]" type="submit">Update</button>
-    <button class="poeme-btn py-1 px-5 text-[11px] lg:hidden" type="button" @click="window.StoreUI.open('filtersDrawer')">Filters</button>
+    <button class="poeme-btn py-1 px-5 text-[11px]" type="submit">{{ __('messages.Update') }}</button>
+    <button class="poeme-btn py-1 px-5 text-[11px] lg:hidden" type="button" @click="window.StoreUI.open('filtersDrawer')">{{ __('messages.Filters') }}</button>
   </form>
 </section>
 
@@ -41,7 +41,7 @@
   <div class="grid lg:grid-cols-[240px_1fr] gap-10">
     <aside class="hidden lg:block">
       <div class="p-6 bg-white border border-poeme-champagne rounded-[1.5rem]">
-        <div class="font-poeme-serif italic text-base mb-3 text-poeme-charcoal font-bold">Refine Results</div>
+        <div class="font-poeme-serif italic text-base mb-3 text-poeme-charcoal font-bold">{{ __('messages.Poeme_RefineResults') }}</div>
         @include('store.partials.filters-card', [
           'q' => $q, 'cat' => $cat, 'collection' => $collection,
           'min' => $min, 'max' => $max, 'sort' => $sort,
@@ -74,7 +74,7 @@
               {{ $coName }} <span class="text-poeme-charcoal">&times;</span>
             </a>
           @endif
-          <a href="{{ route('store.shop') }}" class="border border-red-200 text-red-700 rounded-full px-3 py-1 text-[11px] bg-red-50">Clear Filters</a>
+          <a href="{{ route('store.shop') }}" class="border border-red-200 text-red-700 rounded-full px-3 py-1 text-[11px] bg-red-50">{{ __('messages.ClearFilters') }}</a>
         </div>
       @endif
 
@@ -132,9 +132,9 @@
                   <img src="{{ $imgUrl }}" alt="{{ $p->name }}" class="w-full h-full object-cover">
                 </a>
                 @if($isPreorderActive)
-                  <span class="poeme-badge">PRE-ORDER</span>
+                  <span class="poeme-badge">{{ __('messages.Poeme_Preorder') }}</span>
                 @elseif(!$isAvailable)
-                  <span class="poeme-badge" style="background:#8C3D3D; color:white;">OUT OF STOCK</span>
+                  <span class="poeme-badge" style="background:#8C3D3D; color:white;">{{ __('messages.OutOfStock') }}</span>
                 @endif
               </div>
 
@@ -171,8 +171,8 @@
                           data-variants='@json($variantPayload)'
                           data-stock="{{ $productStock }}"
                           data-is-jewelry="{{ $isJewelry ? '1' : '0' }}"
-                          data-added-label="ADDED">
-                    ADD TO CART
+                          data-added-label="{{ __('messages.Added') }}">
+                    {{ __('messages.AddToCart') }}
                   </button>
                 </div>
               </div>
@@ -184,7 +184,7 @@
         @php $products->appends(request()->except('page')); @endphp
         @if ($products->hasPages())
           <div class="mt-12 flex flex-col items-center gap-4">
-            <nav aria-label="Product pagination">
+            <nav aria-label="{{ __('messages.Poeme_ProductPagination') }}">
               <ul class="flex items-center gap-1 font-poeme-serif text-sm">
                 @if ($products->onFirstPage())
                   <li><span class="px-3 py-1.5 border border-poeme-champagne/45 text-poeme-grey/40 rounded-full">&larr;</span></li>
@@ -211,9 +211,9 @@
         @endif
       @else
         <div class="text-center py-16 border border-poeme-champagne rounded-[1.5rem] bg-white">
-          <p class="font-poeme-serif italic text-base text-poeme-charcoal mb-2">No Gallery Lots Found</p>
-          <p class="text-xs text-poeme-grey mb-4">Try clearing filters or search queries.</p>
-          <a href="{{ route('store.shop') }}" class="poeme-btn text-xs py-1.5 px-6">Clear All</a>
+          <p class="font-poeme-serif italic text-base text-poeme-charcoal mb-2">{{ __('messages.Poeme_NoGalleryLotsFound') }}</p>
+          <p class="text-xs text-poeme-grey mb-4">{{ __('messages.Poeme_TryClearingFilters') }}</p>
+          <a href="{{ route('store.shop') }}" class="poeme-btn text-xs py-1.5 px-6">{{ __('messages.Poeme_ClearAll') }}</a>
         </div>
       @endif
     </main>
@@ -229,8 +229,8 @@
          x-transition:leave-start="translate-x-0" x-transition:leave-end="translate-x-full"
          role="dialog" aria-modal="true" aria-label="Filters">
     <div class="drawer-header border-b border-poeme-champagne/30 py-4 px-6 flex justify-between items-center font-poeme-serif">
-      <h5 class="text-sm m-0 font-bold">Filters</h5>
-      <button type="button" class="text-poeme-charcoal hover:text-poeme-grey transition font-bold" @click="close()" aria-label="Close">
+      <h5 class="text-sm m-0 font-bold">{{ __('messages.Filters') }}</h5>
+      <button type="button" class="text-poeme-charcoal hover:text-poeme-grey transition font-bold" @click="close()" aria-label="{{ __('messages.Close') }}">
         &times;
       </button>
     </div>

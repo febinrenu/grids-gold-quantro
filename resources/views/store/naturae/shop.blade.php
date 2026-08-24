@@ -13,8 +13,8 @@
        alt="Rose gold gemstone ring on natural linen" class="absolute inset-0 w-full h-full object-cover">
   <div class="absolute inset-0 bg-gradient-to-r from-[#242018]/75 via-[#242018]/35 to-transparent"></div>
   <div class="relative z-10 max-w-7xl mx-auto px-4 py-10 w-full">
-    <p class="tracking-wider2 text-xs font-semibold text-brand-tan mb-2">THE COLLECTION</p>
-    <h1 class="font-serif text-3xl md:text-4xl text-white">Shop All Gems</h1>
+    <p class="tracking-wider2 text-xs font-semibold text-brand-tan mb-2">{{ __('messages.Naturae_TheCollection') }}</p>
+    <h1 class="font-serif text-3xl md:text-4xl text-white">{{ __('messages.Naturae_ShopAllGems') }}</h1>
     <div class="text-sm text-white/70 mt-2">
       {{ trans_choice('messages.products', $total, ['count' => $total]) }}
       @if($hasFilters) · <span class="text-brand-tan">{{ __('messages.FiltersApplied') }}</span>@endif
@@ -36,8 +36,8 @@
           <option value="price_desc" @selected($sort === 'price_desc')>{{ __('messages.PriceDown') }}</option>
         </select>
       </div>
-      <button class="bg-brand-tan hover:bg-white transition text-[#242018] font-semibold px-5 py-2 text-xs tracking-wider2 rounded-full" type="submit">UPDATE</button>
-      <button class="border border-white/40 text-white px-5 py-2 text-xs tracking-wider2 rounded-full lg:hidden" type="button" @click="window.StoreUI.open('filtersDrawer')">FILTERS</button>
+      <button class="bg-brand-tan hover:bg-white transition text-[#242018] font-semibold px-5 py-2 text-xs tracking-wider2 rounded-full" type="submit">{{ __('messages.Naturae_UpdateCaps') }}</button>
+      <button class="border border-white/40 text-white px-5 py-2 text-xs tracking-wider2 rounded-full lg:hidden" type="button" @click="window.StoreUI.open('filtersDrawer')">{{ __('messages.Naturae_FiltersCaps') }}</button>
     </form>
   </div>
 </section>

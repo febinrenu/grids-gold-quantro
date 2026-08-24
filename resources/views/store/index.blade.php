@@ -33,22 +33,32 @@
 
 {{-- ===== TRUST BAR (always shown) ===== --}}
 <section class="border-b border-line-subtle" style="background: rgb(var(--color-bg-surface));">
-  <div class="container py-5 grid grid-cols-2 md:grid-cols-4 gap-5">
-    <div class="flex items-center gap-2.5">
-      <x-store.icon name="shield-check" class="w-5 h-5 shrink-0 text-accent-500" />
-      <div><p class="font-semibold text-xs md:text-sm text-fg-primary">Certified Diamonds</p><p class="text-[10px] md:text-xs text-fg-muted">100% Genuine</p></div>
-    </div>
-    <div class="flex items-center gap-2.5">
-      <x-store.icon name="truck" class="w-5 h-5 shrink-0 text-accent-500" />
-      <div><p class="font-semibold text-xs md:text-sm text-fg-primary">Insured Delivery</p><p class="text-[10px] md:text-xs text-fg-muted">Safe &amp; Discreet</p></div>
-    </div>
-    <div class="flex items-center gap-2.5">
-      <x-store.icon name="clock" class="w-5 h-5 shrink-0 text-accent-500" />
-      <div><p class="font-semibold text-xs md:text-sm text-fg-primary">Lifetime Service</p><p class="text-[10px] md:text-xs text-fg-muted">Polish &middot; Resize</p></div>
-    </div>
-    <div class="flex items-center gap-2.5">
-      <x-store.icon name="refresh" class="w-5 h-5 shrink-0 text-accent-500" />
-      <div><p class="font-semibold text-xs md:text-sm text-fg-primary">Easy Returns</p><p class="text-[10px] md:text-xs text-fg-muted">30-Day Policy</p></div>
+  <div class="container py-6">
+    <div class="grid grid-cols-2 md:grid-cols-4 divide-x divide-line-subtle">
+      <div class="flex items-center gap-3 px-0 md:px-5 first:pl-0">
+        <span class="inline-flex items-center justify-center w-9 h-9 rounded-full shrink-0" style="background: rgb(var(--color-accent-500) / .1);">
+          <x-store.icon name="shield-check" class="w-4 h-4 text-accent-500" />
+        </span>
+        <div><p class="font-semibold text-xs md:text-sm text-fg-primary leading-tight">{{ __('messages.Store_CertifiedDiamonds') }}</p><p class="text-[10px] md:text-xs text-fg-muted mt-0.5">{{ __('messages.Store_100PercentGenuine') }}</p></div>
+      </div>
+      <div class="flex items-center gap-3 px-4 md:px-5">
+        <span class="inline-flex items-center justify-center w-9 h-9 rounded-full shrink-0" style="background: rgb(var(--color-accent-500) / .1);">
+          <x-store.icon name="truck" class="w-4 h-4 text-accent-500" />
+        </span>
+        <div><p class="font-semibold text-xs md:text-sm text-fg-primary leading-tight">{{ __('messages.Store_InsuredDelivery') }}</p><p class="text-[10px] md:text-xs text-fg-muted mt-0.5">{{ __('messages.Store_SafeAndDiscreet') }}</p></div>
+      </div>
+      <div class="flex items-center gap-3 px-4 md:px-5">
+        <span class="inline-flex items-center justify-center w-9 h-9 rounded-full shrink-0" style="background: rgb(var(--color-accent-500) / .1);">
+          <x-store.icon name="clock" class="w-4 h-4 text-accent-500" />
+        </span>
+        <div><p class="font-semibold text-xs md:text-sm text-fg-primary leading-tight">{{ __('messages.Store_LifetimeService') }}</p><p class="text-[10px] md:text-xs text-fg-muted mt-0.5">{{ __('messages.Store_PolishResize') }}</p></div>
+      </div>
+      <div class="flex items-center gap-3 px-4 md:px-5">
+        <span class="inline-flex items-center justify-center w-9 h-9 rounded-full shrink-0" style="background: rgb(var(--color-accent-500) / .1);">
+          <x-store.icon name="refresh" class="w-4 h-4 text-accent-500" />
+        </span>
+        <div><p class="font-semibold text-xs md:text-sm text-fg-primary leading-tight">{{ __('messages.Store_EasyReturns') }}</p><p class="text-[10px] md:text-xs text-fg-muted mt-0.5">{{ __('messages.Store_30DayPolicy') }}</p></div>
+      </div>
     </div>
   </div>
 </section>
@@ -70,42 +80,43 @@
       @endphp
       <section class="relative overflow-hidden border-b border-line-subtle"
                style="background:
-                 radial-gradient(900px 480px at 12% 20%, rgb(var(--color-accent-500) / .12) 0%, transparent 60%),
-                 radial-gradient(700px 420px at 90% 80%, rgb(var(--color-accent-500) / .08) 0%, transparent 60%),
+                 radial-gradient(1100px 560px at 8% 15%, rgb(var(--color-accent-500) / .10) 0%, transparent 62%),
+                 radial-gradient(800px 480px at 92% 85%, rgb(var(--color-accent-500) / .07) 0%, transparent 62%),
                  rgb(var(--color-bg-surface));">
-        <div class="absolute inset-0 opacity-[0.35] pointer-events-none"
+        <div class="absolute inset-0 opacity-[0.28] pointer-events-none"
              style="background-image: radial-gradient(rgb(var(--color-accent-500) / .5) 1px, transparent 1px);
-                    background-size: 22px 22px;
-                    mask-image: radial-gradient(ellipse 60% 90% at 15% 30%, black 0%, transparent 70%);"></div>
+                    background-size: 26px 26px;
+                    mask-image: radial-gradient(ellipse 55% 85% at 12% 25%, black 0%, transparent 72%);"></div>
 
-        <div class="container relative py-20 lg:py-28">
+        <div class="container relative py-24 lg:py-32">
           <div class="max-w-2xl {{ $heroUrl ? '' : 'text-center mx-auto' }}">
-            <div class="flex items-center gap-3 mb-5 {{ $heroUrl ? '' : 'justify-center' }}">
-              <span class="h-px w-10" style="background: rgb(var(--color-accent-500));"></span>
+            <div class="flex items-center gap-3 mb-6 {{ $heroUrl ? '' : 'justify-center' }}">
+              <span class="h-px w-12" style="background: rgb(var(--color-accent-500));"></span>
               <span class="section-kicker">{{ __('messages.Shop') ?: 'Fine Jewelry' }}</span>
             </div>
-            <h1 class="mb-5 text-5xl lg:text-6xl text-fg-primary">
-              {{ $block['title'] ?? $s->hero_title ?? 'Crafted for the moments that matter' }}
+            <h1 class="mb-6 text-5xl lg:text-7xl leading-[1.05] text-fg-primary" style="text-wrap: balance; letter-spacing: -0.01em;">
+              {{ $block['title'] ?? $s->hero_title ?? __('messages.Default_HeroTitle') }}
             </h1>
-            <p class="section-subtitle mb-8 {{ $heroUrl ? 'max-w-lg' : 'max-w-xl mx-auto' }} text-base lg:text-lg">
-              {{ $block['subtitle'] ?? $s->hero_subtitle ?? 'Ethically sourced gold, hand-finished settings, and a lifetime of care behind every piece.' }}
+            <p class="section-subtitle mb-9 {{ $heroUrl ? 'max-w-lg' : 'max-w-xl mx-auto' }} text-base lg:text-lg">
+              {{ $block['subtitle'] ?? $s->hero_subtitle ?? __('messages.Default_HeroSubtitle') }}
             </p>
-            <div class="flex items-center gap-3 flex-wrap {{ $heroUrl ? '' : 'justify-center' }}">
+            <div class="flex items-center gap-4 flex-wrap {{ $heroUrl ? '' : 'justify-center' }}">
               <a href="{{ route('store.shop') }}" class="btn btn-primary btn-lg">
-                {{ __('messages.ShopNow') ?: 'Explore the Collection' }}
+                {{ __('messages.ShopNow') ?: __('messages.Default_ExploreCollection') }}
                 <x-store.icon name="arrow-right" class="w-4 h-4" />
               </a>
               <a href="{{ route('store.contact') }}" class="btn btn-outline btn-lg">
-                {{ __('messages.Support') ? __('messages.Support') : 'Book a Private Viewing' }}
+                {{ __('messages.Support') ? __('messages.Support') : __('messages.Default_BookPrivateViewing') }}
               </a>
             </div>
           </div>
         </div>
 
         @if($heroUrl)
-          <div class="hidden lg:block absolute top-0 right-0 h-full w-[42%]">
-            <div class="absolute inset-0" style="background: linear-gradient(90deg, rgb(var(--color-bg-surface)) 0%, transparent 18%);"></div>
-            <img class="w-full h-full object-cover" src="{{ $heroUrl }}" alt="{{ $s->store_name ?? 'Featured' }}">
+          <div class="hidden lg:block absolute top-0 right-0 h-full w-[45%]">
+            <div class="absolute inset-0 z-10" style="background: linear-gradient(90deg, rgb(var(--color-bg-surface)) 0%, transparent 22%);"></div>
+            <div class="absolute inset-0 z-10" style="background: linear-gradient(0deg, rgb(var(--color-bg-surface) / .35) 0%, transparent 30%);"></div>
+            <img class="w-full h-full object-cover" src="{{ $heroUrl }}" alt="{{ $s->store_name ?? __('messages.Store') }} — {{ __('messages.Default_HeroTitle') }}">
           </div>
         @endif
       </section>
@@ -132,21 +143,21 @@
       @endphp
 
       @if($prods->count())
-      <section class="py-10 lg:py-14">
+      <section class="py-14 lg:py-20">
         <div class="container">
-          <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 mb-6">
+          <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-8">
             <div>
               <span class="section-kicker">{{ __('messages.Collection') }}</span>
-              <h2 class="section-title mt-1">{{ $title }}</h2>
+              <h2 class="section-title mt-1.5">{{ $title }}</h2>
             </div>
-            <a class="text-sm font-medium text-accent-500 hover:underline inline-flex items-center gap-1"
+            <a class="text-sm font-medium text-accent-500 hover:underline inline-flex items-center gap-1 transition-transform hover:translate-x-0.5"
                href="{{ route('store.shop', ['collection' => $col->slug]) }}">
               {{ __('messages.ViewAll') }}
               <x-store.icon name="arrow-right" class="w-4 h-4" />
             </a>
           </div>
 
-          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5">
             @foreach($prods as $p)
               @include('store.partials.product-card', ['p' => $p, 'currency' => $currency])
             @endforeach
@@ -162,17 +173,19 @@
         $nlSubtitle    = $s->newsletter_subtitle    ?? __('messages.GetFreshDealsSubtitle');
         $nlPlaceholder = $s->newsletter_placeholder ?? __('messages.NewsletterEmailPlaceholder');
       @endphp
-      <section class="py-10 lg:py-14">
+      <section class="py-14 lg:py-20">
         <div class="container">
-          <div class="rounded-xl border border-line-subtle p-8 lg:p-10"
-               style="background: linear-gradient(135deg, rgb(var(--color-accent-500) / .06), rgb(var(--color-bg-surface)));">
-            <div class="grid lg:grid-cols-5 gap-6 items-center">
+          <div class="relative overflow-hidden rounded-xl border border-line-subtle p-9 lg:p-12"
+               style="background: linear-gradient(135deg, rgb(var(--color-accent-500) / .07), rgb(var(--color-bg-surface)));">
+            <span class="absolute -top-10 -right-10 w-40 h-40 rounded-full pointer-events-none" style="background: rgb(var(--color-accent-500) / .08);"></span>
+            <div class="relative grid lg:grid-cols-5 gap-7 items-center">
               <div class="lg:col-span-2">
-                <h3 class="text-2xl font-bold mb-2">{{ $nlTitle }}</h3>
-                <p class="text-fg-secondary text-sm">{{ $nlSubtitle }}</p>
+                <span class="section-kicker">{{ __('messages.Default_StayInTouch') }}</span>
+                <h3 class="section-title mt-1.5 text-2xl lg:text-3xl">{{ $nlTitle }}</h3>
+                <p class="text-fg-secondary text-sm mt-2">{{ $nlSubtitle }}</p>
               </div>
               <div class="lg:col-span-3">
-                <form id="newsletterForm" class="flex flex-col md:flex-row gap-2">
+                <form id="newsletterForm" class="flex flex-col md:flex-row gap-2.5">
                   @csrf
                   <input name="email" type="email" id="newsletterEmail" class="input flex-1"
                          placeholder="{{ $nlPlaceholder }}" required>
@@ -206,23 +219,23 @@
 
 {{-- ===== SHOP BY CATEGORY (real product photos, always shown) ===== --}}
 @if(($categories ?? collect())->count())
-  <section class="py-10 lg:py-14">
+  <section class="py-14 lg:py-20 border-t border-line-subtle" style="background: rgb(var(--color-bg-surface));">
     <div class="container">
-      <div class="flex flex-col items-center text-center mb-6">
+      <div class="flex flex-col items-center text-center mb-9">
         <span class="section-kicker">{{ __('messages.Shop') }}</span>
-        <h2 class="section-title mt-1">Shop by Category</h2>
+        <h2 class="section-title mt-1.5">{{ __('messages.Store_ShopByCategory') }}</h2>
       </div>
-      <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-4">
+      <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3.5 md:gap-4">
         @foreach($categories->take(6) as $cat)
-          <a href="{{ route('store.shop', ['category' => $cat->id]) }}" class="group relative rounded-lg overflow-hidden aspect-square flex items-end justify-center pb-3"
+          <a href="{{ route('store.shop', ['category' => $cat->id]) }}" class="group relative rounded-lg overflow-hidden aspect-square flex items-end justify-center pb-3.5 ring-1 ring-line-subtle transition-shadow hover:shadow-lg"
              style="background: rgb(var(--color-bg-muted));">
             @if($cat->cover_image_url)
               <img src="{{ $cat->cover_image_url }}" alt="{{ $cat->name }}" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-500">
-              <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/5 to-transparent"></div>
-              <span class="relative z-10 text-white text-[11px] md:text-xs font-semibold text-center px-2">{{ $cat->name }}</span>
+              <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent"></div>
+              <span class="relative z-10 text-white text-[11px] md:text-xs font-semibold uppercase tracking-wide text-center px-2">{{ $cat->name }}</span>
             @else
               <x-store.icon name="tag" class="absolute top-1/3 -translate-y-1/2 w-8 h-8 text-accent-500/70" />
-              <span class="relative z-10 text-fg-primary text-[11px] md:text-xs font-semibold text-center px-2">{{ $cat->name }}</span>
+              <span class="relative z-10 text-fg-primary text-[11px] md:text-xs font-semibold uppercase tracking-wide text-center px-2">{{ $cat->name }}</span>
             @endif
           </a>
         @endforeach

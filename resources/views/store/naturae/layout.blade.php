@@ -73,8 +73,8 @@
 <div class="theme-naturae">
   <div class="bg-brand-greenDark text-white text-[11.5px] md:text-[12px]">
     <div class="max-w-7xl mx-auto px-4 py-2 flex items-center justify-center md:justify-between">
-      <span class="tracking-wider2 font-medium">FREE SHIPPING ON ORDERS OVER $250</span>
-      <span class="hidden md:flex items-center gap-1 text-white/70">Ethically sourced &middot; Conflict-free gold</span>
+      <span class="tracking-wider2 font-medium">{{ __('messages.Naturae_FreeShipping') }}</span>
+      <span class="hidden md:flex items-center gap-1 text-white/70">{{ __('messages.Naturae_EthicallySourcedConflictFree') }}</span>
     </div>
   </div>
 
@@ -88,7 +88,7 @@
       </a>
 
       <nav class="flex items-center gap-6 text-[12.5px] font-medium tracking-wider2 text-[#3a3626] flex-wrap">
-        <a href="{{ route('store.shop') }}" class="hover:text-brand-green transition">SHOP ALL</a>
+        <a href="{{ route('store.shop') }}" class="hover:text-brand-green transition">{{ __('messages.Naturae_ShopAllCaps') }}</a>
         @foreach(($categories ?? collect())->take(6) as $cat)
           <a href="{{ route('store.shop', ['category' => $cat->id]) }}" class="hover:text-brand-green transition">{{ Str::upper($cat->name) }}</a>
         @endforeach
@@ -104,7 +104,7 @@
     </div>
 
     <div class="md:hidden flex items-center gap-3 px-4 py-3.5">
-      <button id="ng-menuBtn" class="p-1 -ml-1" aria-label="Open menu">
+      <button id="ng-menuBtn" class="p-1 -ml-1" aria-label="{{ __('messages.Naturae_OpenMenu') }}">
         <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
       </button>
       <a href="{{ route('store.index') }}" class="flex items-center justify-center gap-2 flex-1">
@@ -120,7 +120,7 @@
     </div>
 
     <div id="ng-mobileNav" class="md:hidden hidden flex-col px-4 py-2 text-sm font-medium tracking-wider2 text-[#3a3626] divide-y divide-black/5 border-t border-black/5">
-      <a href="{{ route('store.shop') }}" class="py-2.5">SHOP ALL</a>
+      <a href="{{ route('store.shop') }}" class="py-2.5">{{ __('messages.Naturae_ShopAllCaps') }}</a>
       @foreach(($categories ?? collect())->take(6) as $cat)
         <a href="{{ route('store.shop', ['category' => $cat->id]) }}" class="py-2.5">{{ Str::upper($cat->name) }}</a>
       @endforeach
@@ -147,31 +147,31 @@
   <div class="max-w-7xl mx-auto px-4">
     <div class="grid grid-cols-2 md:grid-cols-4 gap-8 pb-8 border-b border-white/10">
       <div class="col-span-2 md:col-span-1">
-        <h4 class="text-white font-semibold mb-3 text-sm tracking-wider2">ABOUT {{ Str::upper($s->store_name ?? 'NATURAE GEMS') }}</h4>
-        <p class="text-sm text-white/55 leading-relaxed mb-4 max-w-xs">{{ $s->footer_text ?? 'We believe jewelry should feel as honest as the earth it comes from — raw gemstones, botanical motifs, and ethically sourced gold, for a lifetime of wear.' }}</p>
+        <h4 class="text-white font-semibold mb-3 text-sm tracking-wider2">{{ __('messages.Naturae_AboutHeading', ['store' => Str::upper($s->store_name ?? 'NATURAE GEMS')]) }}</h4>
+        <p class="text-sm text-white/55 leading-relaxed mb-4 max-w-xs">{{ $s->footer_text ?? __('messages.Naturae_FooterTextDefault') }}</p>
       </div>
       <div>
-        <h4 class="text-white font-semibold mb-3 text-sm tracking-wider2">SHOP</h4>
+        <h4 class="text-white font-semibold mb-3 text-sm tracking-wider2">{{ __('messages.Naturae_ShopHeading') }}</h4>
         <ul class="space-y-2 text-sm text-white/55">
-          <li><a href="{{ route('store.shop') }}" class="hover:text-white transition">All Jewelry</a></li>
-          <li><a href="{{ route('store.shop') }}" class="hover:text-white transition">New Arrivals</a></li>
-          <li><a href="{{ route('store.shop') }}" class="hover:text-white transition">Best Sellers</a></li>
+          <li><a href="{{ route('store.shop') }}" class="hover:text-white transition">{{ __('messages.Naturae_AllJewelry') }}</a></li>
+          <li><a href="{{ route('store.shop') }}" class="hover:text-white transition">{{ __('messages.Naturae_NewArrivals') }}</a></li>
+          <li><a href="{{ route('store.shop') }}" class="hover:text-white transition">{{ __('messages.Naturae_BestSellers') }}</a></li>
         </ul>
       </div>
       <div>
-        <h4 class="text-white font-semibold mb-3 text-sm tracking-wider2">CUSTOMER CARE</h4>
+        <h4 class="text-white font-semibold mb-3 text-sm tracking-wider2">{{ __('messages.Naturae_CustomerCareHeading') }}</h4>
         <ul class="space-y-2 text-sm text-white/55">
-          <li><a href="{{ route('store.contact') }}" class="hover:text-white transition">Contact Us</a></li>
-          <li><a href="{{ route('account.orders') }}" class="hover:text-white transition">Track Your Order</a></li>
-          <li><a href="{{ route('store.login.show') }}" class="hover:text-white transition">Sign In</a></li>
+          <li><a href="{{ route('store.contact') }}" class="hover:text-white transition">{{ __('messages.ContactUs') }}</a></li>
+          <li><a href="{{ route('account.orders') }}" class="hover:text-white transition">{{ __('messages.Naturae_TrackYourOrder') }}</a></li>
+          <li><a href="{{ route('store.login.show') }}" class="hover:text-white transition">{{ __('messages.SignIn') }}</a></li>
         </ul>
       </div>
       <div>
-        <h4 class="text-white font-semibold mb-3 text-sm tracking-wider2">JOIN OUR COMMUNITY</h4>
-        <p class="text-sm text-white/55 mb-4">Get 10% off your first order and be the first to know about new gemstone drops.</p>
+        <h4 class="text-white font-semibold mb-3 text-sm tracking-wider2">{{ __('messages.Naturae_JoinOurCommunity') }}</h4>
+        <p class="text-sm text-white/55 mb-4">{{ __('messages.Naturae_FooterNewsletterParagraph') }}</p>
         <form action="{{ route('newsletter.subscribe') }}" method="POST" class="flex gap-2">
           @csrf
-          <input type="email" name="email" required placeholder="Enter your email" class="flex-1 min-w-0 px-3 py-2.5 rounded bg-white/10 border border-white/15 outline-none text-xs text-white placeholder:text-white/40" />
+          <input type="email" name="email" required placeholder="{{ __('messages.Naturae_EnterEmail') }}" class="flex-1 min-w-0 px-3 py-2.5 rounded bg-white/10 border border-white/15 outline-none text-xs text-white placeholder:text-white/40" />
           <button type="submit" class="w-10 h-10 shrink-0 bg-brand-tan hover:bg-white transition rounded flex items-center justify-center">
             <svg class="w-4 h-4 text-brand-greenDark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
           </button>
@@ -179,7 +179,7 @@
       </div>
     </div>
     <div class="text-center md:text-left pt-6 text-xs text-white/40">
-      <p>© {{ date('Y') }} {{ $s->store_name ?? 'Naturae Gems' }}. All rights reserved.</p>
+      <p>© {{ date('Y') }} {{ $s->store_name ?? 'Naturae Gems' }}. {{ __('messages.Naturae_AllRightsReserved') }}</p>
     </div>
   </div>
 </footer>

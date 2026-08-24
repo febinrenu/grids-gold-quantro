@@ -13,8 +13,8 @@
        alt="Diamond tennis bracelet on a black reflective surface" class="absolute inset-0 w-full h-full object-cover">
   <div class="absolute inset-0 bg-nx-navy/80"></div>
   <div class="relative z-10 max-w-7xl mx-auto px-4 py-10">
-    <p class="eyebrow mb-2 text-nx-gold">THE CATALOG</p>
-    <h1 class="text-2xl md:text-3xl font-extrabold text-white">Shop All Jewelry</h1>
+    <p class="eyebrow mb-2 text-nx-gold">{{ __('messages.Nexgold_TheCatalog') }}</p>
+    <h1 class="text-2xl md:text-3xl font-extrabold text-white">{{ __('messages.Nexgold_ShopAllJewelry') }}</h1>
     <div class="text-sm text-white/70 mt-2">
       {{ trans_choice('messages.products', $total, ['count' => $total]) }}
       @if($hasFilters) · <span class="text-nx-gold font-semibold">{{ __('messages.FiltersApplied') }}</span>@endif
@@ -36,8 +36,8 @@
           <option value="price_desc" @selected($sort === 'price_desc')>{{ __('messages.PriceDown') }}</option>
         </select>
       </div>
-      <button class="bg-nx-navy hover:bg-nx-blue transition text-white font-bold px-5 py-2 rounded-full text-sm" type="submit">Update</button>
-      <button class="border border-nx-border px-5 py-2 rounded-full text-sm font-bold lg:hidden" type="button" @click="window.StoreUI.open('filtersDrawer')">Filters</button>
+      <button class="bg-nx-navy hover:bg-nx-blue transition text-white font-bold px-5 py-2 rounded-full text-sm" type="submit">{{ __('messages.Update') }}</button>
+      <button class="border border-nx-border px-5 py-2 rounded-full text-sm font-bold lg:hidden" type="button" @click="window.StoreUI.open('filtersDrawer')">{{ __('messages.Filters') }}</button>
     </form>
   </div>
 </section>

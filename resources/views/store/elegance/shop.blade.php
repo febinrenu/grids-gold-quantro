@@ -13,8 +13,8 @@
        alt="Gold twisted hoop earrings with dramatic shadow play" class="absolute inset-0 w-full h-full object-cover">
   <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/10"></div>
   <div class="relative z-10 max-w-7xl mx-auto px-4 py-10 w-full">
-    <p class="eyebrow text-[10px] text-brand-gold font-semibold mb-2">THE EDIT</p>
-    <h1 class="font-logo text-3xl md:text-4xl text-white">Shop All Jewelry</h1>
+    <p class="eyebrow text-[10px] text-brand-gold font-semibold mb-2">{{ __('messages.Elegance_TheEdit') }}</p>
+    <h1 class="font-logo text-3xl md:text-4xl text-white">{{ __('messages.Elegance_ShopAllJewelry') }}</h1>
     <div class="text-sm text-white/60 mt-2">
       {{ trans_choice('messages.products', $total, ['count' => $total]) }}
       @if($hasFilters) · <span class="text-brand-gold">{{ __('messages.FiltersApplied') }}</span>@endif
@@ -36,8 +36,8 @@
           <option value="price_desc" @selected($sort === 'price_desc')>{{ __('messages.PriceDown') }}</option>
         </select>
       </div>
-      <button class="bg-brand-gold hover:bg-brand-goldDark transition text-black font-semibold px-5 py-2 text-xs eyebrow" type="submit">UPDATE</button>
-      <button class="border border-white/30 text-white px-5 py-2 text-xs eyebrow lg:hidden" type="button" @click="window.StoreUI.open('filtersDrawer')">FILTERS</button>
+      <button class="bg-brand-gold hover:bg-brand-goldDark transition text-black font-semibold px-5 py-2 text-xs eyebrow" type="submit">{{ __('messages.Update') }}</button>
+      <button class="border border-white/30 text-white px-5 py-2 text-xs eyebrow lg:hidden" type="button" @click="window.StoreUI.open('filtersDrawer')">{{ __('messages.Filters') }}</button>
     </form>
   </div>
 </section>

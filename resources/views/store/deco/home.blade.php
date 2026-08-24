@@ -17,16 +17,16 @@
         <div class="deco-card-corner deco-card-corner-bl"></div>
         <div class="deco-card-corner deco-card-corner-br"></div>
         
-        <p class="font-deco-title text-deco-gold text-xs tracking-widest uppercase mb-4">✦ Fine Artisan Jewelry ✦</p>
+        <p class="font-deco-title text-deco-gold text-xs tracking-widest uppercase mb-4">✦ {{ __('messages.Deco_FineArtisanJewelry') }} ✦</p>
         <h1 class="font-deco-logo text-4xl sm:text-5xl md:text-6xl text-white leading-tight mb-6">
-          {{ $s->hero_title ?? 'Geometric Symmetry & Eternal Gold' }}
+          {{ $s->hero_title ?? __('messages.Deco_DefaultHeroTitle') }}
         </h1>
         <p class="text-deco-cream/80 text-sm md:text-base leading-relaxed max-w-xl mx-auto mb-8 font-light">
-          {{ $s->hero_subtitle ?? 'Exquisite custom settings, antique diamond cuts, and responsibly sourced 18K solid gold. Timeless luxury crafted for generations.' }}
+          {{ $s->hero_subtitle ?? __('messages.Deco_DefaultHeroSubtitle') }}
         </p>
         <div class="flex flex-wrap justify-center gap-4">
-          <a href="{{ route('store.shop') }}" class="deco-btn deco-btn-solid">Explore Catalog</a>
-          <a href="{{ route('store.contact') }}" class="deco-btn">Private Salon</a>
+          <a href="{{ route('store.shop') }}" class="deco-btn deco-btn-solid">{{ __('messages.Deco_ExploreCatalog') }}</a>
+          <a href="{{ route('store.contact') }}" class="deco-btn">{{ __('messages.Deco_PrivateSalon') }}</a>
         </div>
       </div>
     </div>
@@ -38,22 +38,22 @@
       <div class="space-y-6">
         <div class="flex items-center gap-3">
           <span class="h-0.5 w-8 bg-deco-gold"></span>
-          <p class="font-deco-title text-deco-gold text-xs uppercase tracking-widest font-semibold">The Editorial Edit</p>
+          <p class="font-deco-title text-deco-gold text-xs uppercase tracking-widest font-semibold">{{ __('messages.Deco_TheEditorialEdit') }}</p>
         </div>
-        <h2 class="font-deco-logo text-3xl md:text-4xl text-white">Symmetry is Beauty</h2>
+        <h2 class="font-deco-logo text-3xl md:text-4xl text-white">{{ __('messages.Deco_SymmetryIsBeauty') }}</h2>
         <p class="text-sm text-deco-cream/80 leading-relaxed font-light">
-          Inspired by the roaring twenties, our latest diamond drops feature structural emerald cuts, micro-pave borders, and mathematical balance. Every diamond is selected by hand to guarantee perfect refraction and geometric alignment.
+          {{ __('messages.Deco_EditorialParagraph1') }}
         </p>
         <p class="text-sm text-deco-cream/80 leading-relaxed font-light">
-          From dainty stackable gold bands to bespoke bridal rings, experience jewelry that marks your life's most golden moments.
+          {{ __('messages.Deco_EditorialParagraph2') }}
         </p>
         <div class="pt-4">
-          <a href="{{ route('store.shop') }}" class="deco-btn">View The Collections</a>
+          <a href="{{ route('store.shop') }}" class="deco-btn">{{ __('messages.Deco_ViewTheCollections') }}</a>
         </div>
       </div>
       <div class="relative p-2 bg-deco-emerald border-2 double border-deco-gold">
         <div class="aspect-[4/5] overflow-hidden">
-          <img src="{{ global_asset(upload_path('products') . '/JWL-ERR-003.png') }}" alt="Deco style luxury gold earrings" class="w-full h-full object-cover">
+          <img src="{{ global_asset(upload_path('products') . '/JWL-ERR-003.png') }}" alt="{{ __('messages.Deco_EarringsAlt') }}" class="w-full h-full object-cover">
         </div>
       </div>
     </div>
@@ -62,8 +62,8 @@
   <!-- ============ FEATURED CATEGORIES SHOWCASE ============ -->
   <section class="py-16 px-4 md:px-8 max-w-7xl mx-auto border-b border-deco-gold/30">
     <div class="text-center mb-12">
-      <p class="font-deco-title text-deco-gold text-xs uppercase tracking-widest font-bold mb-2">✦ Curated Selections ✦</p>
-      <h2 class="font-deco-logo text-3xl text-white">Shop By Jewelry Salon</h2>
+      <p class="font-deco-title text-deco-gold text-xs uppercase tracking-widest font-bold mb-2">✦ {{ __('messages.Deco_CuratedSelections') }} ✦</p>
+      <h2 class="font-deco-logo text-3xl text-white">{{ __('messages.Deco_ShopByJewelrySalon') }}</h2>
       <div class="deco-line-double max-w-xs mx-auto mt-4"></div>
     </div>
 
@@ -81,16 +81,16 @@
                 <img src="{{ $cat->cover_image_url }}" alt="{{ $cat->name }}" class="w-full h-full object-cover">
               @else
                 <div class="w-full h-full bg-deco-emerald-light flex items-center justify-center text-deco-gold/40">
-                  <span class="font-deco-logo text-xs">Deco Salon</span>
+                  <span class="font-deco-logo text-xs">{{ __('messages.Deco_DecoSalonPlaceholder') }}</span>
                 </div>
               @endif
             </div>
             <h3 class="font-deco-logo text-sm text-center text-white tracking-widest uppercase mt-2">{{ $cat->name }}</h3>
-            <p class="text-[10px] text-center text-deco-gold mt-1 uppercase font-semibold">Enter →</p>
+            <p class="text-[10px] text-center text-deco-gold mt-1 uppercase font-semibold">{{ __('messages.Deco_EnterArrow') }} →</p>
           </div>
         </a>
       @empty
-        <div class="col-span-full text-center text-sm opacity-50">No categories found.</div>
+        <div class="col-span-full text-center text-sm opacity-50">{{ __('messages.Deco_NoCategoriesFound') }}</div>
       @endforelse
     </div>
   </section>
@@ -100,24 +100,24 @@
     <div class="grid md:grid-cols-2 gap-12 items-center">
       <div class="order-2 md:order-1 relative p-2 bg-deco-emerald border-2 double border-deco-gold">
         <div class="aspect-[4/5] overflow-hidden">
-          <img src="{{ global_asset(upload_path('products') . '/JWL-RNG-005.png') }}" alt="Bridal Diamond Ring Set" class="w-full h-full object-cover object-center">
+          <img src="{{ global_asset(upload_path('products') . '/JWL-RNG-005.png') }}" alt="{{ __('messages.Deco_BridalRingSetAlt') }}" class="w-full h-full object-cover object-center">
         </div>
       </div>
       <div class="space-y-6 order-1 md:order-2">
         <div class="flex items-center gap-3">
           <span class="h-0.5 w-8 bg-deco-gold"></span>
-          <p class="font-deco-title text-deco-gold text-xs uppercase tracking-widest font-semibold">Bridal Heritage</p>
+          <p class="font-deco-title text-deco-gold text-xs uppercase tracking-widest font-semibold">{{ __('messages.Deco_BridalHeritage') }}</p>
         </div>
-        <h2 class="font-deco-logo text-3xl md:text-4xl text-white">The Art Deco Bride</h2>
+        <h2 class="font-deco-logo text-3xl md:text-4xl text-white">{{ __('messages.Deco_TheArtDecoBride') }}</h2>
         <p class="text-sm text-deco-cream/80 leading-relaxed font-light">
-          Celebrate eternal devotion with rings that capture the symmetrical geometry of architectural heritage. Hand-fabricated platinum and 18K solid yellow gold set with GIA-certified ethically mined cushion cuts, baguettes, and round brilliants.
+          {{ __('messages.Deco_BridalParagraph1') }}
         </p>
         <p class="text-sm text-deco-cream/80 leading-relaxed font-light">
-          Request custom ring engravings and bespoke platinum band matching during your private consultation.
+          {{ __('messages.Deco_BridalParagraph2') }}
         </p>
         <div class="pt-4 flex gap-4">
-          <a href="{{ route('store.shop', ['collection' => 'bridal']) }}" class="deco-btn deco-btn-solid">The Bridal Gallery</a>
-          <a href="{{ route('store.contact') }}" class="deco-btn">Book Appointment</a>
+          <a href="{{ route('store.shop', ['collection' => 'bridal']) }}" class="deco-btn deco-btn-solid">{{ __('messages.Deco_TheBridalGallery') }}</a>
+          <a href="{{ route('store.contact') }}" class="deco-btn">{{ __('messages.Deco_BookAppointment') }}</a>
         </div>
       </div>
     </div>
@@ -126,8 +126,8 @@
   <!-- ============ FEATURED PRODUCTS (BEST SELLERS) ============ -->
   <section id="bestsellers" class="py-16 px-4 md:px-8 max-w-7xl mx-auto">
     <div class="text-center mb-12">
-      <p class="font-deco-title text-deco-gold text-xs uppercase tracking-widest font-bold mb-2">✦ Golden Masterpieces ✦</p>
-      <h2 class="font-deco-logo text-3xl text-white">Recently Catalogued Lots</h2>
+      <p class="font-deco-title text-deco-gold text-xs uppercase tracking-widest font-bold mb-2">✦ {{ __('messages.Deco_GoldenMasterpieces') }} ✦</p>
+      <h2 class="font-deco-logo text-3xl text-white">{{ __('messages.Deco_RecentlyCataloguedLots') }}</h2>
       <div class="deco-line-double max-w-xs mx-auto mt-4"></div>
     </div>
 
@@ -191,9 +191,9 @@
                 <img src="{{ $imgUrl }}" alt="{{ $p->name }}" class="w-full h-full object-cover">
               </a>
               @if($isPreorderActive)
-                <span class="deco-badge">PRE-ORDER</span>
+                <span class="deco-badge">{{ __('messages.PreOrder') }}</span>
               @elseif(!$isAvailable)
-                <span class="deco-badge" style="background:#4A1111; color:white;">OUT OF STOCK</span>
+                <span class="deco-badge" style="background:#4A1111; color:white;">{{ __('messages.OutOfStock') }}</span>
               @endif
             </div>
 
@@ -227,30 +227,30 @@
                         data-variants='@json($variantPayload)'
                         data-stock="{{ $productStock }}"
                         data-is-jewelry="{{ $isJewelry ? '1' : '0' }}"
-                        data-added-label="ADDED">
-                  ✦ ADD TO CART ✦
+                        data-added-label="{{ __('messages.Added') }}">
+                  ✦ {{ __('messages.AddToCart') }} ✦
                 </button>
               </div>
             </div>
           </div>
         </div>
       @empty
-        <div class="col-span-full text-center text-sm opacity-50">No fine jewelry lots catalogued.</div>
+        <div class="col-span-full text-center text-sm opacity-50">{{ __('messages.Deco_NoLotsCatalogued') }}</div>
       @endforelse
     </div>
   </section>
 
   <!-- ============ CLIENT TESTIMONIALS ============ -->
   <section class="py-16 px-4 md:px-8 max-w-5xl mx-auto border-t border-deco-gold/30 text-center">
-    <p class="font-deco-title text-deco-gold text-xs uppercase tracking-widest font-bold mb-4">✦ Trust &bull; Prestige ✦</p>
+    <p class="font-deco-title text-deco-gold text-xs uppercase tracking-widest font-bold mb-4">✦ {{ __('messages.Deco_TrustPrestige') }} ✦</p>
     <div class="deco-frame py-10 px-6 bg-deco-emerald-light/60">
       <div class="deco-card-corner deco-card-corner-tl"></div>
       <div class="deco-card-corner deco-card-corner-tr"></div>
       <div class="deco-card-corner deco-card-corner-bl"></div>
       <div class="deco-card-corner deco-card-corner-br"></div>
-      
+
       <p class="font-deco-logo text-xl italic md:text-2xl text-white/90 leading-relaxed max-w-2xl mx-auto mb-6">
-        "The geometric symmetry of their custom diamond ring is absolutely breath-taking. It feels like wearing an artifact of history."
+        "{{ __('messages.Deco_TestimonialQuote') }}"
       </p>
       <p class="font-deco-title text-xs tracking-wider text-deco-gold uppercase font-bold">&mdash; Lady Charlotte V., London</p>
     </div>

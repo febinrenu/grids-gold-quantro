@@ -191,7 +191,7 @@
 <div class="theme-draft">
   <div class="draft-top-bar">
     <div class="hidden sm:block">SYS_STATUS: //ONLINE //PORT_8000 //LOC_DEV</div>
-    <div class="mx-auto sm:mx-0">✦ PRECISION METALS &amp; GIA DIAMONDS DIRECT FROM ATELIER ✦</div>
+    <div class="mx-auto sm:mx-0">✦ {{ __('messages.Draft_TopBarTagline') }} ✦</div>
     <div class="hidden md:block">VER: //{{ date('Y') }}.9_THEMES</div>
   </div>
   <header class="draft-header px-4 md:px-8">
@@ -201,7 +201,7 @@
           //{{ strtoupper($s->store_name ?? 'Draft Atelier') }}
         </a>
         <nav class="hidden lg:flex items-center h-full">
-          <a href="{{ route('store.shop') }}" class="draft-nav-link">INDEX_LOTS</a>
+          <a href="{{ route('store.shop') }}" class="draft-nav-link">{{ __('messages.Draft_IndexLots') }}</a>
           @foreach(($categories ?? collect())->take(4) as $cat)
             <a href="{{ route('store.shop', ['category' => $cat->id]) }}" class="draft-nav-link">CAT_{{ strtoupper(Str::slug($cat->name, '_')) }}</a>
           @endforeach
@@ -209,13 +209,13 @@
       </div>
 
       <div class="flex items-center gap-6 text-draft-ink">
-        <a href="{{ route('account') }}" aria-label="Account" class="hover:text-draft-blue transition flex items-center gap-1 text-[11px] font-draft-mono">
+        <a href="{{ route('account') }}" aria-label="{{ __('messages.Account') }}" class="hover:text-draft-blue transition flex items-center gap-1 text-[11px] font-draft-mono">
           <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-6 8-6s8 2 8 6"/></svg>
-          <span class="hidden sm:inline">[ACC_SESSION]</span>
+          <span class="hidden sm:inline">{{ __('messages.Draft_AccSession') }}</span>
         </a>
-        <a href="{{ route('store.cart') }}" aria-label="Cart" class="relative hover:text-draft-blue transition flex items-center gap-1 text-[11px] font-draft-mono py-4" style="border-left: 1px solid var(--draft-border); padding-left:1.5rem;">
+        <a href="{{ route('store.cart') }}" aria-label="{{ __('messages.Cart') }}" class="relative hover:text-draft-blue transition flex items-center gap-1 text-[11px] font-draft-mono py-4" style="border-left: 1px solid var(--draft-border); padding-left:1.5rem;">
           <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 8V6a6 6 0 0112 0v2M4 8h16l-1.2 12.1a2 2 0 01-2 1.9H7.2a2 2 0 01-2-1.9L4 8z"/></svg>
-          <span class="hidden sm:inline">[CART_QTY]</span>
+          <span class="hidden sm:inline">{{ __('messages.Draft_CartQty') }}</span>
           <span class="cart-count px-1.5 py-0.5 rounded text-[9px] font-bold text-white" style="background:var(--draft-blue);">0</span>
         </a>
       </div>
@@ -230,40 +230,40 @@
     <div class="grid grid-cols-1 md:grid-cols-12 gap-8 mb-12">
       <div class="md:col-span-4">
         <h2 class="font-draft-mono text-base font-bold text-draft-ink mb-3">//ATELIER_{{ strtoupper($s->store_name ?? 'Draft') }}</h2>
-        <p class="font-draft-sans text-xs text-draft-grey leading-relaxed max-w-sm mb-4">Precision, specification, and transparency. A studio dedicated to mapping, crafting, and delivering ethical fine jewelry.</p>
+        <p class="font-draft-sans text-xs text-draft-grey leading-relaxed max-w-sm mb-4">{{ __('messages.Draft_FooterTagline') }}</p>
         <div class="text-[10px] font-draft-mono text-draft-grey">LOC: {{ $s->contact_address ?? 'Precision Square, Studio 12' }}</div>
       </div>
 
       <div class="md:col-span-2">
-        <h4 class="font-draft-mono text-xs font-bold text-draft-ink uppercase mb-3">//ANN_DATA</h4>
+        <h4 class="font-draft-mono text-xs font-bold text-draft-ink uppercase mb-3">{{ __('messages.Draft_AnnData') }}</h4>
         <div class="space-y-2 text-xs font-draft-mono">
-          <p>TEL: {{ $s->contact_phone ?? '+44 20 7946 0999' }}</p>
-          <p>MAIL: {{ $s->contact_email ?? 'atelier@draftjewelers.local' }}</p>
+          <p>{{ __('messages.Draft_TelLabel') }} {{ $s->contact_phone ?? '+44 20 7946 0999' }}</p>
+          <p>{{ __('messages.Draft_MailLabel') }} {{ $s->contact_email ?? 'atelier@draftjewelers.local' }}</p>
         </div>
       </div>
 
       <div class="md:col-span-2">
-        <h4 class="font-draft-mono text-xs font-bold text-draft-ink uppercase mb-3">//INDEX_ROUTES</h4>
+        <h4 class="font-draft-mono text-xs font-bold text-draft-ink uppercase mb-3">{{ __('messages.Draft_IndexRoutes') }}</h4>
         <div class="space-y-2 text-xs font-draft-mono">
-          <a href="{{ route('store.shop') }}" class="block hover:text-draft-blue transition">LOTS_INDEX</a>
-          <a href="{{ route('store.contact') }}" class="block hover:text-draft-blue transition">CONSULT_SESSION</a>
+          <a href="{{ route('store.shop') }}" class="block hover:text-draft-blue transition">{{ __('messages.Draft_LotsIndex') }}</a>
+          <a href="{{ route('store.contact') }}" class="block hover:text-draft-blue transition">{{ __('messages.Draft_ConsultSession') }}</a>
         </div>
       </div>
 
       <div class="md:col-span-4">
-        <h4 class="font-draft-mono text-xs font-bold text-draft-ink uppercase mb-3">//SUBSCRIBE_STREAM</h4>
-        <p class="text-xs text-draft-grey mb-3 font-draft-sans">Receive raw notification outputs about workshop lots and certified releases.</p>
+        <h4 class="font-draft-mono text-xs font-bold text-draft-ink uppercase mb-3">{{ __('messages.Draft_SubscribeStream') }}</h4>
+        <p class="text-xs text-draft-grey mb-3 font-draft-sans">{{ __('messages.Draft_SubscribeDesc') }}</p>
         <form action="{{ route('newsletter.subscribe') }}" method="POST" class="flex gap-1 border border-draft-ink p-1 bg-draft-slate">
           @csrf
           <input type="email" name="email" required placeholder="email@domain.com" class="flex-1 min-w-0 px-3 py-1.5 text-xs outline-none bg-transparent text-draft-ink font-draft-mono" />
-          <button type="submit" class="px-4 py-1.5 text-xs bg-draft-ink text-white font-draft-mono font-bold hover:bg-draft-blue transition">SEND</button>
+          <button type="submit" class="px-4 py-1.5 text-xs bg-draft-ink text-white font-draft-mono font-bold hover:bg-draft-blue transition">{{ __('messages.Draft_Send') }}</button>
         </form>
       </div>
     </div>
 
     <div class="border-t border-draft-border pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-draft-mono text-draft-grey">
       <div>© {{ date('Y') }} //{{ strtoupper($s->store_name ?? 'Draft') }}_ATELIER</div>
-      <div>SECURE_SSL // GIA_CERTIFIED // CONFLICT_FREE_GOLD</div>
+      <div>{{ __('messages.Draft_SecureBadges') }}</div>
     </div>
   </div>
 </footer>

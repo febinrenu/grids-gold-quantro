@@ -64,7 +64,7 @@
           {{ __('messages.of') }} <strong>{{ $products->total() }}</strong> {{ __('messages.productsLower') }}
         </div>
       @endif
-      <nav aria-label="Product pagination">
+      <nav aria-label="{{ __('messages.Deco_ProductPagination') }}">
         <ul class="pagination">
           @if ($products->onFirstPage())
             <li><span class="page-link disabled"><x-store.icon name="chevron-left" class="w-4 h-4" /></span></li>

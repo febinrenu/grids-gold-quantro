@@ -110,9 +110,9 @@
           <div class="card-body">
             <h6 class="font-semibold mb-2">{{ __('messages.StatusHelp') }}</h6>
             <ul class="text-sm text-fg-muted m-0 p-0 list-none space-y-1.5">
-              <li class="flex items-start gap-2"><span class="chip chip-warning shrink-0">pending</span> <span>{{ __('messages.StatusPendingHelp') }}</span></li>
-              <li class="flex items-start gap-2"><span class="chip chip-success shrink-0">confirmed</span> <span>{{ __('messages.StatusConfirmedHelp') }}</span></li>
-              <li class="flex items-start gap-2"><span class="chip chip-danger shrink-0">cancelled</span> <span>{{ __('messages.StatusCancelledHelp') }}</span></li>
+              <li class="flex items-start gap-2"><span class="chip chip-warning shrink-0">{{ __('messages.Store_StatusPending') }}</span> <span>{{ __('messages.StatusPendingHelp') }}</span></li>
+              <li class="flex items-start gap-2"><span class="chip chip-success shrink-0">{{ __('messages.Store_StatusConfirmed') }}</span> <span>{{ __('messages.StatusConfirmedHelp') }}</span></li>
+              <li class="flex items-start gap-2"><span class="chip chip-danger shrink-0">{{ __('messages.Store_StatusCancelled') }}</span> <span>{{ __('messages.StatusCancelledHelp') }}</span></li>
             </ul>
           </div>
         </div>

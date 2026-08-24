@@ -22,6 +22,7 @@ class EnsureJewelryTenant extends Command
     protected $signature = 'tenant:ensure-jewelry
         {--domain=jewelry : The tenant domain to ensure exists}
         {--database=quantrocousr_tenant_jewelry : The fixed tenant database name to use}
+        {--tenant-id=fd81b188-8e8b-4ed3-9980-7cfad53e3c35 : The fixed tenant UUID to use — must match the id baked into database/jewelrydatabase.sql image paths and the storage/tenant<id> folder}
         {--migrate : Also run tenant migrations against the resolved tenant}
         {--seed : Also run the tenant db:seed after migrating (implies --migrate)}
         {--no-import : Skip importing database/jewelrydatabase.sql even on a freshly created database}';
@@ -44,6 +45,7 @@ class EnsureJewelryTenant extends Command
 
         if (! $tenant) {
             $tenant = Tenant::create([
+                'id'           => (string) $this->option('tenant-id'),
                 'company_name' => 'Jewelry Center',
                 'admin_email'  => 'admin@' . $domainName . '.local',
                 'status'       => Tenant::STATUS_ACTIVE,
@@ -102,6 +104,15 @@ class EnsureJewelryTenant extends Command
                 $this->ensurePassportPersonalAccessClient();
             });
         }
+
+        // Always pin the storefront's default theme — enforced on every run
+        // (not just fresh creation) so it self-heals if the tenant DB is
+        // ever dropped/reseeded from database/jewelrydatabase.sql, whose
+        // baked-in theme value is stale.
+        $tenant->run(function () {
+            \Illuminate\Support\Facades\DB::table('store_settings')->update(['theme' => 'nexgold']);
+            \Illuminate\Support\Facades\Cache::forget('store_settings');
+        });
 
         $this->info("Jewelry tenant ready: domain={$domainName}, db={$dbName}, tenant_id={$tenant->id}");
 
@@ -200,12 +211,18 @@ class EnsureJewelryTenant extends Command
             return;
         }
 
-        $plan = Plan::whereJsonContains('features', 'online_orders')->first()
-            ?? Plan::where('slug', 'professional')->first()
-            ?? Plan::first();
+        if (! Plan::exists()) {
+            $this->call('db:seed', ['--class' => 'Database\\Seeders\\Central\\PlansSeeder', '--force' => true]);
+            $this->info('  No plans existed yet — seeded the default plan tiers.');
+        }
+
+        // Always activate local dev tenants on the most premium plan (highest
+        // price = full feature set), so local testing never hits a feature
+        // gate that only exists to upsell in production.
+        $plan = Plan::orderByDesc('price')->first();
 
         if (! $plan) {
-            $this->warn('  No subscription plans found yet — run the /setup wizard first (it seeds plans), then re-run this command.');
+            $this->warn('  No subscription plans found and seeding produced none — check database/seeders/Central/PlansSeeder.php.');
             return;
         }
 
@@ -293,6 +310,16 @@ class EnsureJewelryTenant extends Command
         }
 
         $sql = file_get_contents($dumpPath);
+
+        // Strip MariaDB-only versioned comments (e.g. `/*M!100616 SET
+        // @OLD_NOTE_VERBOSITY=... */;`, emitted by mariadb-dump), including
+        // their trailing semicolon. MySQL's CLI client tolerates these
+        // silently, but PHP's mysqli::multi_query() desyncs on them —
+        // whether from the comment itself or from the empty statement left
+        // behind if only the comment body is removed — and
+        // more_results()/next_result() stops early with no error, silently
+        // dropping every statement after it.
+        $sql = preg_replace('/\/\*M!\d+.*?\*\/;?/s', '', $sql);
 
         if ($mysqli->multi_query($sql)) {
             do {
