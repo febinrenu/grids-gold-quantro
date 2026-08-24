@@ -915,6 +915,34 @@ const baseRoutes = [
                 ]
             },
 
+            // Manufacturing
+            {
+                path: "/app/manufacturing",
+                component: () =>
+                    import(
+                        /* webpackChunkName: "manufacturing" */ "./views/app/pages/manufacturing/index.vue"
+                    ),
+                redirect: "/app/manufacturing/list",
+                children: [
+                    {
+                        name: "ManufacturingOrders",
+                        path: "list",
+                        component: () =>
+                            import(
+                                "./views/app/pages/manufacturing/index_mfg.vue"
+                            )
+                    },
+                    {
+                        name: "ManufacturingOrderDetails",
+                        path: "detail/:id",
+                        component: () =>
+                            import(
+                                "./views/app/pages/manufacturing/detail_mfg.vue"
+                            )
+                    }
+                ]
+            },
+
             // Advanced Accounting (NEW FEATURE - SAFE ADDITION)
             {
                 path: "/app/accounting-v2",

@@ -583,6 +583,12 @@ class QuotationsController extends BaseController
             $details[] = $data;
         }
 
+        $quote['id'] = $quotation_data->id;
+        $mfgOrders = \App\Models\ManufacturingOrder::where('quotation_id', $quotation_data->id)
+            ->get(['id', 'manufacturing_number']);
+        $quote['is_converted'] = $mfgOrders->isNotEmpty();
+        $quote['mfg_orders'] = $mfgOrders;
+
         $company = Setting::where('deleted_at', '=', null)->first();
 
         return response()->json([

@@ -179,7 +179,56 @@
                 </b-form-group>
             </b-col>
 
-             <b-col md="6" sm="12" class="mt-4 mb-4">
+            <!-- Personalization: Ring Size -->
+            <b-col md="6" sm="12">
+                <b-form-group :label="$t('RingSize') || 'Ring Size'">
+                  <b-form-input
+                    label="Ring Size"
+                    v-model="client.ring_size"
+                    placeholder="e.g. 7.5"
+                  ></b-form-input>
+                </b-form-group>
+            </b-col>
+
+            <!-- Personalization: Anniversary Date -->
+            <b-col md="6" sm="12">
+                <b-form-group :label="$t('AnniversaryDate') || 'Anniversary Date'">
+                  <b-form-input
+                    type="date"
+                    label="Anniversary Date"
+                    v-model="client.anniversary_date"
+                  ></b-form-input>
+                </b-form-group>
+            </b-col>
+
+            <!-- Personalization: Preferred Metals -->
+            <b-col md="6" sm="12">
+                <b-form-group :label="$t('PreferredMetals') || 'Preferred Metals'">
+                  <v-select
+                    multiple
+                    v-model="client.preferred_metals_array"
+                    :reduce="label => label.name"
+                    label="name"
+                    placeholder="Select metals"
+                    :options="metals"
+                  ></v-select>
+                </b-form-group>
+            </b-col>
+
+            <!-- Personalization: Partner Customer -->
+            <b-col md="6" sm="12">
+                <b-form-group :label="$t('PartnerCustomer') || 'Partner Customer'">
+                  <v-select
+                    v-model="client.partner_customer_id"
+                    :reduce="label => label.id"
+                    label="name"
+                    placeholder="Select partner customer"
+                    :options="clients_list"
+                  ></v-select>
+                </b-form-group>
+            </b-col>
+
+              <b-col md="6" sm="12" class="mt-4 mb-4">
               <div class="psx-form-check">
                 <input type="checkbox" v-model="client.is_royalty_eligible" class="psx-checkbox psx-form-check-input" id="is_royalty_eligible">
                 <label class="psx-form-check-label" for="is_royalty_eligible">
@@ -274,6 +323,8 @@ export default {
       portalEmail: "",
       portalPassword: "",
       portalErrors: [],
+      metals: [],
+      clients_list: [],
       client: {
         id: "",
         firstname: "",
@@ -289,6 +340,11 @@ export default {
         adresse: "",
         is_royalty_eligible: "",
         credit_limit: 0,
+        ring_size: "",
+        anniversary_date: "",
+        preferred_metals: "",
+        preferred_metals_array: [],
+        partner_customer_id: null,
       },
     };
   },
@@ -322,6 +378,12 @@ export default {
     //----------------------------------- Update Client -------------------------------\\
     Update_Client() {
       this.SubmitProcessing = true;
+      if (this.client.preferred_metals_array && this.client.preferred_metals_array.length > 0) {
+        this.client.preferred_metals = this.client.preferred_metals_array.join(', ');
+      } else {
+        this.client.preferred_metals = '';
+      }
+
       axios
         .put("clients/" + this.client.id, {
           firstname: this.client.firstname,
@@ -336,7 +398,11 @@ export default {
           zip: this.client.zip,
           adresse: this.client.adresse,
           is_royalty_eligible: this.client.is_royalty_eligible,
-          credit_limit: parseFloat(this.client.credit_limit) || 0
+          credit_limit: parseFloat(this.client.credit_limit) || 0,
+          ring_size: this.client.ring_size,
+          anniversary_date: this.client.anniversary_date,
+          preferred_metals: this.client.preferred_metals,
+          partner_customer_id: this.client.partner_customer_id,
         })
         .then(response => {
           // Save custom field values if any
@@ -375,11 +441,28 @@ export default {
       NProgress.start();
       NProgress.set(0.1);
       let id = this.$route.params.id;
+
+      axios.get("get_metal_types_list").then(response => {
+        this.metals = response.data;
+      });
+
       axios
         .get("clients/" + id)
         .then(response => {
           // Merge to keep default keys even if API omits them
           this.client = { ...this.client, ...(response.data.client || {}) };
+
+          if (this.client.preferred_metals) {
+            this.client.preferred_metals_array = this.client.preferred_metals.split(', ').filter(Boolean);
+          } else {
+            this.client.preferred_metals_array = [];
+          }
+
+          // Fetch other customers excluding current customer
+          axios.get("get_clients_without_paginate").then(res => {
+            this.clients_list = res.data.filter(c => c.id !== this.client.id);
+          });
+
           // CustomFieldsForm component will handle loading values
           NProgress.done();
           this.isLoading = false;

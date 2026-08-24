@@ -175,6 +175,10 @@ class ClientController extends BaseController
                 // Ensure email is unique in ecommerce_clients table (exclude soft-deleted)
                 Rule::unique('ecommerce_clients', 'email')->whereNull('deleted_at'),
             ],
+            'ring_size' => ['nullable', 'string', 'max:50'],
+            'anniversary_date' => ['nullable', 'date'],
+            'preferred_metals' => ['nullable', 'string'],
+            'partner_customer_id' => ['nullable', 'integer', 'exists:clients,id'],
         ]);
 
         if ($request['is_royalty_eligible'] == '1' || $request['is_royalty_eligible'] == 'true') {
@@ -199,6 +203,10 @@ class ClientController extends BaseController
             'is_royalty_eligible' => $is_royalty_eligible,
             'opening_balance' => $request['opening_balance'] ?? 0,
             'credit_limit' => $request['credit_limit'] ?? 0,
+            'ring_size' => $request['ring_size'],
+            'anniversary_date' => $request['anniversary_date'],
+            'preferred_metals' => $request['preferred_metals'],
+            'partner_customer_id' => $request['partner_customer_id'],
         ]);
 
         return response()->json($client);
@@ -208,7 +216,7 @@ class ClientController extends BaseController
 
     public function show($id)
     {
-        $client = Client::where('deleted_at', '=', null)->findOrFail($id);
+        $client = Client::with('partner')->where('deleted_at', '=', null)->findOrFail($id);
         
         $accounts = Account::where('deleted_at', '=', null)->orderBy('id', 'desc')->get(['id', 'account_name']);
         $payment_methods = PaymentMethod::whereNull('deleted_at')->get(['id', 'name']);
@@ -267,6 +275,11 @@ class ClientController extends BaseController
 
             // flags
             'is_royalty_eligible' => ['nullable'],
+
+            'ring_size' => ['nullable', 'string', 'max:50'],
+            'anniversary_date' => ['nullable', 'date'],
+            'preferred_metals' => ['nullable', 'string'],
+            'partner_customer_id' => ['nullable', 'integer', 'exists:clients,id', Rule::notIn([$id])],
         ]);
 
         // Normalize boolean flag from various inputs: '1', 'true', true, etc.
@@ -289,6 +302,10 @@ class ClientController extends BaseController
                 'tax_number' => $request->input('tax_number'),
                 'is_royalty_eligible' => $isRoyaltyEligible,
                 'credit_limit' => $request->input('credit_limit', 0),
+                'ring_size' => $request->input('ring_size'),
+                'anniversary_date' => $request->input('anniversary_date'),
+                'preferred_metals' => $request->input('preferred_metals'),
+                'partner_customer_id' => $request->input('partner_customer_id'),
             ]);
 
             // 2) Upsert EcommerceClient linked by client_id

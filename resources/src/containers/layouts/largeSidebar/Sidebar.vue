@@ -216,6 +216,22 @@
           </li>
 
           <li
+            v-show="currentUserPermissions && (currentUserPermissions.includes('Quotations_view')
+                      || currentUserPermissions.includes('Quotations_add'))"
+            @mouseenter="toggleSubMenu"
+            class="nav-item"
+            :class="{ active: selectedParentMenu == 'manufacturing' }"
+            data-item="manufacturing"
+            :data-submenu="true"
+          >
+            <a class="nav-item-hold" href="#">
+              <lucide-icon class="nav-icon" name="hammer" />
+              <span class="nav-text">Manufacturing</span>
+            </a>
+            <div class="triangle"></div>
+          </li>
+
+          <li
             v-if="currentUserPermissions && currentUserPermissions.includes('Purchase_Returns_view')"
             @mouseenter="toggleSubMenu"
             :class="{ active: selectedParentMenu == 'purchase_return' }"
@@ -1416,6 +1432,22 @@
             <router-link tag="a" class to="/app/quotations/list">
               <lucide-icon class="nav-icon" name="files" />
               <span class="item-name">{{$t('ListQuotations')}}</span>
+            </router-link>
+          </li>
+        </ul>
+
+        <ul
+          class="childNav d-none"
+          data-parent="manufacturing"
+          :class="{ 'd-block': selectedParentMenu == 'manufacturing' }"
+        >
+          <li
+            class="nav-item"
+            v-if="currentUserPermissions && currentUserPermissions.includes('Quotations_view')"
+          >
+            <router-link tag="a" class to="/app/manufacturing/list">
+              <lucide-icon class="nav-icon" name="files" />
+              <span class="item-name">List Orders</span>
             </router-link>
           </li>
         </ul>

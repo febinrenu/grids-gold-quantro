@@ -568,6 +568,30 @@
             </ul>
           </li>
 
+          <!-- Manufacturing -->
+          <li
+            v-show="currentUserPermissions && (
+              currentUserPermissions.includes('Quotations_view') ||
+              currentUserPermissions.includes('Quotations_add')
+            )"
+            :class="{ active: isActiveRoute('manufacturing'), 'has-submenu': true, open: openMenus.includes('manufacturing') }"
+            class="nav-item"
+          >
+            <a href="#" @click.prevent="toggleSubmenu('manufacturing')" class="nav-link">
+              <lucide-icon class="nav-icon" name="hammer" />
+              <span class="nav-text" v-if="!isCollapsed">Manufacturing</span>
+              <lucide-icon class="submenu-arrow" name="chevron-down" v-if="!isCollapsed" />
+            </a>
+            <ul class="submenu" v-if="openMenus.includes('manufacturing') && !isCollapsed">
+              <li class="submenu-item" v-if="currentUserPermissions && currentUserPermissions.includes('Quotations_view')">
+                <router-link to="/app/manufacturing/list" class="submenu-link">
+                  <lucide-icon class="submenu-icon" name="files" />
+                  <span>List Orders</span>
+                </router-link>
+              </li>
+            </ul>
+          </li>
+
           <!-- Purchase Return -->
           <li
             v-if="currentUserPermissions && currentUserPermissions.includes('Purchase_Returns_view')"

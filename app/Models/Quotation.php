@@ -44,4 +44,9 @@ class Quotation extends Model
     {
         return $this->belongsTo('App\Models\Warehouse');
     }
+
+    public function manufacturingOrders()
+    {
+        return $this->hasMany(ManufacturingOrder::class, 'quotation_id');
+    }
 }
