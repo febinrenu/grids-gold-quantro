@@ -148,7 +148,7 @@
 @section('header')
 <div class="theme-poeme">
   <div class="poeme-top-bar">
-    "A promise in gold, written in stars." Free delivery on bespoke bridal sets.
+    {{ __('messages.Poeme_TopBarMessage') }}
   </div>
   <header class="poeme-header-floating sticky top-0 z-50 py-4 px-4 md:px-8">
     <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
@@ -157,18 +157,18 @@
       </a>
       
       <nav class="flex flex-wrap items-center justify-center gap-1 md:gap-4 my-2">
-        <a href="{{ route('store.shop') }}" class="poeme-nav-link">The Gallery</a>
+        <a href="{{ route('store.shop') }}" class="poeme-nav-link">{{ __('messages.Poeme_TheGallery') }}</a>
         @foreach(($categories ?? collect())->take(4) as $cat)
           <a href="{{ route('store.shop', ['category' => $cat->id]) }}" class="poeme-nav-link">{{ $cat->name }}</a>
         @endforeach
-        <a href="{{ route('store.contact') }}" class="poeme-nav-link italic">Private Consultations</a>
+        <a href="{{ route('store.contact') }}" class="poeme-nav-link italic">{{ __('messages.Poeme_PrivateConsultations') }}</a>
       </nav>
 
       <div class="flex items-center gap-6 text-poeme-charcoal">
-        <a href="{{ route('account') }}" aria-label="Account" class="hover:opacity-60 transition">
+        <a href="{{ route('account') }}" aria-label="{{ __('messages.Account') }}" class="hover:opacity-60 transition">
           <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-6 8-6s8 2 8 6"/></svg>
         </a>
-        <a href="{{ route('store.cart') }}" aria-label="Cart" class="relative hover:opacity-60 transition">
+        <a href="{{ route('store.cart') }}" aria-label="{{ __('messages.Cart') }}" class="relative hover:opacity-60 transition">
           <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 8V6a6 6 0 0112 0v2M4 8h16l-1.2 12.1a2 2 0 01-2 1.9H7.2a2 2 0 01-2-1.9L4 8z"/></svg>
           <span class="cart-count absolute -top-1.5 -right-1.5 text-[8px] w-4 h-4 rounded-full flex items-center justify-center font-bold text-white" style="background:var(--poeme-champagne); color:var(--poeme-charcoal);">0</span>
         </a>
@@ -183,38 +183,38 @@
   <div class="max-w-7xl mx-auto">
     <div class="text-center mb-12">
       <h2 class="font-poeme-serif italic text-3xl text-poeme-charcoal mb-2">{{ $s->store_name ?? 'Poeme' }}</h2>
-      <p class="font-poeme-serif text-sm italic text-poeme-grey">Ethereal Craftsmanship for Golden Memories</p>
+      <p class="font-poeme-serif text-sm italic text-poeme-grey">{{ __('messages.Poeme_FooterTagline') }}</p>
       <div class="poeme-line max-w-xs mx-auto my-6"></div>
     </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-12 text-sm text-poeme-charcoal/80 font-poeme-sans">
       <div>
-        <h4 class="font-poeme-serif italic text-base text-poeme-charcoal font-bold mb-4">Our Salons</h4>
+        <h4 class="font-poeme-serif italic text-base text-poeme-charcoal font-bold mb-4">{{ __('messages.Poeme_OurSalons') }}</h4>
         <p class="leading-relaxed">{{ $s->contact_address ?? '12 Rosewater Lane, Paris' }}</p>
       </div>
       <div>
-        <h4 class="font-poeme-serif italic text-base text-poeme-charcoal font-bold mb-4">Concierge Desk</h4>
-        <p class="mb-2">Phone: {{ $s->contact_phone ?? '+33 1 7946 0912' }}</p>
-        <p>Email: {{ $s->contact_email ?? 'love@poemejewelers.local' }}</p>
+        <h4 class="font-poeme-serif italic text-base text-poeme-charcoal font-bold mb-4">{{ __('messages.Poeme_ConciergeDesk') }}</h4>
+        <p class="mb-2">{{ __('messages.Phone') }}: {{ $s->contact_phone ?? '+33 1 7946 0912' }}</p>
+        <p>{{ __('messages.Email') }}: {{ $s->contact_email ?? 'love@poemejewelers.local' }}</p>
       </div>
       <div>
-        <h4 class="font-poeme-serif italic text-base text-poeme-charcoal font-bold mb-4">Bespoke Options</h4>
-        <a href="{{ route('store.contact') }}" class="block mb-2 hover:opacity-75 transition">&bull; Virtual Appointments</a>
-        <a href="{{ route('store.contact') }}" class="block hover:opacity-75 transition">&bull; Custom Engravings</a>
+        <h4 class="font-poeme-serif italic text-base text-poeme-charcoal font-bold mb-4">{{ __('messages.Poeme_BespokeOptions') }}</h4>
+        <a href="{{ route('store.contact') }}" class="block mb-2 hover:opacity-75 transition">&bull; {{ __('messages.Poeme_VirtualAppointments') }}</a>
+        <a href="{{ route('store.contact') }}" class="block hover:opacity-75 transition">&bull; {{ __('messages.Poeme_CustomEngravings') }}</a>
       </div>
       <div>
-        <h4 class="font-poeme-serif italic text-base text-poeme-charcoal font-bold mb-4">Romantic Letters</h4>
-        <p class="text-xs mb-3 text-poeme-grey leading-relaxed">Receive soft updates on limited romantic drops and bridal previews.</p>
+        <h4 class="font-poeme-serif italic text-base text-poeme-charcoal font-bold mb-4">{{ __('messages.Poeme_RomanticLetters') }}</h4>
+        <p class="text-xs mb-3 text-poeme-grey leading-relaxed">{{ __('messages.Poeme_NewsletterBlurb') }}</p>
         <form action="{{ route('newsletter.subscribe') }}" method="POST" class="flex gap-1 border border-poeme-champagne p-1 bg-poeme-parchment rounded-full">
           @csrf
-          <input type="email" name="email" required placeholder="Enter Email" class="flex-1 min-w-0 px-3 py-1 text-xs outline-none bg-transparent text-poeme-charcoal rounded-full" />
-          <button type="submit" class="px-4 py-1 text-xs bg-poeme-champagne text-poeme-charcoal font-poeme-serif font-bold rounded-full hover:bg-poeme-charcoal hover:text-white transition">SEND</button>
+          <input type="email" name="email" required placeholder="{{ __('messages.Poeme_EnterEmail') }}" class="flex-1 min-w-0 px-3 py-1 text-xs outline-none bg-transparent text-poeme-charcoal rounded-full" />
+          <button type="submit" class="px-4 py-1 text-xs bg-poeme-champagne text-poeme-charcoal font-poeme-serif font-bold rounded-full hover:bg-poeme-charcoal hover:text-white transition">{{ __('messages.Poeme_Send') }}</button>
         </form>
       </div>
     </div>
 
     <div class="border-t border-poeme-champagne/40 pt-8 text-center text-xs text-poeme-grey font-poeme-sans">
-      <p>&copy; {{ date('Y') }} {{ $s->store_name ?? 'Poeme' }} Fine Jewelry. Handcrafted with love.</p>
+      <p>&copy; {{ date('Y') }} {{ $s->store_name ?? 'Poeme' }} {{ __('messages.Poeme_FooterCopyrightSuffix') }}</p>
     </div>
   </div>
 </footer>

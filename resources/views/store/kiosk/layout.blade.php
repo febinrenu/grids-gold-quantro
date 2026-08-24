@@ -71,29 +71,29 @@
   <div class="k-marquee-wrap">
     <div class="k-marquee">
       @for($i = 0; $i < 6; $i++)
-        <span>{{ $s->topbar_text_left ?? 'NEW DROP EVERY FRIDAY' }} ✦ FREE SHIPPING $75+ ✦</span>
+        <span>{{ $s->topbar_text_left ?? __('messages.Kiosk_TopbarDefault') }} ✦ {{ __('messages.Kiosk_FreeShippingBanner') }} ✦</span>
       @endfor
     </div>
   </div>
   <div class="k-topbar">
-    <button id="kx-menuBtn" class="md:hidden k-label" aria-label="Open menu" style="border:2px solid var(--kx-black); padding:.4rem .6rem;">MENU</button>
+    <button id="kx-menuBtn" class="md:hidden k-label" aria-label="{{ __('messages.Kiosk_OpenMenu') }}" style="border:2px solid var(--kx-black); padding:.4rem .6rem;">{{ __('messages.Menu') }}</button>
     <a href="{{ route('store.index') }}" class="k-word">{{ $s->store_name ?? 'KIOSK' }}</a>
     <nav class="hidden md:flex items-center gap-6 k-label">
-      <a href="{{ route('store.shop') }}" class="hover:opacity-60 transition">Shop All</a>
+      <a href="{{ route('store.shop') }}" class="hover:opacity-60 transition">{{ __('messages.Kiosk_ShopAll') }}</a>
       @foreach(($categories ?? collect())->take(5) as $cat)
         <a href="{{ route('store.shop', ['category' => $cat->id]) }}" class="hover:opacity-60 transition">{{ Str::upper($cat->name) }}</a>
       @endforeach
     </nav>
     <div class="flex items-center gap-4">
-      <a href="{{ route('account') }}" aria-label="Account" class="hover:opacity-60 transition"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-6 8-6s8 2 8 6"/></svg></a>
-      <a href="{{ route('store.cart') }}" aria-label="Cart" class="relative hover:opacity-60 transition">
+      <a href="{{ route('account') }}" aria-label="{{ __('messages.Account') }}" class="hover:opacity-60 transition"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-6 8-6s8 2 8 6"/></svg></a>
+      <a href="{{ route('store.cart') }}" aria-label="{{ __('messages.Cart') }}" class="relative hover:opacity-60 transition">
         <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8V6a6 6 0 0112 0v2M4 8h16l-1.2 12.1a2 2 0 01-2 1.9H7.2a2 2 0 01-2-1.9L4 8z"/></svg>
         <span class="cart-count absolute -top-2 -right-2 text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-bold" style="background:var(--kx-black); color:var(--kx-yellow);">0</span>
       </a>
     </div>
   </div>
   <div id="kx-mobileNav" class="md:hidden hidden flex-col k-label" style="background:#fff; border-bottom:3px solid var(--kx-black);">
-    <a href="{{ route('store.shop') }}" class="px-5 py-3" style="border-top:1px solid #eee;">Shop All</a>
+    <a href="{{ route('store.shop') }}" class="px-5 py-3" style="border-top:1px solid #eee;">{{ __('messages.Kiosk_ShopAll') }}</a>
     @foreach(($categories ?? collect())->take(8) as $cat)
       <a href="{{ route('store.shop', ['category' => $cat->id]) }}" class="px-5 py-3" style="border-top:1px solid #eee;">{{ Str::upper($cat->name) }}</a>
     @endforeach
@@ -113,24 +113,24 @@
     <p class="k-display" style="font-size:clamp(2.2rem,6vw,4.5rem); color:var(--kx-yellow); line-height:.95;">{{ $s->store_name ?? 'KIOSK' }}</p>
     <div class="grid grid-cols-2 md:grid-cols-4 gap-8 mt-10 pt-8" style="border-top:2px solid rgba(233,245,42,.25);">
       <div>
-        <p class="k-label mb-3" style="color:var(--kx-yellow);">Shop</p>
-        <a href="{{ route('store.shop') }}" class="text-sm block mb-1.5" style="color:#eee;">All Jewelry</a>
+        <p class="k-label mb-3" style="color:var(--kx-yellow);">{{ __('messages.Shop') }}</p>
+        <a href="{{ route('store.shop') }}" class="text-sm block mb-1.5" style="color:#eee;">{{ __('messages.Kiosk_AllJewelry') }}</a>
       </div>
       <div>
-        <p class="k-label mb-3" style="color:var(--kx-yellow);">Help</p>
-        <a href="{{ route('store.contact') }}" class="text-sm block mb-1.5" style="color:#eee;">Contact</a>
-        <a href="{{ route('account.orders') }}" class="text-sm block mb-1.5" style="color:#eee;">Track Order</a>
+        <p class="k-label mb-3" style="color:var(--kx-yellow);">{{ __('messages.Kiosk_Help') }}</p>
+        <a href="{{ route('store.contact') }}" class="text-sm block mb-1.5" style="color:#eee;">{{ __('messages.Kiosk_Contact') }}</a>
+        <a href="{{ route('account.orders') }}" class="text-sm block mb-1.5" style="color:#eee;">{{ __('messages.Kiosk_TrackOrder') }}</a>
       </div>
       <div>
-        <p class="k-label mb-3" style="color:var(--kx-yellow);">Account</p>
-        <a href="{{ route('store.login.show') }}" class="text-sm block mb-1.5" style="color:#eee;">Sign In</a>
+        <p class="k-label mb-3" style="color:var(--kx-yellow);">{{ __('messages.Account') }}</p>
+        <a href="{{ route('store.login.show') }}" class="text-sm block mb-1.5" style="color:#eee;">{{ __('messages.Kiosk_SignIn') }}</a>
       </div>
       <div>
-        <p class="k-label mb-3" style="color:var(--kx-yellow);">Get Drops First</p>
+        <p class="k-label mb-3" style="color:var(--kx-yellow);">{{ __('messages.Kiosk_GetDropsFirst') }}</p>
         <form action="{{ route('newsletter.subscribe') }}" method="POST" class="flex gap-2">
           @csrf
-          <input type="email" name="email" required placeholder="Email" class="flex-1 min-w-0 px-3 py-2 text-xs outline-none" style="background:#161616; border:2px solid #333; color:#fff;" />
-          <button type="submit" class="k-btn">GO</button>
+          <input type="email" name="email" required placeholder="{{ __('messages.Email') }}" class="flex-1 min-w-0 px-3 py-2 text-xs outline-none" style="background:#161616; border:2px solid #333; color:#fff;" />
+          <button type="submit" class="k-btn">{{ __('messages.Kiosk_Go') }}</button>
         </form>
       </div>
     </div>

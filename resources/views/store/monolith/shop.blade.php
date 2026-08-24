@@ -9,8 +9,8 @@
 @endphp
 
 <section class="max-w-7xl mx-auto px-8 pt-14 pb-8">
-  <p class="m-label mb-2" style="color:#9C7A54;">The Full Index</p>
-  <h1 class="m-serif" style="font-size:clamp(2rem,5vw,3.5rem); color:#F3F0EA;">The Collection</h1>
+  <p class="m-label mb-2" style="color:#9C7A54;">{{ __('messages.Monolith_TheFullIndex') }}</p>
+  <h1 class="m-serif" style="font-size:clamp(2rem,5vw,3.5rem); color:#F3F0EA;">{{ __('messages.Monolith_TheCollection') }}</h1>
   <div class="text-sm mt-3" style="color:#C4BDB0;">
     {{ trans_choice('messages.products', $total, ['count' => $total]) }}
     @if($hasFilters) · <span style="color:#C7A97A;">{{ __('messages.FiltersApplied') }}</span>@endif
@@ -29,8 +29,8 @@
       <option value="price_asc" @selected($sort === 'price_asc')>{{ __('messages.PriceUp') }}</option>
       <option value="price_desc" @selected($sort === 'price_desc')>{{ __('messages.PriceDown') }}</option>
     </select>
-    <button class="m-btn" type="submit">Update</button>
-    <button class="m-btn lg:hidden" type="button" @click="window.StoreUI.open('filtersDrawer')">Filters</button>
+    <button class="m-btn" type="submit">{{ __('messages.Update') }}</button>
+    <button class="m-btn lg:hidden" type="button" @click="window.StoreUI.open('filtersDrawer')">{{ __('messages.Filters') }}</button>
   </form>
 </section>
 

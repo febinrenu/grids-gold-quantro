@@ -10,8 +10,8 @@
 
 <section class="k-block-yellow" style="border-left:none; border-right:none; border-top:none; padding: 3rem 1.5rem;">
   <div class="max-w-7xl mx-auto">
-    <p class="k-label mb-2">The Full Drop List</p>
-    <h1 class="k-display" style="font-size:clamp(2rem,5vw,3.5rem);">Shop All</h1>
+    <p class="k-label mb-2">{{ __('messages.Kiosk_FullDropList') }}</p>
+    <h1 class="k-display" style="font-size:clamp(2rem,5vw,3.5rem);">{{ __('messages.Kiosk_ShopAll') }}</h1>
     <div class="text-sm mt-3">
       {{ trans_choice('messages.products', $total, ['count' => $total]) }}
       @if($hasFilters) · <span style="text-decoration:underline;">{{ __('messages.FiltersApplied') }}</span>@endif
@@ -30,8 +30,8 @@
         <option value="price_asc" @selected($sort === 'price_asc')>{{ __('messages.PriceUp') }}</option>
         <option value="price_desc" @selected($sort === 'price_desc')>{{ __('messages.PriceDown') }}</option>
       </select>
-      <button class="k-btn" type="submit">Update</button>
-      <button class="k-btn k-btn-alt lg:hidden" type="button" @click="window.StoreUI.open('filtersDrawer')">Filters</button>
+      <button class="k-btn" type="submit">{{ __('messages.Update') }}</button>
+      <button class="k-btn k-btn-alt lg:hidden" type="button" @click="window.StoreUI.open('filtersDrawer')">{{ __('messages.Filters') }}</button>
     </form>
   </div>
 </section>

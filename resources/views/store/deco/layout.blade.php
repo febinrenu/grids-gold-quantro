@@ -176,27 +176,27 @@
 @section('header')
 <div class="theme-deco">
   <div class="deco-top-bar uppercase font-semibold">
-    ✦ Free Royal Private Fittings &amp; Secure Worldwide Delivery ✦
+    ✦ {{ __('messages.Deco_TopBarMessage') }} ✦
   </div>
   <header class="deco-header py-5 px-4 md:px-8">
     <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
       <a href="{{ route('store.index') }}" class="font-deco-logo text-2xl md:text-3xl text-deco-cream font-bold text-center tracking-widest hover:text-deco-gold transition">
-        {{ $s->store_name ?? 'Deco Jewelers' }}
+        {{ $s->store_name ?? __('messages.Deco_DefaultStoreName') }}
       </a>
-      
+
       <nav class="flex flex-wrap items-center justify-center gap-2 md:gap-4 my-2">
-        <a href="{{ route('store.shop') }}" class="deco-nav-link">The Catalog</a>
+        <a href="{{ route('store.shop') }}" class="deco-nav-link">{{ __('messages.Deco_TheCatalog') }}</a>
         @foreach(($categories ?? collect())->take(4) as $cat)
           <a href="{{ route('store.shop', ['category' => $cat->id]) }}" class="deco-nav-link">{{ $cat->name }}</a>
         @endforeach
-        <a href="{{ route('store.contact') }}" class="deco-nav-link">Private Consult</a>
+        <a href="{{ route('store.contact') }}" class="deco-nav-link">{{ __('messages.Deco_PrivateConsult') }}</a>
       </nav>
 
       <div class="flex items-center gap-6 text-deco-cream">
-        <a href="{{ route('account') }}" aria-label="Account" class="hover:text-deco-gold transition">
+        <a href="{{ route('account') }}" aria-label="{{ __('messages.Account') }}" class="hover:text-deco-gold transition">
           <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-6 8-6s8 2 8 6"/></svg>
         </a>
-        <a href="{{ route('store.cart') }}" aria-label="Cart" class="relative hover:text-deco-gold transition">
+        <a href="{{ route('store.cart') }}" aria-label="{{ __('messages.Cart') }}" class="relative hover:text-deco-gold transition">
           <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 8V6a6 6 0 0112 0v2M4 8h16l-1.2 12.1a2 2 0 01-2 1.9H7.2a2 2 0 01-2-1.9L4 8z"/></svg>
           <span class="cart-count absolute -top-2 -right-2 text-[8px] w-4 h-4 rounded-full flex items-center justify-center font-bold" style="background:var(--deco-gold); color:var(--deco-emerald);">0</span>
         </a>
@@ -210,39 +210,39 @@
 <footer class="theme-deco py-16 px-4 md:px-8 border-t-4 double border-deco-gold" style="background:#04120D;">
   <div class="max-w-7xl mx-auto">
     <div class="text-center mb-12">
-      <h2 class="font-deco-logo text-3xl text-deco-gold mb-3">{{ $s->store_name ?? 'Deco Jewelers' }}</h2>
-      <p class="font-deco-title text-xs tracking-widest text-deco-cream/70 uppercase">Artisan Quality &bull; Art Deco Prestige &bull; Forever Treasured</p>
+      <h2 class="font-deco-logo text-3xl text-deco-gold mb-3">{{ $s->store_name ?? __('messages.Deco_DefaultStoreName') }}</h2>
+      <p class="font-deco-title text-xs tracking-widest text-deco-cream/70 uppercase">{{ __('messages.Deco_FooterTagline') }}</p>
       <div class="deco-line-double max-w-xl mx-auto my-6"></div>
     </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-12 text-sm text-deco-cream/80">
       <div>
-        <h4 class="font-deco-title text-deco-gold text-xs font-bold uppercase mb-4 tracking-wider">Bespoke Salons</h4>
-        <p class="leading-relaxed">{{ $s->contact_address ?? '1920 Golden Square, London' }}</p>
+        <h4 class="font-deco-title text-deco-gold text-xs font-bold uppercase mb-4 tracking-wider">{{ __('messages.Deco_BespokeSalons') }}</h4>
+        <p class="leading-relaxed">{{ $s->contact_address ?? __('messages.Deco_DefaultAddress') }}</p>
       </div>
       <div>
-        <h4 class="font-deco-title text-deco-gold text-xs font-bold uppercase mb-4 tracking-wider">Private Concierge</h4>
-        <p class="mb-2">Phone: {{ $s->contact_phone ?? '+44 20 7946 0958' }}</p>
-        <p>Email: {{ $s->contact_email ?? 'concierge@decojewelers.local' }}</p>
+        <h4 class="font-deco-title text-deco-gold text-xs font-bold uppercase mb-4 tracking-wider">{{ __('messages.Deco_PrivateConcierge') }}</h4>
+        <p class="mb-2">{{ __('messages.Phone') }}: {{ $s->contact_phone ?? '+44 20 7946 0958' }}</p>
+        <p>{{ __('messages.Email') }}: {{ $s->contact_email ?? 'concierge@decojewelers.local' }}</p>
       </div>
       <div>
-        <h4 class="font-deco-title text-deco-gold text-xs font-bold uppercase mb-4 tracking-wider">Client Services</h4>
-        <a href="{{ route('account') }}" class="block mb-2 hover:text-deco-gold transition">&bull; Private Account</a>
-        <a href="{{ route('store.contact') }}" class="block hover:text-deco-gold transition">&bull; Schedule Fitting</a>
+        <h4 class="font-deco-title text-deco-gold text-xs font-bold uppercase mb-4 tracking-wider">{{ __('messages.Deco_ClientServices') }}</h4>
+        <a href="{{ route('account') }}" class="block mb-2 hover:text-deco-gold transition">&bull; {{ __('messages.Deco_PrivateAccountLink') }}</a>
+        <a href="{{ route('store.contact') }}" class="block hover:text-deco-gold transition">&bull; {{ __('messages.Deco_ScheduleFitting') }}</a>
       </div>
       <div>
-        <h4 class="font-deco-title text-deco-gold text-xs font-bold uppercase mb-4 tracking-wider">Catalogue Updates</h4>
-        <p class="text-xs mb-3 text-deco-cream/60">Subscribe to receive notifications of exclusive private auctions and new drops.</p>
+        <h4 class="font-deco-title text-deco-gold text-xs font-bold uppercase mb-4 tracking-wider">{{ __('messages.Deco_CatalogueUpdates') }}</h4>
+        <p class="text-xs mb-3 text-deco-cream/60">{{ __('messages.Deco_NewsletterBlurb') }}</p>
         <form action="{{ route('newsletter.subscribe') }}" method="POST" class="flex gap-1 border border-deco-gold p-1 bg-deco-emerald">
           @csrf
-          <input type="email" name="email" required placeholder="Enter Email" class="flex-1 min-w-0 px-3 py-1.5 text-xs outline-none bg-transparent text-deco-cream" />
-          <button type="submit" class="px-4 py-1.5 text-xs bg-deco-gold text-deco-emerald font-bold tracking-widest uppercase hover:bg-deco-cream transition">Subscribe</button>
+          <input type="email" name="email" required placeholder="{{ __('messages.Deco_EnterEmailPlaceholder') }}" class="flex-1 min-w-0 px-3 py-1.5 text-xs outline-none bg-transparent text-deco-cream" />
+          <button type="submit" class="px-4 py-1.5 text-xs bg-deco-gold text-deco-emerald font-bold tracking-widest uppercase hover:bg-deco-cream transition">{{ __('messages.Subscribe') }}</button>
         </form>
       </div>
     </div>
 
     <div class="border-t border-deco-gold/30 pt-8 text-center text-xs text-deco-cream/40">
-      <p>&copy; {{ date('Y') }} {{ $s->store_name ?? 'Deco' }} Fine Jewelry. All Rights Reserved. Sourced Responsibly.</p>
+      <p>&copy; {{ date('Y') }} {{ $s->store_name ?? 'Deco' }} {{ __('messages.Deco_CopyrightTagline') }}</p>
     </div>
   </div>
 </footer>

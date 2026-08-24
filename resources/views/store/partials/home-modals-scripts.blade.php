@@ -29,35 +29,35 @@
           
           <!-- Jewelry specifications & pricing breakdown -->
           <div id="qvJewelryWrap" class="hidden mb-4 border border-line-subtle rounded-md p-3 bg-bg-muted/30">
-            <div class="font-semibold text-xs text-fg-secondary uppercase tracking-wider mb-2">Product Specifications</div>
+            <div class="font-semibold text-xs text-fg-secondary uppercase tracking-wider mb-2">{{ __('messages.Store_ProductSpecifications') }}</div>
             <div class="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs text-fg-muted mb-3 border-b border-line-subtle/50 pb-2.5">
-              <div>Metal Type: <span id="qvJewelryMetal" class="font-medium text-fg-primary">—</span></div>
-              <div>Karat: <span id="qvJewelryKarat" class="font-medium text-fg-primary">—</span></div>
-              <div>Gross Weight: <span id="qvJewelryGrossWeight" class="font-medium text-fg-primary">—</span></div>
-              <div>Net Weight: <span id="qvJewelryNetWeight" class="font-medium text-fg-primary">—</span></div>
-              <div class="col-span-2">Stones: <span id="qvJewelryStones" class="font-medium text-fg-primary">—</span></div>
+              <div>{{ __('messages.Store_MetalType') }}: <span id="qvJewelryMetal" class="font-medium text-fg-primary">—</span></div>
+              <div>{{ __('messages.Store_Karat') }}: <span id="qvJewelryKarat" class="font-medium text-fg-primary">—</span></div>
+              <div>{{ __('messages.Store_GrossWeight') }}: <span id="qvJewelryGrossWeight" class="font-medium text-fg-primary">—</span></div>
+              <div>{{ __('messages.Store_NetWeight') }}: <span id="qvJewelryNetWeight" class="font-medium text-fg-primary">—</span></div>
+              <div class="col-span-2">{{ __('messages.Store_Stones') }}: <span id="qvJewelryStones" class="font-medium text-fg-primary">—</span></div>
             </div>
-            
-            <div class="font-semibold text-xs text-fg-secondary uppercase tracking-wider mb-2">Price Breakdown</div>
+
+            <div class="font-semibold text-xs text-fg-secondary uppercase tracking-wider mb-2">{{ __('messages.Store_PriceBreakdown') }}</div>
             <div class="space-y-1 text-xs text-fg-muted">
               <div class="flex justify-between">
-                <span>Metal Value:</span>
+                <span>{{ __('messages.Store_MetalValue') }}:</span>
                 <span id="qvBdMetal">—</span>
               </div>
               <div class="flex justify-between">
-                <span>Wastage Value:</span>
+                <span>{{ __('messages.Store_WastageValue') }}:</span>
                 <span id="qvBdWastage">—</span>
               </div>
               <div class="flex justify-between">
-                <span>Making Charges:</span>
+                <span>{{ __('messages.Store_MakingCharges') }}:</span>
                 <span id="qvBdMaking">—</span>
               </div>
               <div class="flex justify-between">
-                <span>Stone Value:</span>
+                <span>{{ __('messages.Store_StoneValue') }}:</span>
                 <span id="qvBdStone">—</span>
               </div>
               <div class="flex justify-between font-semibold text-fg-primary pt-1.5 border-t border-line-subtle/50 mt-1">
-                <span>Base Price:</span>
+                <span>{{ __('messages.Store_BasePrice') }}:</span>
                 <span id="qvBdBase">—</span>
               </div>
             </div>
@@ -116,6 +116,8 @@
   const PREORDER_MSG = @json(__('messages.PreOrderNow'));
   const ADD_MSG = @json(__('messages.AddToCart'));
   const SELECT_VARIANT_MSG = @json(__('messages.SelectVariant'));
+  const NONE_MSG = @json(__('messages.Store_None'));
+  const ITEM_FALLBACK_MSG = @json(__('messages.Store_Item'));
   const HIDE_PRICES = !!window.__HIDE_PRICES__;
   const SHOW_STOCK = window.__SHOW_STOCK__ !== false;
 
@@ -226,7 +228,7 @@
         document.getElementById('qvJewelryKarat').textContent = karat || '—';
         document.getElementById('qvJewelryGrossWeight').textContent = grossWeight ? (grossWeight + ' g') : '—';
         document.getElementById('qvJewelryNetWeight').textContent = netWeight ? (netWeight + ' g') : '—';
-        document.getElementById('qvJewelryStones').textContent = stonesSummary || 'None';
+        document.getElementById('qvJewelryStones').textContent = stonesSummary || NONE_MSG;
         
         if (pricingBreakdown && typeof pricingBreakdown === 'object' && !Array.isArray(pricingBreakdown)) {
           const sym = qvProduct.currency || CURRENCY;
@@ -325,7 +327,7 @@
         id: String(qvProduct.id) + ':' + String(qvSelected.id),
         product_id: qvProduct.id,
         product_variant_id: Number(qvSelected.id),
-        name: (qvProduct.name || 'Item') + ' — ' + (qvSelected.name || ''),
+        name: (qvProduct.name || ITEM_FALLBACK_MSG) + ' — ' + (qvSelected.name || ''),
         variant_name: qvSelected.name || '',
         price: Number(priceUse || 0),
         qty: 1,
@@ -339,7 +341,7 @@
       item = {
         id: String(qvProduct.id),
         product_id: qvProduct.id,
-        name: qvProduct.name || 'Item',
+        name: qvProduct.name || ITEM_FALLBACK_MSG,
         price: Number(qvProduct.price || 0),
         qty: 1,
         image: qvProduct.image || NOIMG,
@@ -439,7 +441,7 @@
       id: String(vpProduct.id) + ':' + String(vpSelected.id),
       product_id: vpProduct.id,
       product_variant_id: Number(vpSelected.id),
-      name: (vpProduct.name || 'Item') + ' — ' + (vpSelected.name || ''),
+      name: (vpProduct.name || ITEM_FALLBACK_MSG) + ' — ' + (vpSelected.name || ''),
       variant_name: vpSelected.name || '',
       price: Number(priceUse || 0),
       qty: 1,

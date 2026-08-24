@@ -59,27 +59,27 @@
 @section('header')
 <div class="theme-ledger" style="background:#FAF7F0;">
   <div class="hidden md:block l-label" style="background:#1A1E2B; color:#C9B98A; text-align:center; padding:.5rem;">
-    {{ $s->topbar_text_left ?? 'A Curated Auction of Fine Jewelry' }}
+    {{ $s->topbar_text_left ?? __('messages.Ledger_TopbarCurated') }}
   </div>
   <div class="l-topbar">
-    <button id="lg-menuBtn" class="md:hidden l-label" style="border:1px solid #1A1E2B; padding:.4rem .6rem;" aria-label="Open menu">MENU</button>
-    <a href="{{ route('store.index') }}" class="l-word">{{ $s->store_name ?? 'The Ledger' }}</a>
+    <button id="lg-menuBtn" class="md:hidden l-label" style="border:1px solid #1A1E2B; padding:.4rem .6rem;" aria-label="{{ __('messages.Ledger_OpenMenu') }}">{{ __('messages.Ledger_Menu') }}</button>
+    <a href="{{ route('store.index') }}" class="l-word">{{ $s->store_name ?? __('messages.Ledger_StoreName') }}</a>
     <nav class="hidden md:flex items-center gap-7 l-label">
-      <a href="{{ route('store.shop') }}" class="hover:opacity-60 transition">Full Catalogue</a>
+      <a href="{{ route('store.shop') }}" class="hover:opacity-60 transition">{{ __('messages.Ledger_FullCatalogue') }}</a>
       @foreach(($categories ?? collect())->take(4) as $cat)
         <a href="{{ route('store.shop', ['category' => $cat->id]) }}" class="hover:opacity-60 transition">{{ $cat->name }}</a>
       @endforeach
     </nav>
     <div class="flex items-center gap-4" style="color:#1A1E2B;">
-      <a href="{{ route('account') }}" aria-label="Account"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-6 8-6s8 2 8 6"/></svg></a>
-      <a href="{{ route('store.cart') }}" aria-label="Cart" class="relative">
+      <a href="{{ route('account') }}" aria-label="{{ __('messages.Account') }}"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-6 8-6s8 2 8 6"/></svg></a>
+      <a href="{{ route('store.cart') }}" aria-label="{{ __('messages.Cart') }}" class="relative">
         <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 8V6a6 6 0 0112 0v2M4 8h16l-1.2 12.1a2 2 0 01-2 1.9H7.2a2 2 0 01-2-1.9L4 8z"/></svg>
         <span class="cart-count absolute -top-1.5 -right-1.5 text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-bold" style="background:#9E7A2A; color:#fff;">0</span>
       </a>
     </div>
   </div>
   <div id="lg-mobileNav" class="md:hidden hidden flex-col l-label" style="border-bottom:1px solid #E4DCC5;">
-    <a href="{{ route('store.shop') }}" class="px-5 py-3" style="border-top:1px solid #E4DCC5;">Full Catalogue</a>
+    <a href="{{ route('store.shop') }}" class="px-5 py-3" style="border-top:1px solid #E4DCC5;">{{ __('messages.Ledger_FullCatalogue') }}</a>
     @foreach(($categories ?? collect())->take(8) as $cat)
       <a href="{{ route('store.shop', ['category' => $cat->id]) }}" class="px-5 py-3" style="border-top:1px solid #E4DCC5;">{{ $cat->name }}</a>
     @endforeach
@@ -96,31 +96,31 @@
 @section('footer')
 <footer class="theme-ledger" style="background:#1A1E2B; color:#C9B98A; padding: 3rem 2rem 2rem;">
   <div class="max-w-6xl mx-auto">
-    <p class="l-serif" style="font-style:italic; font-size:2rem; color:#FAF7F0;">{{ $s->store_name ?? 'The Ledger' }}</p>
+    <p class="l-serif" style="font-style:italic; font-size:2rem; color:#FAF7F0;">{{ $s->store_name ?? __('messages.Ledger_StoreName') }}</p>
     <div class="grid grid-cols-2 md:grid-cols-4 gap-8 mt-8 pt-6" style="border-top:1px solid rgba(201,185,138,.2);">
       <div>
-        <p class="l-label mb-3" style="color:#C9B98A;">Enquiries</p>
+        <p class="l-label mb-3" style="color:#C9B98A;">{{ __('messages.Ledger_Enquiries') }}</p>
         <p class="text-sm" style="color:#a9a496;">{{ $s->contact_email ?? '' }}</p>
       </div>
       <div>
-        <p class="l-label mb-3" style="color:#C9B98A;">Client Care</p>
-        <a href="{{ route('store.contact') }}" class="text-sm block mb-1" style="color:#a9a496;">Contact Us</a>
-        <a href="{{ route('account.orders') }}" class="text-sm block" style="color:#a9a496;">Track Order</a>
+        <p class="l-label mb-3" style="color:#C9B98A;">{{ __('messages.Ledger_ClientCare') }}</p>
+        <a href="{{ route('store.contact') }}" class="text-sm block mb-1" style="color:#a9a496;">{{ __('messages.ContactUs') }}</a>
+        <a href="{{ route('account.orders') }}" class="text-sm block" style="color:#a9a496;">{{ __('messages.Ledger_TrackOrder') }}</a>
       </div>
       <div>
-        <p class="l-label mb-3" style="color:#C9B98A;">Account</p>
-        <a href="{{ route('store.login.show') }}" class="text-sm block" style="color:#a9a496;">Sign In</a>
+        <p class="l-label mb-3" style="color:#C9B98A;">{{ __('messages.Account') }}</p>
+        <a href="{{ route('store.login.show') }}" class="text-sm block" style="color:#a9a496;">{{ __('messages.Ledger_SignIn') }}</a>
       </div>
       <div>
-        <p class="l-label mb-3" style="color:#C9B98A;">Catalogue Alerts</p>
+        <p class="l-label mb-3" style="color:#C9B98A;">{{ __('messages.Ledger_CatalogueAlerts') }}</p>
         <form action="{{ route('newsletter.subscribe') }}" method="POST" class="flex gap-2">
           @csrf
-          <input type="email" name="email" required placeholder="Email" class="flex-1 min-w-0 px-3 py-2 text-xs outline-none" style="background:rgba(250,247,240,.05); border:1px solid rgba(201,185,138,.3); color:#FAF7F0;" />
+          <input type="email" name="email" required placeholder="{{ __('messages.Email') }}" class="flex-1 min-w-0 px-3 py-2 text-xs outline-none" style="background:rgba(250,247,240,.05); border:1px solid rgba(201,185,138,.3); color:#FAF7F0;" />
           <button type="submit" class="l-btn" style="background:#9E7A2A;">→</button>
         </form>
       </div>
     </div>
-    <p class="text-xs mt-8" style="opacity:.5;">© {{ date('Y') }} {{ $s->store_name ?? 'The Ledger' }}</p>
+    <p class="text-xs mt-8" style="opacity:.5;">© {{ date('Y') }} {{ $s->store_name ?? __('messages.Ledger_StoreName') }}</p>
   </div>
 </footer>
 @endsection

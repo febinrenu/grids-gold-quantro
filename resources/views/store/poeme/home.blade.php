@@ -11,7 +11,7 @@
     <div class="absolute inset-0 bg-gradient-to-t from-poeme-parchment via-transparent to-poeme-parchment/60"></div>
     
     <div class="max-w-4xl mx-auto text-center relative z-10 space-y-6">
-      <p class="font-poeme-serif text-poeme-grey text-sm italic tracking-wide">✦ Written in Gold, Sealed in Love ✦</p>
+      <p class="font-poeme-serif text-poeme-grey text-sm italic tracking-wide">✦ {{ __('messages.Poeme_TaglineHero') }} ✦</p>
       <h1 class="font-poeme-serif text-4xl sm:text-5xl md:text-6xl text-poeme-charcoal font-light leading-tight">
         {{ $s->hero_title ?? 'Ethereal Romance for the Modern Bride' }}
       </h1>
@@ -19,8 +19,8 @@
         {{ $s->hero_subtitle ?? 'A curated selection of delicate engagement bands, sparkling diamond drops, and vintage-inspired bridal sets created to hold your forever story.' }}
       </p>
       <div class="pt-4 flex justify-center gap-4">
-        <a href="{{ route('store.shop') }}" class="poeme-btn poeme-btn-solid">The Bridal Gallery</a>
-        <a href="{{ route('store.contact') }}" class="poeme-btn">Schedule Private Salon</a>
+        <a href="{{ route('store.shop') }}" class="poeme-btn poeme-btn-solid">{{ __('messages.Poeme_BridalGallery') }}</a>
+        <a href="{{ route('store.contact') }}" class="poeme-btn">{{ __('messages.Poeme_SchedulePrivateSalon') }}</a>
       </div>
     </div>
   </section>
@@ -30,15 +30,15 @@
     <div class="grid md:grid-cols-2 gap-12 items-center">
       <div class="space-y-6">
         <p class="font-poeme-serif italic text-poeme-grey text-sm tracking-wide">A Story Worth Wearing</p>
-        <h2 class="font-poeme-serif text-3xl md:text-4xl font-light leading-tight text-poeme-charcoal">Hand-Crafted Romantic Heritage</h2>
+        <h2 class="font-poeme-serif text-3xl md:text-4xl font-light leading-tight text-poeme-charcoal">{{ __('messages.Poeme_HeritageTitle') }}</h2>
         <p class="text-sm text-poeme-grey leading-relaxed font-light">
-          Each ring set is hand-carved in wax before being cast in recycled 18-karat gold. Our master jewelers select diamonds of perfect color matching, creating clusters that mimic botanical petals and starlight patterns.
+          {{ __('messages.Poeme_HeritageParagraph1') }}
         </p>
         <p class="text-sm text-poeme-grey leading-relaxed font-light">
-          From thin stackable wedding bands to bold heirloom statement pendants, wear fine jewelry that matches the soft purity of devotion.
+          {{ __('messages.Poeme_HeritageParagraph2') }}
         </p>
         <div class="pt-2">
-          <a href="{{ route('store.shop') }}" class="poeme-btn">View Family Archives</a>
+          <a href="{{ route('store.shop') }}" class="poeme-btn">{{ __('messages.Poeme_ViewFamilyArchives') }}</a>
         </div>
       </div>
       <div class="relative p-3 bg-white rounded-[2rem] border border-poeme-champagne shadow-sm overflow-hidden">
@@ -52,8 +52,8 @@
   <!-- ============ CIRCULAR CATEGORIES GRID ============ -->
   <section class="py-16 px-4 md:px-8 max-w-7xl mx-auto border-b border-poeme-champagne/30">
     <div class="text-center mb-12">
-      <p class="font-poeme-serif text-poeme-grey italic text-sm mb-1">Delicate Details</p>
-      <h2 class="font-poeme-serif text-3xl font-light text-poeme-charcoal">The Romance Archives</h2>
+      <p class="font-poeme-serif text-poeme-grey italic text-sm mb-1">{{ __('messages.Poeme_DelicateDetails') }}</p>
+      <h2 class="font-poeme-serif text-3xl font-light text-poeme-charcoal">{{ __('messages.Poeme_RomanceArchives') }}</h2>
       <div class="poeme-line max-w-xs mx-auto mt-4"></div>
     </div>
 
@@ -74,7 +74,7 @@
           <h3 class="font-poeme-serif text-base text-poeme-charcoal group-hover:text-poeme-grey transition font-semibold">{{ $cat->name }}</h3>
         </a>
       @empty
-        <div class="col-span-full text-center text-sm opacity-50">No categories loaded.</div>
+        <div class="col-span-full text-center text-sm opacity-50">{{ __('messages.Poeme_NoCategoriesLoaded') }}</div>
       @endforelse
     </div>
   </section>
@@ -88,14 +88,14 @@
         </div>
       </div>
       <div class="space-y-6 order-1 md:order-2">
-        <p class="font-poeme-serif italic text-poeme-grey text-sm tracking-wide">Soft Splendor</p>
-        <h2 class="font-poeme-serif text-3xl md:text-4xl font-light text-poeme-charcoal">The Ethereal Bridal Sets</h2>
+        <p class="font-poeme-serif italic text-poeme-grey text-sm tracking-wide">{{ __('messages.Poeme_SoftSplendor') }}</p>
+        <h2 class="font-poeme-serif text-3xl md:text-4xl font-light text-poeme-charcoal">{{ __('messages.Poeme_EtherealBridalSets') }}</h2>
         <p class="text-sm text-poeme-grey leading-relaxed font-light">
-          Find matching diamond pendants, lace-like filigree wedding rings, and drop earrings designed to complete the bride's visual silhouette. Each piece is weight-optimized for complete, delicate comfort on your special day.
+          {{ __('messages.Poeme_BridalSetsParagraph') }}
         </p>
         <div class="pt-4 flex gap-4 flex-wrap">
-          <a href="{{ route('store.shop', ['collection' => 'bridal']) }}" class="poeme-btn poeme-btn-solid">The Bridal Gallery</a>
-          <a href="{{ route('store.contact') }}" class="poeme-btn">Book Virtual Fitting</a>
+          <a href="{{ route('store.shop', ['collection' => 'bridal']) }}" class="poeme-btn poeme-btn-solid">{{ __('messages.Poeme_BridalGallery') }}</a>
+          <a href="{{ route('store.contact') }}" class="poeme-btn">{{ __('messages.Poeme_BookVirtualFitting') }}</a>
         </div>
       </div>
     </div>
@@ -104,8 +104,8 @@
   <!-- ============ FEATURED PRODUCTS ============ -->
   <section id="featured" class="py-16 px-4 md:px-8 max-w-7xl mx-auto">
     <div class="text-center mb-12">
-      <p class="font-poeme-serif text-poeme-grey italic text-sm mb-1">✦ The Poetry collection ✦</p>
-      <h2 class="font-poeme-serif text-3xl font-light text-poeme-charcoal">Handcrafted Romance Keepsakes</h2>
+      <p class="font-poeme-serif text-poeme-grey italic text-sm mb-1">✦ {{ __('messages.Poeme_PoetryCollection') }} ✦</p>
+      <h2 class="font-poeme-serif text-3xl font-light text-poeme-charcoal">{{ __('messages.Poeme_HandcraftedKeepsakes') }}</h2>
       <div class="poeme-line max-w-xs mx-auto mt-4"></div>
     </div>
 
@@ -179,9 +179,9 @@
               <img src="{{ $imgUrl }}" alt="{{ $p->name }}" class="w-full h-full object-cover">
             </a>
             @if($isPreorderActive)
-              <span class="poeme-badge">PRE-ORDER</span>
+              <span class="poeme-badge">{{ __('messages.Poeme_Preorder') }}</span>
             @elseif(!$isAvailable)
-              <span class="poeme-badge" style="background:#8C3D3D; color:white;">OUT OF STOCK</span>
+              <span class="poeme-badge" style="background:#8C3D3D; color:white;">{{ __('messages.OutOfStock') }}</span>
             @endif
           </div>
 
@@ -240,14 +240,14 @@
                       data-variants='@json($variantPayload)'
                       data-stock="{{ $productStock }}"
                       data-is-jewelry="{{ $isJewelry ? '1' : '0' }}"
-                      data-added-label="ADDED">
-                ADD TO CART
+                      data-added-label="{{ __('messages.Added') }}">
+                {{ __('messages.AddToCart') }}
               </button>
             </div>
           </div>
         </div>
       @empty
-        <div class="col-span-full text-center text-sm font-poeme-serif italic opacity-50">No romantic lots catalogued.</div>
+        <div class="col-span-full text-center text-sm font-poeme-serif italic opacity-50">{{ __('messages.Poeme_NoLotsCatalogued') }}</div>
       @endforelse
     </div>
   </section>
@@ -257,7 +257,7 @@
     <div class="space-y-6">
       <svg class="w-8 h-8 mx-auto text-poeme-champagne" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
       <p class="font-poeme-serif italic text-2xl text-poeme-charcoal font-light leading-relaxed">
-        "Fine jewelry should not just be gold and diamonds. It should be a physical poem, representing the soft words spoken in private salons."
+        {{ __('messages.Poeme_BrandQuote') }}
       </p>
       <p class="font-poeme-sans text-[10px] tracking-widest text-poeme-grey uppercase font-bold">&mdash; The Poeme Design Studio &mdash;</p>
     </div>

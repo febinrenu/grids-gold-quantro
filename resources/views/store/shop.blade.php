@@ -9,13 +9,13 @@
 
 {{-- ===== Top bar ===== --}}
 <section class="border-b border-line-subtle"
-         style="background: linear-gradient(135deg, rgb(var(--color-accent-500) / .04), rgb(var(--color-bg-surface)));">
-  <div class="container py-6">
+         style="background: linear-gradient(135deg, rgb(var(--color-accent-500) / .05), rgb(var(--color-bg-surface)));">
+  <div class="container py-8 lg:py-10">
     <div class="flex items-end justify-between flex-wrap gap-4">
       <div>
         <span class="section-kicker">{{ __('messages.Shop') }}</span>
-        <h1 class="section-title mt-1">{{ __('messages.Shop') }}</h1>
-        <div class="text-sm text-fg-muted mt-1">
+        <h1 class="section-title mt-1.5 text-3xl lg:text-4xl">{{ __('messages.Shop') }}</h1>
+        <div class="text-sm text-fg-muted mt-2">
           {{ trans_choice('messages.products', $total, ['count' => $total]) }}
           @if($hasFilters) · <span class="text-accent-500">{{ __('messages.FiltersApplied') }}</span>@endif
         </div>
@@ -53,8 +53,8 @@
   </div>
 </section>
 
-<div class="container py-8">
-  <div class="grid lg:grid-cols-[280px_1fr] gap-6">
+<div class="container py-10 lg:py-12">
+  <div class="grid lg:grid-cols-[280px_1fr] gap-8">
     {{-- ===== Sidebar filters (desktop) ===== --}}
     <aside class="hidden lg:block">
       @include('store.partials.filters-card', [

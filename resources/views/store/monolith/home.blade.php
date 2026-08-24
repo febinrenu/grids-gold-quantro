@@ -9,20 +9,20 @@
   <section class="max-w-7xl mx-auto px-6 md:px-8 pt-12 pb-16">
     <div class="grid md:grid-cols-2 gap-10 items-center">
       <div>
-        <p class="m-label mb-5" style="color:var(--mono-rust);">Object N°001 — {{ now()->format('Y') }} Collection</p>
-        <h1 class="m-serif" style="font-weight:480; font-size:clamp(2.6rem,6vw,4.6rem); line-height:1.02; color:var(--mono-ink);">{{ $s->hero_title ?? 'Form Follows Material' }}</h1>
-        <p class="text-sm mt-6 max-w-sm" style="color:var(--mono-moss);">{{ $s->hero_subtitle ?? 'A single collection of considered objects — shaped by hand, catalogued one by one.' }}</p>
+        <p class="m-label mb-5" style="color:var(--mono-rust);">{{ __('messages.Monolith_ObjectYear', ['year' => now()->format('Y')]) }}</p>
+        <h1 class="m-serif" style="font-weight:480; font-size:clamp(2.6rem,6vw,4.6rem); line-height:1.02; color:var(--mono-ink);">{{ $s->hero_title ?? __('messages.Monolith_HeroTitle') }}</h1>
+        <p class="text-sm mt-6 max-w-sm" style="color:var(--mono-moss);">{{ $s->hero_subtitle ?? __('messages.Monolith_HeroSubtitle') }}</p>
         <div class="flex flex-wrap gap-3 mt-8">
-          <a href="{{ route('store.shop') }}" class="m-btn m-btn-solid">View The Index</a>
-          <a href="{{ route('store.contact') }}" class="m-btn">Visit The Studio</a>
+          <a href="{{ route('store.shop') }}" class="m-btn m-btn-solid">{{ __('messages.Monolith_ViewTheIndex') }}</a>
+          <a href="{{ route('store.contact') }}" class="m-btn">{{ __('messages.Monolith_VisitTheStudio') }}</a>
         </div>
       </div>
       <div class="relative" style="padding-bottom:1.5rem;">
         <div style="border-radius:8px; overflow:hidden; aspect-ratio:4/5;">
-          <img src="https://images.unsplash.com/photo-1611652022419-a9419f74343d?auto=format&fit=crop&w=900&q=80" alt="Gold necklace detail" style="width:100%; height:100%; object-fit:cover;">
+          <img src="https://images.unsplash.com/photo-1611652022419-a9419f74343d?auto=format&fit=crop&w=900&q=80" alt="{{ __('messages.Monolith_AltGoldNecklace') }}" style="width:100%; height:100%; object-fit:cover;">
         </div>
         <div class="hidden md:block absolute -bottom-2 -left-10" style="width:44%; border-radius:8px; overflow:hidden; aspect-ratio:1; box-shadow:0 20px 40px -12px rgba(35,48,31,.35); border:6px solid var(--mono-paper);">
-          <img src="https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=700&q=80" alt="Ring detail" style="width:100%; height:100%; object-fit:cover;">
+          <img src="https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=700&q=80" alt="{{ __('messages.Monolith_AltRingDetail') }}" style="width:100%; height:100%; object-fit:cover;">
         </div>
       </div>
     </div>
@@ -32,8 +32,8 @@
   <section class="py-14">
     <div class="max-w-[100rem] mx-auto">
       <div class="flex items-baseline justify-between px-6 md:px-8 mb-6">
-        <p class="m-label" style="color:var(--mono-moss);">Departments</p>
-        <a href="{{ route('store.shop') }}" class="m-label hover:opacity-60 transition" style="color:var(--mono-rust);">All →</a>
+        <p class="m-label" style="color:var(--mono-moss);">{{ __('messages.Monolith_Departments') }}</p>
+        <a href="{{ route('store.shop') }}" class="m-label hover:opacity-60 transition" style="color:var(--mono-rust);">{{ __('messages.Monolith_All') }} →</a>
       </div>
       @php $cats = ($categories ?? collect())->take(4); @endphp
       <div class="m-mosaic {{ $cats->isEmpty() ? 'm-mosaic-empty' : '' }}">
@@ -52,7 +52,7 @@
         @empty
           <div class="m-tile" style="grid-area: a;">
             <img src="https://images.unsplash.com/photo-1611652022419-a9419f74343d?auto=format&fit=crop&w=1200&q=80" alt="">
-            <span class="m-tile-cap">The Index</span>
+            <span class="m-tile-cap">{{ __('messages.Monolith_TheIndex') }}</span>
           </div>
         @endforelse
       </div>
@@ -64,14 +64,14 @@
     <img src="https://images.unsplash.com/photo-1573408301185-9146fe634ad0?auto=format&fit=crop&w=1600&q=80" alt="" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover;">
     <div style="position:absolute; inset:0; background:linear-gradient(180deg, rgba(35,48,31,.15), rgba(35,48,31,.75));"></div>
     <div class="relative h-full flex items-center justify-center px-6 text-center">
-      <p class="m-serif" style="font-style:italic; font-size:clamp(1.4rem,3.5vw,2.4rem); color:var(--mono-paper); max-width:38rem;">"{{ $s->footer_text ?? 'We make fewer things, and we make them properly.' }}"</p>
+      <p class="m-serif" style="font-style:italic; font-size:clamp(1.4rem,3.5vw,2.4rem); color:var(--mono-paper); max-width:38rem;">"{{ $s->footer_text ?? __('messages.Monolith_FooterQuote') }}"</p>
     </div>
   </section>
 
   <!-- ============ CATALOG LISTING — numbered rows, not a card grid (real products) ============ -->
   <section class="max-w-4xl mx-auto px-6 md:px-8 py-14">
-    <p class="m-label mb-2" style="color:var(--mono-moss);">The Collection</p>
-    <p class="m-serif" style="font-size:2.2rem; color:var(--mono-ink);">Recently Catalogued</p>
+    <p class="m-label mb-2" style="color:var(--mono-moss);">{{ __('messages.Monolith_TheCollection') }}</p>
+    <p class="m-serif" style="font-size:2.2rem; color:var(--mono-ink);">{{ __('messages.Monolith_RecentlyCatalogued') }}</p>
     <div class="mt-8">
       @php $currency = $s->currency_code ?? '$'; $items = ($products ?? collect())->take(6); @endphp
       @forelse($items as $i => $p)
@@ -92,26 +92,26 @@
           </div>
         </div>
       @empty
-        <p class="text-sm" style="color:var(--mono-moss);">The index is currently empty.</p>
+        <p class="text-sm" style="color:var(--mono-moss);">{{ __('messages.Monolith_IndexEmpty') }}</p>
       @endforelse
     </div>
     <div class="mt-10">
-      <a href="{{ route('store.shop') }}" class="m-btn m-btn-solid">View Full Index</a>
+      <a href="{{ route('store.shop') }}" class="m-btn m-btn-solid">{{ __('messages.Monolith_ViewFullIndex') }}</a>
     </div>
   </section>
 
   <!-- ============ ATELIER GALLERY — 3-image strip, more content ============ -->
   <section class="max-w-7xl mx-auto px-6 md:px-8 pb-14">
-    <p class="m-label mb-6" style="color:var(--mono-moss);">From The Studio</p>
+    <p class="m-label mb-6" style="color:var(--mono-moss);">{{ __('messages.Monolith_FromTheStudio') }}</p>
     <div class="grid md:grid-cols-3 gap-4">
       <div style="border-radius:8px; overflow:hidden; aspect-ratio:3/4;">
-        <img src="https://images.unsplash.com/photo-1616401784845-180882ba9ba8?auto=format&fit=crop&w=700&q=80" alt="Hand-finishing a ring" style="width:100%; height:100%; object-fit:cover;">
+        <img src="https://images.unsplash.com/photo-1616401784845-180882ba9ba8?auto=format&fit=crop&w=700&q=80" alt="{{ __('messages.Monolith_AltHandFinishing') }}" style="width:100%; height:100%; object-fit:cover;">
       </div>
       <div style="border-radius:8px; overflow:hidden; aspect-ratio:3/4;">
-        <img src="https://images.unsplash.com/photo-1611591437281-460bfbe1220a?auto=format&fit=crop&w=700&q=80" alt="Workbench and tools" style="width:100%; height:100%; object-fit:cover;">
+        <img src="https://images.unsplash.com/photo-1611591437281-460bfbe1220a?auto=format&fit=crop&w=700&q=80" alt="{{ __('messages.Monolith_AltWorkbench') }}" style="width:100%; height:100%; object-fit:cover;">
       </div>
       <div style="border-radius:8px; overflow:hidden; aspect-ratio:3/4;">
-        <img src="https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=700&q=80" alt="Finished ring on velvet" style="width:100%; height:100%; object-fit:cover;">
+        <img src="https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=700&q=80" alt="{{ __('messages.Monolith_AltFinishedRing') }}" style="width:100%; height:100%; object-fit:cover;">
       </div>
     </div>
   </section>
@@ -119,8 +119,8 @@
   <!-- ============ EDITORIAL SPLIT — real product cards for the shared cart/quickview wiring ============ -->
   <section class="max-w-7xl mx-auto px-6 md:px-8 pb-16" style="border-top:1px solid rgba(35,48,31,.1); padding-top:3.5rem;">
     <div class="flex items-end justify-between mb-6">
-      <p class="m-serif" style="font-size:2rem; color:var(--mono-ink);">More From The Index</p>
-      <a href="{{ route('store.shop') }}" class="m-label hover:opacity-60 transition" style="color:var(--mono-rust);">View All →</a>
+      <p class="m-serif" style="font-size:2rem; color:var(--mono-ink);">{{ __('messages.Monolith_MoreFromTheIndex') }}</p>
+      <a href="{{ route('store.shop') }}" class="m-label hover:opacity-60 transition" style="color:var(--mono-rust);">{{ __('messages.ViewAll') }} →</a>
     </div>
     <div class="grid md:grid-cols-3 gap-4">
       @php $more = ($products ?? collect())->slice(6, 3); @endphp

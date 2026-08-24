@@ -9,19 +9,19 @@
   <section class="bg-brand-cream">
     <div class="max-w-7xl mx-auto px-4 py-10 md:py-16 grid md:grid-cols-2 gap-10 items-center">
       <div>
-        <p class="tracking-wider2 text-xs font-semibold text-[#5a5340] mb-3">RAW. HONEST. ROOTED IN NATURE.</p>
-        <h1 class="font-serif text-4xl sm:text-5xl md:text-[52px] leading-[1.1] mb-5 text-[#242018]">{{ $s->hero_title ?? 'Gems, As Nature' }}<br/><span class="italic">Made Them</span></h1>
-        <p class="text-[#5a5340] max-w-sm mb-7 text-sm md:text-base leading-relaxed">{{ $s->hero_subtitle ?? 'Raw gemstones and botanical motifs, hand-set in ethically sourced gold — jewelry that feels as honest as the earth it comes from.' }}</p>
+        <p class="tracking-wider2 text-xs font-semibold text-[#5a5340] mb-3">{{ __('messages.Naturae_TopBadge') }}</p>
+        <h1 class="font-serif text-4xl sm:text-5xl md:text-[52px] leading-[1.1] mb-5 text-[#242018]">{{ $s->hero_title ?? __('messages.Naturae_HeroTitleDefault') }}<br/><span class="italic">{{ __('messages.Naturae_HeroTitleMadeThem') }}</span></h1>
+        <p class="text-[#5a5340] max-w-sm mb-7 text-sm md:text-base leading-relaxed">{{ $s->hero_subtitle ?? __('messages.Naturae_HeroSubtitleDefault') }}</p>
         <div class="flex flex-wrap items-center gap-3">
-          <a href="#bestsellers" class="inline-flex items-center gap-2 bg-brand-green hover:bg-[#3a4630] transition text-white font-semibold px-7 py-3.5 text-sm rounded-full">SHOP NOW
+          <a href="#bestsellers" class="inline-flex items-center gap-2 bg-brand-green hover:bg-[#3a4630] transition text-white font-semibold px-7 py-3.5 text-sm rounded-full">{{ __('messages.Naturae_ShopNowCaps') }}
             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
           </a>
-          <a href="{{ route('store.contact') }}" class="inline-flex items-center gap-2 border border-[#242018]/25 text-[#242018] font-semibold px-7 py-3.5 text-sm rounded-full hover:bg-black/5 transition">OUR STORY</a>
+          <a href="{{ route('store.contact') }}" class="inline-flex items-center gap-2 border border-[#242018]/25 text-[#242018] font-semibold px-7 py-3.5 text-sm rounded-full hover:bg-black/5 transition">{{ __('messages.Naturae_OurStoryCaps') }}</a>
         </div>
         <div class="hidden md:flex items-center gap-6 mt-10 pt-6 border-t border-black/10 text-xs text-[#5a5340]">
-          <span class="flex items-center gap-2"><svg class="w-4 h-4 text-brand-green shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3c1 2-1 3-1 5a4 4 0 108 0c0-3-2-4-3-6M8 10a6 6 0 106 10V10"/></svg>Ethically Sourced Stones</span>
-          <span class="flex items-center gap-2"><svg class="w-4 h-4 text-brand-green shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M8 12h8M12 8v8"/></svg>Conflict-Free Gold</span>
-          <span class="flex items-center gap-2"><svg class="w-4 h-4 text-brand-green shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 21s7-6.5 7-11.5A7 7 0 105 9.5C5 14.5 12 21 12 21z"/><path d="M9 10l2 2 4-4"/></svg>Handcrafted in Small Batches</span>
+          <span class="flex items-center gap-2"><svg class="w-4 h-4 text-brand-green shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3c1 2-1 3-1 5a4 4 0 108 0c0-3-2-4-3-6M8 10a6 6 0 106 10V10"/></svg>{{ __('messages.Naturae_EthicallySourcedStones') }}</span>
+          <span class="flex items-center gap-2"><svg class="w-4 h-4 text-brand-green shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M8 12h8M12 8v8"/></svg>{{ __('messages.Naturae_ConflictFreeGold') }}</span>
+          <span class="flex items-center gap-2"><svg class="w-4 h-4 text-brand-green shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 21s7-6.5 7-11.5A7 7 0 105 9.5C5 14.5 12 21 12 21z"/><path d="M9 10l2 2 4-4"/></svg>{{ __('messages.Naturae_HandcraftedSmallBatches') }}</span>
         </div>
       </div>
 
@@ -31,24 +31,24 @@
                alt="Rose gold gemstone cluster ring resting on natural linen" class="w-full h-full object-cover" loading="eager">
         </div>
         <div class="hidden md:block absolute -bottom-8 -right-6 bg-white rounded-[2rem] shadow-xl px-6 py-5 max-w-[220px] border border-black/5">
-          <p class="font-serif italic text-lg text-[#242018] leading-snug">"Jewelry that grows more beautiful with time."</p>
-          <p class="text-[11px] text-[#5a5340] mt-2 tracking-wider2">— THE NATURAE JOURNAL</p>
+          <p class="font-serif italic text-lg text-[#242018] leading-snug">"{{ __('messages.Naturae_QuoteGrowsBeautiful') }}"</p>
+          <p class="text-[11px] text-[#5a5340] mt-2 tracking-wider2">— {{ __('messages.Naturae_JournalCredit') }}</p>
         </div>
       </div>
     </div>
 
     <div class="md:hidden grid grid-cols-3 gap-3 max-w-7xl mx-auto px-4 pb-8 text-[10px] text-[#5a5340] text-center">
-      <span>Ethically Sourced Stones</span>
-      <span>Conflict-Free Gold</span>
-      <span>Handcrafted in Small Batches</span>
+      <span>{{ __('messages.Naturae_EthicallySourcedStones') }}</span>
+      <span>{{ __('messages.Naturae_ConflictFreeGold') }}</span>
+      <span>{{ __('messages.Naturae_HandcraftedSmallBatches') }}</span>
     </div>
   </section>
 
   <!-- ============ CATEGORY CIRCLES (real categories) ============ -->
   <section class="max-w-7xl mx-auto px-4 py-10">
     <div class="text-center mb-6">
-      <p class="tracking-wider2 text-xs font-semibold text-[#5a5340]">EXPLORE</p>
-      <h2 class="font-serif text-2xl text-[#242018] mt-1">Shop by Collection</h2>
+      <p class="tracking-wider2 text-xs font-semibold text-[#5a5340]">{{ __('messages.Naturae_Explore') }}</p>
+      <h2 class="font-serif text-2xl text-[#242018] mt-1">{{ __('messages.Naturae_ShopByCollection') }}</h2>
     </div>
     <div class="grid grid-cols-4 md:grid-cols-8 gap-4 md:gap-5 text-center">
       @php
@@ -75,7 +75,7 @@
           <span class="text-[10.5px] md:text-xs font-medium">{{ $cat->name }}</span>
         </a>
       @empty
-        <p class="col-span-full text-sm text-[#5a5340]">Categories will appear here once added.</p>
+        <p class="col-span-full text-sm text-[#5a5340]">{{ __('messages.Naturae_CategoriesEmpty') }}</p>
       @endforelse
     </div>
   </section>
@@ -87,10 +87,10 @@
            alt="Rose gold bracelet resting on a soft blush surface" class="absolute inset-0 w-full h-full object-cover">
       <div class="absolute inset-0 bg-gradient-to-r from-[#242018]/70 via-[#242018]/20 to-transparent"></div>
       <div class="relative z-10 max-w-md px-8 md:px-14 py-10">
-        <p class="tracking-wider2 text-xs font-semibold text-brand-tan mb-3">SOURCED FROM THE EARTH</p>
-        <h3 class="font-serif text-3xl md:text-4xl text-white mb-4 leading-tight">Every piece traced back to where it began.</h3>
-        <p class="text-sm text-white/80 mb-6 leading-relaxed">We work directly with small-scale miners and certified refiners so every gram of gold and every carat of stone can be traced — no exceptions.</p>
-        <a href="{{ route('store.contact') }}" class="inline-flex items-center gap-2 bg-white hover:bg-brand-tan transition text-[#242018] font-semibold px-6 py-3 text-xs tracking-wider2 rounded-full w-fit">READ OUR SOURCING STORY</a>
+        <p class="tracking-wider2 text-xs font-semibold text-brand-tan mb-3">{{ __('messages.Naturae_SourcedFromEarth') }}</p>
+        <h3 class="font-serif text-3xl md:text-4xl text-white mb-4 leading-tight">{{ __('messages.Naturae_EveryPieceTraced') }}</h3>
+        <p class="text-sm text-white/80 mb-6 leading-relaxed">{{ __('messages.Naturae_SourcingParagraph') }}</p>
+        <a href="{{ route('store.contact') }}" class="inline-flex items-center gap-2 bg-white hover:bg-brand-tan transition text-[#242018] font-semibold px-6 py-3 text-xs tracking-wider2 rounded-full w-fit">{{ __('messages.Naturae_ReadSourcingStory') }}</a>
       </div>
     </div>
   </section>
@@ -100,10 +100,10 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
       <div class="relative rounded-[1.75rem] overflow-hidden min-h-[210px] p-6 flex flex-col justify-between bg-[#EFE7D8]">
         <div class="relative z-10">
-          <h3 class="font-serif text-xl text-[#242018] mb-1">New Arrivals</h3>
-          <p class="text-xs text-[#5a5340]">Fresh cuts you'll love</p>
+          <h3 class="font-serif text-xl text-[#242018] mb-1">{{ __('messages.Naturae_NewArrivals') }}</h3>
+          <p class="text-xs text-[#5a5340]">{{ __('messages.Naturae_FreshCuts') }}</p>
         </div>
-        <a href="{{ route('store.shop', ['sort' => 'latest']) }}" class="relative z-10 inline-flex items-center gap-1.5 text-xs font-semibold text-[#242018] tracking-wider2 hover:opacity-70 transition w-fit mt-3">SHOP NOW
+        <a href="{{ route('store.shop', ['sort' => 'latest']) }}" class="relative z-10 inline-flex items-center gap-1.5 text-xs font-semibold text-[#242018] tracking-wider2 hover:opacity-70 transition w-fit mt-3">{{ __('messages.Naturae_ShopNowCaps') }}
           <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
         </a>
       </div>
@@ -112,19 +112,19 @@
              alt="Faceted teal gemstone pendant on layered gold chains" class="absolute inset-0 w-full h-full object-cover">
         <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent"></div>
         <div class="relative z-10 h-full p-6 flex flex-col justify-end">
-          <h3 class="font-serif text-xl text-white mb-1">Gemstone Sets</h3>
-          <p class="text-xs text-white/80 max-w-[180px] mb-3">Matching rings, earrings &amp; pendants</p>
-          <a href="{{ route('store.shop') }}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-white tracking-wider2 hover:text-brand-tan transition w-fit">SHOP SETS
+          <h3 class="font-serif text-xl text-white mb-1">{{ __('messages.Naturae_GemstoneSets') }}</h3>
+          <p class="text-xs text-white/80 max-w-[180px] mb-3">{{ __('messages.Naturae_MatchingRings') }}</p>
+          <a href="{{ route('store.shop') }}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-white tracking-wider2 hover:text-brand-tan transition w-fit">{{ __('messages.Naturae_ShopSetsCaps') }}
             <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
           </a>
         </div>
       </div>
       <div class="relative rounded-[1.75rem] overflow-hidden min-h-[210px] p-6 flex flex-col justify-between bg-brand-green">
         <div class="relative z-10">
-          <h3 class="font-serif text-xl text-white mb-1">Ethically Sourced</h3>
-          <p class="text-xs text-white/70 max-w-[180px]">Conflict-free gold, traceable stones</p>
+          <h3 class="font-serif text-xl text-white mb-1">{{ __('messages.Naturae_EthicallySourced') }}</h3>
+          <p class="text-xs text-white/70 max-w-[180px]">{{ __('messages.Naturae_ConflictFreeGoldTraceable') }}</p>
         </div>
-        <a href="{{ route('store.contact') }}" class="relative z-10 inline-flex items-center gap-1.5 text-xs font-semibold text-white tracking-wider2 hover:text-brand-tan transition w-fit mt-3">LEARN MORE
+        <a href="{{ route('store.contact') }}" class="relative z-10 inline-flex items-center gap-1.5 text-xs font-semibold text-white tracking-wider2 hover:text-brand-tan transition w-fit mt-3">{{ __('messages.Naturae_LearnMoreCaps') }}
           <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
         </a>
       </div>
@@ -135,10 +135,10 @@
   <section id="bestsellers" class="max-w-7xl mx-auto px-4 pb-10">
     <div class="flex items-center justify-between mb-5">
       <div>
-        <p class="tracking-wider2 text-xs font-semibold text-[#5a5340]">CURATED FOR YOU</p>
-        <h2 class="font-serif text-2xl text-[#242018] mt-1">Best Sellers</h2>
+        <p class="tracking-wider2 text-xs font-semibold text-[#5a5340]">{{ __('messages.Naturae_CuratedForYou') }}</p>
+        <h2 class="font-serif text-2xl text-[#242018] mt-1">{{ __('messages.Naturae_BestSellers') }}</h2>
       </div>
-      <a href="{{ route('store.shop') }}" class="text-xs md:text-sm font-semibold tracking-wider2 text-brand-green hover:opacity-70 transition flex items-center gap-1">VIEW ALL
+      <a href="{{ route('store.shop') }}" class="text-xs md:text-sm font-semibold tracking-wider2 text-brand-green hover:opacity-70 transition flex items-center gap-1">{{ __('messages.Naturae_ViewAllCaps') }}
         <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
       </a>
     </div>
@@ -147,7 +147,7 @@
       @forelse($bestsellers as $p)
         @include('store.partials.product-card', ['p' => $p, 'currency' => $currency])
       @empty
-        <p class="col-span-full text-sm text-[#5a5340]">No products available yet.</p>
+        <p class="col-span-full text-sm text-[#5a5340]">{{ __('messages.Naturae_NoProducts') }}</p>
       @endforelse
     </div>
   </section>
@@ -156,8 +156,8 @@
   <section class="bg-brand-cream py-10">
     <div class="max-w-7xl mx-auto px-4">
       <div class="flex items-center justify-between mb-5">
-        <h2 class="font-serif text-2xl text-[#242018]">New In</h2>
-        <a href="{{ route('store.shop', ['sort' => 'latest']) }}" class="text-xs md:text-sm font-semibold tracking-wider2 text-brand-green hover:opacity-70 transition">VIEW ALL</a>
+        <h2 class="font-serif text-2xl text-[#242018]">{{ __('messages.Naturae_NewIn') }}</h2>
+        <a href="{{ route('store.shop', ['sort' => 'latest']) }}" class="text-xs md:text-sm font-semibold tracking-wider2 text-brand-green hover:opacity-70 transition">{{ __('messages.Naturae_ViewAllCaps') }}</a>
       </div>
       <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-5">
         @php $newIn = ($products ?? collect())->slice(6, 6); @endphp
@@ -176,10 +176,9 @@
   <section class="max-w-4xl mx-auto px-4 py-16 text-center">
     <svg class="w-8 h-8 text-brand-tan mx-auto mb-6" viewBox="0 0 24 24" fill="currentColor"><path d="M7 7c-3 2-4 5-4 8a4 4 0 004 4v-6H4c0-2 1-4 4-5zM17 7c-3 2-4 5-4 8a4 4 0 004 4v-6h-3c0-2 1-4 4-5z"/></svg>
     <p class="font-serif italic text-2xl md:text-3xl leading-relaxed text-[#242018]">
-      "We don't chase trends. We follow the earth — every raw stone, every trace of gold,
-      shaped gently into something you'll wear for the rest of your life."
+      "{{ __('messages.Naturae_PullQuote') }}"
     </p>
-    <p class="mt-6 tracking-wider2 text-xs font-semibold text-[#5a5340]">— FOUNDER'S NOTE, THE NATURAE JOURNAL</p>
+    <p class="mt-6 tracking-wider2 text-xs font-semibold text-[#5a5340]">— {{ __('messages.Naturae_FoundersNote') }}</p>
   </section>
 
   <!-- ============ GIFT / PEARLS ACCENT BANNER ============ -->
@@ -190,10 +189,10 @@
              alt="Pearl necklace resting in an open velvet box" class="w-full h-full object-cover">
       </div>
       <div class="p-4 md:p-8">
-        <p class="tracking-wider2 text-xs font-semibold text-[#5a5340] mb-3">GIFTING</p>
-        <h3 class="font-serif text-3xl text-[#242018] mb-4 leading-tight">A gift with a story to tell.</h3>
-        <p class="text-sm text-[#5a5340] mb-6 leading-relaxed max-w-md">Every Naturae Gems order arrives wrapped in recycled linen and paired with a card naming the exact mine and refiner behind your piece.</p>
-        <a href="{{ route('store.shop') }}" class="inline-flex items-center gap-2 bg-brand-green hover:bg-[#3a4630] transition text-white font-semibold px-7 py-3 text-xs tracking-wider2 rounded-full w-fit">SHOP GIFTS</a>
+        <p class="tracking-wider2 text-xs font-semibold text-[#5a5340] mb-3">{{ __('messages.Naturae_Gifting') }}</p>
+        <h3 class="font-serif text-3xl text-[#242018] mb-4 leading-tight">{{ __('messages.Naturae_GiftStoryTitle') }}</h3>
+        <p class="text-sm text-[#5a5340] mb-6 leading-relaxed max-w-md">{{ __('messages.Naturae_GiftParagraph') }}</p>
+        <a href="{{ route('store.shop') }}" class="inline-flex items-center gap-2 bg-brand-green hover:bg-[#3a4630] transition text-white font-semibold px-7 py-3 text-xs tracking-wider2 rounded-full w-fit">{{ __('messages.Naturae_ShopGiftsCaps') }}</a>
       </div>
     </div>
   </section>
@@ -203,19 +202,19 @@
     <div class="max-w-7xl mx-auto px-4 py-6 grid grid-cols-2 md:grid-cols-4 gap-5">
       <div class="flex items-center gap-3">
         <svg class="w-6 h-6 text-brand-green shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3c1 2-1 3-1 5a4 4 0 108 0c0-3-2-4-3-6M8 10a6 6 0 106 10V10"/></svg>
-        <div><p class="font-semibold text-xs md:text-sm tracking-wider2">ETHICALLY SOURCED</p><p class="text-[10px] md:text-xs text-[#5a5340]">Traceable gems &amp; gold</p></div>
+        <div><p class="font-semibold text-xs md:text-sm tracking-wider2">{{ __('messages.Naturae_TrustEthicallySourced') }}</p><p class="text-[10px] md:text-xs text-[#5a5340]">{{ __('messages.Naturae_TraceableGemsGold') }}</p></div>
       </div>
       <div class="flex items-center gap-3">
         <svg class="w-6 h-6 text-brand-green shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="8" width="18" height="13" rx="2"/><path d="M3 12h18M12 8V6a2 2 0 114 0v2"/></svg>
-        <div><p class="font-semibold text-xs md:text-sm tracking-wider2">SECURE PAYMENTS</p><p class="text-[10px] md:text-xs text-[#5a5340]">100% safe &amp; encrypted</p></div>
+        <div><p class="font-semibold text-xs md:text-sm tracking-wider2">{{ __('messages.Naturae_SecurePaymentsCaps') }}</p><p class="text-[10px] md:text-xs text-[#5a5340]">{{ __('messages.Naturae_SafeEncrypted') }}</p></div>
       </div>
       <div class="flex items-center gap-3">
         <svg class="w-6 h-6 text-brand-green shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4v6h6M20 20v-6h-6"/><path d="M5.5 15a8 8 0 0013.9 3.5M18.5 9A8 8 0 004.6 5.5"/></svg>
-        <div><p class="font-semibold text-xs md:text-sm tracking-wider2">HASSLE FREE RETURNS</p><p class="text-[10px] md:text-xs text-[#5a5340]">30-day easy returns</p></div>
+        <div><p class="font-semibold text-xs md:text-sm tracking-wider2">{{ __('messages.Naturae_HassleFreeReturnsCaps') }}</p><p class="text-[10px] md:text-xs text-[#5a5340]">{{ __('messages.Naturae_ThirtyDayReturns') }}</p></div>
       </div>
       <div class="flex items-center gap-3">
         <svg class="w-6 h-6 text-brand-green shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 21s-7.5-4.8-10-9.3C.5 8 2 4.5 5.5 4c2-.3 3.8.7 4.9 2.3C11.5 4.7 13.3 3.7 15.3 4c3.5.5 5 4 3.5 7.7C21.5 16.2 12 21 12 21z"/></svg>
-        <div><p class="font-semibold text-xs md:text-sm tracking-wider2">CUSTOMER SUPPORT</p><p class="text-[10px] md:text-xs text-[#5a5340]">We're here to help</p></div>
+        <div><p class="font-semibold text-xs md:text-sm tracking-wider2">{{ __('messages.Naturae_CustomerSupportCaps') }}</p><p class="text-[10px] md:text-xs text-[#5a5340]">{{ __('messages.Naturae_HereToHelp') }}</p></div>
       </div>
     </div>
   </section>
@@ -224,12 +223,12 @@
   <section class="max-w-7xl mx-auto px-4 py-14">
     <div class="bg-brand-greenDark rounded-[2.5rem] p-8 md:p-14 text-center">
       <svg class="w-8 h-8 text-brand-tan mx-auto mb-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3c1 2-1 3-1 5a4 4 0 108 0c0-3-2-4-3-6M8 10a6 6 0 106 10V10"/></svg>
-      <h2 class="font-serif text-2xl md:text-3xl text-white mb-3">Join the Naturae Community</h2>
-      <p class="text-sm text-white/70 max-w-md mx-auto mb-6">Get 10% off your first order, plus early access to new gemstone drops and behind-the-scenes stories from our sourcing partners.</p>
+      <h2 class="font-serif text-2xl md:text-3xl text-white mb-3">{{ __('messages.Naturae_JoinCommunity') }}</h2>
+      <p class="text-sm text-white/70 max-w-md mx-auto mb-6">{{ __('messages.Naturae_NewsletterParagraph') }}</p>
       <form action="{{ route('newsletter.subscribe') }}" method="POST" class="flex flex-col sm:flex-row gap-2 max-w-md mx-auto">
         @csrf
-        <input type="email" name="email" required placeholder="Enter your email" class="flex-1 min-w-0 px-4 py-3 rounded-full bg-white/10 border border-white/15 outline-none text-sm text-white placeholder:text-white/40" />
-        <button type="submit" class="bg-brand-tan hover:bg-white transition text-brand-greenDark font-semibold px-6 py-3 text-xs tracking-wider2 rounded-full shrink-0">SUBSCRIBE</button>
+        <input type="email" name="email" required placeholder="{{ __('messages.Naturae_EnterEmail') }}" class="flex-1 min-w-0 px-4 py-3 rounded-full bg-white/10 border border-white/15 outline-none text-sm text-white placeholder:text-white/40" />
+        <button type="submit" class="bg-brand-tan hover:bg-white transition text-brand-greenDark font-semibold px-6 py-3 text-xs tracking-wider2 rounded-full shrink-0">{{ __('messages.Naturae_SubscribeCaps') }}</button>
       </form>
     </div>
   </section>

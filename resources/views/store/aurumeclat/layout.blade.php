@@ -74,10 +74,10 @@
 <div class="theme-aurumeclat">
   <div class="hidden md:block bg-black text-white/70 text-[11.5px] border-b border-white/5">
     <div class="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-between">
-      <span>Private Appointments <span class="text-white/40">— Book Your Time</span></span>
-      <span>IGI Certified Diamonds <span class="text-white/40">— Authenticity Guaranteed</span></span>
-      <span>Lifetime Polishing <span class="text-white/40">— Complimentary Forever</span></span>
-      <span>Free Insured Shipping <span class="text-white/40">— On All Orders</span></span>
+      <span>{{ __('messages.Aurumeclat_TopbarAppointments') }} <span class="text-white/40">— {{ __('messages.Aurumeclat_TopbarBookYourTime') }}</span></span>
+      <span>{{ __('messages.Aurumeclat_TopbarIgiDiamonds') }} <span class="text-white/40">— {{ __('messages.Aurumeclat_TopbarAuthenticityGuaranteed') }}</span></span>
+      <span>{{ __('messages.Aurumeclat_TopbarLifetimePolishing') }} <span class="text-white/40">— {{ __('messages.Aurumeclat_TopbarComplimentaryForever') }}</span></span>
+      <span>{{ __('messages.Aurumeclat_TopbarFreeInsuredShipping') }} <span class="text-white/40">— {{ __('messages.Aurumeclat_TopbarOnAllOrders') }}</span></span>
     </div>
   </div>
 
@@ -89,11 +89,11 @@
       <a href="{{ route('store.index') }}" class="flex-1 flex flex-col items-center leading-none">
         <svg class="w-3 h-3 text-brand-gold mb-1.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8z"/></svg>
         <span class="font-logo text-2xl lg:text-3xl tracking-[0.12em] text-white">{{ $s->store_name ?? 'AURUMÉCLAT' }}</span>
-        <span class="text-[9px] eyebrow text-white/50 mt-1">FINE JEWELRY</span>
+        <span class="text-[9px] eyebrow text-white/50 mt-1">{{ __('messages.Aurumeclat_FineJewelry') }}</span>
       </a>
       <div class="flex items-center gap-5 justify-end w-1/4 text-white/80">
-        <a href="{{ route('account') }}" aria-label="Account" class="hover:text-brand-gold transition"><svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-6 8-6s8 2 8 6"/></svg></a>
-        <a href="{{ route('store.cart') }}" aria-label="Cart" class="relative hover:text-brand-gold transition">
+        <a href="{{ route('account') }}" aria-label="{{ __('messages.Account') }}" class="hover:text-brand-gold transition"><svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-6 8-6s8 2 8 6"/></svg></a>
+        <a href="{{ route('store.cart') }}" aria-label="{{ __('messages.Cart') }}" class="relative hover:text-brand-gold transition">
           <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 8V6a6 6 0 0112 0v2M4 8h16l-1.2 12.1a2 2 0 01-2 1.9H7.2a2 2 0 01-2-1.9L4 8z"/></svg>
           <span class="cart-count absolute -top-1.5 -right-1.5 bg-brand-gold text-black text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-bold">0</span>
         </a>
@@ -101,20 +101,20 @@
     </div>
 
     <div class="md:hidden flex items-center gap-3 px-4 py-3.5">
-      <button id="ae-menuBtn" class="p-1 -ml-1 text-white" aria-label="Open menu">
+      <button id="ae-menuBtn" class="p-1 -ml-1 text-white" aria-label="{{ __('messages.Aurumeclat_OpenMenu') }}">
         <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
       </button>
       <a href="{{ route('store.index') }}" class="flex-1 flex flex-col items-center leading-none">
         <span class="font-logo text-base tracking-[0.1em] text-white">{{ $s->store_name ?? 'AURUMÉCLAT' }}</span>
       </a>
-      <a href="{{ route('store.cart') }}" aria-label="Cart" class="relative p-1 text-white">
+      <a href="{{ route('store.cart') }}" aria-label="{{ __('messages.Cart') }}" class="relative p-1 text-white">
         <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 8V6a6 6 0 0112 0v2M4 8h16l-1.2 12.1a2 2 0 01-2 1.9H7.2a2 2 0 01-2-1.9L4 8z"/></svg>
         <span class="cart-count absolute -top-0.5 -right-0.5 bg-brand-gold text-black text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-bold">0</span>
       </a>
     </div>
 
     <div id="ae-mobileNav" class="md:hidden hidden flex-col px-4 py-2 text-sm font-medium text-white/85 divide-y divide-white/10 border-t border-white/10">
-      <a href="{{ route('store.shop') }}" class="py-2.5">Shop All</a>
+      <a href="{{ route('store.shop') }}" class="py-2.5">{{ __('messages.Aurumeclat_ShopAll') }}</a>
       @foreach(($categories ?? collect())->take(8) as $cat)
         <a href="{{ route('store.shop', ['category' => $cat->id]) }}" class="py-2.5">{{ $cat->name }}</a>
       @endforeach
@@ -122,7 +122,7 @@
 
     <nav class="hidden md:block border-t border-white/5">
       <div class="max-w-7xl mx-auto px-4 flex items-center justify-center gap-7 text-[11.5px] font-medium text-white/75 nav-spaced h-11 flex-wrap">
-        <a href="{{ route('store.shop') }}" class="hover:text-brand-gold transition">SHOP ALL</a>
+        <a href="{{ route('store.shop') }}" class="hover:text-brand-gold transition">{{ __('messages.Aurumeclat_ShopAllCaps') }}</a>
         @foreach(($categories ?? collect())->take(8) as $cat)
           <a href="{{ route('store.shop', ['category' => $cat->id]) }}" class="hover:text-brand-gold transition">{{ Str::upper($cat->name) }}</a>
         @endforeach
@@ -150,11 +150,11 @@
   <div class="max-w-7xl mx-auto px-4">
     <div class="mb-8">
       <span class="font-logo text-xl tracking-[0.1em] text-white">{{ $s->store_name ?? 'AURUMÉCLAT' }}</span>
-      <p class="text-xs text-white/40 mt-1">{{ $s->footer_text ?? 'Ethically sourced, meticulously crafted fine jewelry.' }}</p>
+      <p class="text-xs text-white/40 mt-1">{{ $s->footer_text ?? __('messages.Aurumeclat_FooterTagline') }}</p>
     </div>
     <div class="grid grid-cols-2 md:grid-cols-4 gap-8 pb-8 border-b border-white/10 text-sm">
       <div>
-        <h4 class="text-white font-semibold mb-3 text-sm eyebrow">BOUTIQUE</h4>
+        <h4 class="text-white font-semibold mb-3 text-sm eyebrow">{{ __('messages.Aurumeclat_Boutique') }}</h4>
         <ul class="space-y-2 text-white/50">
           <li>{{ $s->contact_address ?? '' }}</li>
           <li>{{ $s->contact_phone ?? '' }}</li>
@@ -162,30 +162,30 @@
         </ul>
       </div>
       <div>
-        <h4 class="text-white font-semibold mb-3 text-sm eyebrow">CUSTOMER CARE</h4>
+        <h4 class="text-white font-semibold mb-3 text-sm eyebrow">{{ __('messages.Aurumeclat_CustomerCare') }}</h4>
         <ul class="space-y-2 text-white/50">
-          <li><a href="{{ route('store.contact') }}" class="hover:text-white transition">Contact Us</a></li>
-          <li><a href="{{ route('account.orders') }}" class="hover:text-white transition">Track Your Order</a></li>
+          <li><a href="{{ route('store.contact') }}" class="hover:text-white transition">{{ __('messages.ContactUs') }}</a></li>
+          <li><a href="{{ route('account.orders') }}" class="hover:text-white transition">{{ __('messages.Aurumeclat_TrackYourOrder') }}</a></li>
         </ul>
       </div>
       <div>
-        <h4 class="text-white font-semibold mb-3 text-sm eyebrow">ACCOUNT</h4>
+        <h4 class="text-white font-semibold mb-3 text-sm eyebrow">{{ __('messages.Aurumeclat_AccountCaps') }}</h4>
         <ul class="space-y-2 text-white/50">
-          <li><a href="{{ route('account') }}" class="hover:text-white transition">My Account</a></li>
-          <li><a href="{{ route('store.login.show') }}" class="hover:text-white transition">Sign In</a></li>
+          <li><a href="{{ route('account') }}" class="hover:text-white transition">{{ __('messages.MyAccount') }}</a></li>
+          <li><a href="{{ route('store.login.show') }}" class="hover:text-white transition">{{ __('messages.SignIn') }}</a></li>
         </ul>
       </div>
       <div>
-        <h4 class="text-white font-semibold mb-3 text-sm eyebrow">JOIN THE MAISON</h4>
+        <h4 class="text-white font-semibold mb-3 text-sm eyebrow">{{ __('messages.Aurumeclat_JoinTheMaison') }}</h4>
         <form action="{{ route('newsletter.subscribe') }}" method="POST" class="flex gap-2">
           @csrf
-          <input type="email" name="email" required placeholder="Enter your email" class="flex-1 min-w-0 px-3 py-2 rounded-lg bg-white/5 border border-white/15 outline-none text-xs text-white placeholder:text-white/40" />
+          <input type="email" name="email" required placeholder="{{ __('messages.Aurumeclat_EnterYourEmail') }}" class="flex-1 min-w-0 px-3 py-2 rounded-lg bg-white/5 border border-white/15 outline-none text-xs text-white placeholder:text-white/40" />
           <button type="submit" class="w-9 h-9 shrink-0 bg-brand-gold hover:bg-brand-goldDark transition rounded-lg flex items-center justify-center text-black font-bold">→</button>
         </form>
       </div>
     </div>
     <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 text-xs text-white/35">
-      <p>© {{ date('Y') }} {{ $s->store_name ?? 'AurumÉclat Fine Jewelry' }}. All rights reserved.</p>
+      <p>© {{ date('Y') }} {{ $s->store_name ?? 'AurumÉclat Fine Jewelry' }}. {{ __('messages.Aurumeclat_AllRightsReserved') }}</p>
     </div>
   </div>
 </footer>

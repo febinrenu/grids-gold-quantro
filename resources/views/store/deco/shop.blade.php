@@ -10,8 +10,8 @@
 
 <section class="max-w-7xl mx-auto px-4 md:px-8 pt-14 pb-8">
   <div class="text-center mb-8">
-    <p class="font-deco-title text-deco-gold text-xs uppercase tracking-widest font-bold mb-2">✦ The Fine Catalogue ✦</p>
-    <h1 class="font-deco-logo text-3xl md:text-4xl text-white">Bespoke Jewelry Collection</h1>
+    <p class="font-deco-title text-deco-gold text-xs uppercase tracking-widest font-bold mb-2">✦ {{ __('messages.Deco_TheFineCatalogue') }} ✦</p>
+    <h1 class="font-deco-logo text-3xl md:text-4xl text-white">{{ __('messages.Deco_BespokeJewelryCollection') }}</h1>
     <div class="deco-line-double max-w-xs mx-auto mt-4 mb-4"></div>
     <div class="text-xs text-deco-cream/60">
       {{ trans_choice('messages.products', $total, ['count' => $total]) }}
@@ -32,8 +32,8 @@
       <option value="price_asc" @selected($sort === 'price_asc')>{{ __('messages.PriceUp') }}</option>
       <option value="price_desc" @selected($sort === 'price_desc')>{{ __('messages.PriceDown') }}</option>
     </select>
-    <button class="deco-btn py-1 px-5 text-[10px]" type="submit">Update</button>
-    <button class="deco-btn py-1 px-5 text-[10px] lg:hidden" type="button" @click="window.StoreUI.open('filtersDrawer')">Filters</button>
+    <button class="deco-btn py-1 px-5 text-[10px]" type="submit">{{ __('messages.Update') }}</button>
+    <button class="deco-btn py-1 px-5 text-[10px] lg:hidden" type="button" @click="window.StoreUI.open('filtersDrawer')">{{ __('messages.Filters') }}</button>
   </form>
 </section>
 
@@ -75,7 +75,7 @@
               {{ $coName }} <span class="text-deco-gold">&times;</span>
             </a>
           @endif
-          <a href="{{ route('store.shop') }}" class="border border-red-800 text-red-200 px-3 py-1 text-[11px] bg-red-950/20">Reset All</a>
+          <a href="{{ route('store.shop') }}" class="border border-red-800 text-red-200 px-3 py-1 text-[11px] bg-red-950/20">{{ __('messages.ResetAll') }}</a>
         </div>
       @endif
 
@@ -155,9 +155,9 @@
                     <img src="{{ $imgUrl }}" alt="{{ $p->name }}" class="w-full h-full object-cover">
                   </a>
                   @if($isPreorderActive)
-                    <span class="deco-badge">PRE-ORDER</span>
+                    <span class="deco-badge">{{ __('messages.PreOrder') }}</span>
                   @elseif(!$isAvailable)
-                    <span class="deco-badge" style="background:#4A1111; color:white;">OUT OF STOCK</span>
+                    <span class="deco-badge" style="background:#4A1111; color:white;">{{ __('messages.OutOfStock') }}</span>
                   @endif
                 </div>
 
@@ -213,8 +213,8 @@
                             data-variants='@json($variantPayload)'
                             data-stock="{{ $productStock }}"
                             data-is-jewelry="{{ $isJewelry ? '1' : '0' }}"
-                            data-added-label="ADDED">
-                      ✦ ADD TO CART ✦
+                            data-added-label="{{ __('messages.Added') }}">
+                      ✦ {{ __('messages.AddToCart') }} ✦
                     </button>
                   </div>
                 </div>
@@ -227,7 +227,7 @@
         @php $products->appends(request()->except('page')); @endphp
         @if ($products->hasPages())
           <div class="mt-12 flex flex-col items-center gap-4">
-            <nav aria-label="Product pagination">
+            <nav aria-label="{{ __('messages.Deco_ProductPagination') }}">
               <ul class="flex items-center gap-1 font-deco-logo text-xs">
                 @if ($products->onFirstPage())
                   <li><span class="px-3 py-1.5 border border-deco-gold/30 text-deco-cream/40">&larr;</span></li>
@@ -254,9 +254,9 @@
         @endif
       @else
         <div class="text-center py-16 border border-deco-gold/30 bg-deco-emerald-light/40">
-          <p class="font-deco-logo text-sm text-deco-gold mb-3">No Lots Found</p>
-          <p class="text-xs text-deco-cream/60 mb-4">Try clearing filters or search parameters.</p>
-          <a href="{{ route('store.shop') }}" class="deco-btn text-xs py-1.5 px-6">Clear All</a>
+          <p class="font-deco-logo text-sm text-deco-gold mb-3">{{ __('messages.Deco_NoLotsFound') }}</p>
+          <p class="text-xs text-deco-cream/60 mb-4">{{ __('messages.Deco_ClearFiltersHint') }}</p>
+          <a href="{{ route('store.shop') }}" class="deco-btn text-xs py-1.5 px-6">{{ __('messages.Deco_ClearAll') }}</a>
         </div>
       @endif
     </main>
@@ -270,10 +270,10 @@
          x-transition:enter-start="translate-x-full" x-transition:enter-end="translate-x-0"
          x-transition:leave="transition-transform duration-200"
          x-transition:leave-start="translate-x-0" x-transition:leave-end="translate-x-full"
-         role="dialog" aria-modal="true" aria-label="Filters">
+         role="dialog" aria-modal="true" aria-label="{{ __('messages.Filters') }}">
     <div class="drawer-header border-b border-deco-gold/30 py-4 px-6 flex justify-between items-center">
-      <h5 class="font-deco-logo text-sm m-0 text-white">Filters</h5>
-      <button type="button" class="text-deco-cream hover:text-deco-gold transition" @click="close()" aria-label="Close">
+      <h5 class="font-deco-logo text-sm m-0 text-white">{{ __('messages.Filters') }}</h5>
+      <button type="button" class="text-deco-cream hover:text-deco-gold transition" @click="close()" aria-label="{{ __('messages.Close') }}">
         &times;
       </button>
     </div>

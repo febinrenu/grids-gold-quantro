@@ -9,8 +9,8 @@
 @endphp
 
 <section class="px-6 md:px-12 pt-12 pb-8">
-  <p class="a-label mb-2">Full Catalogue</p>
-  <h1 style="font-family:'Sora',sans-serif; font-weight:700; font-size:clamp(1.9rem,4vw,3rem);">Shop All</h1>
+  <p class="a-label mb-2">{{ __('messages.Atlas_FullCatalogue') }}</p>
+  <h1 style="font-family:'Sora',sans-serif; font-weight:700; font-size:clamp(1.9rem,4vw,3rem);">{{ __('messages.Atlas_ShopAll') }}</h1>
   <div class="text-sm mt-3" style="opacity:.65;">
     {{ trans_choice('messages.products', $total, ['count' => $total]) }}
     @if($hasFilters) · <span style="text-decoration:underline;">{{ __('messages.FiltersApplied') }}</span>@endif
@@ -29,8 +29,8 @@
       <option value="price_asc" @selected($sort === 'price_asc')>{{ __('messages.PriceUp') }}</option>
       <option value="price_desc" @selected($sort === 'price_desc')>{{ __('messages.PriceDown') }}</option>
     </select>
-    <button class="a-btn" type="submit">Update</button>
-    <button class="a-btn a-btn-outline lg:hidden" type="button" @click="window.StoreUI.open('filtersDrawer')">Filters</button>
+    <button class="a-btn" type="submit">{{ __('messages.Update') }}</button>
+    <button class="a-btn a-btn-outline lg:hidden" type="button" @click="window.StoreUI.open('filtersDrawer')">{{ __('messages.Filters') }}</button>
   </form>
 </section>
 

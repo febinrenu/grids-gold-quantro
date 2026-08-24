@@ -13,8 +13,8 @@
         <h1 style="font-family:'Sora',sans-serif; font-weight:700; font-size:clamp(2.2rem,5vw,3.6rem); line-height:1.08; letter-spacing:-.01em;">{{ $s->hero_title ?? 'Built With Intention' }}</h1>
         <p class="text-sm mt-5 max-w-sm" style="opacity:.7;">{{ $s->hero_subtitle ?? 'Every piece considered from material to finish. No shortcuts, no filler.' }}</p>
         <div class="flex flex-wrap gap-3 mt-7">
-          <a href="{{ route('store.shop') }}" class="a-btn">Browse Collection</a>
-          <a href="{{ route('store.contact') }}" class="a-btn a-btn-outline">Book a Fitting</a>
+          <a href="{{ route('store.shop') }}" class="a-btn">{{ __('messages.Atlas_BrowseCollection') }}</a>
+          <a href="{{ route('store.contact') }}" class="a-btn a-btn-outline">{{ __('messages.Atlas_BookAFitting') }}</a>
         </div>
       </div>
       <div class="relative">
@@ -30,7 +30,7 @@
 
   <!-- ============ CATEGORY INDEX — text list with small thumbnails, not bare text ============ -->
   <section class="px-6 md:px-12 py-14" style="border-top:1px solid #DDD5C4;">
-    <p class="a-label mb-5">Departments</p>
+    <p class="a-label mb-5">{{ __('messages.Atlas_Departments') }}</p>
     <div class="grid md:grid-cols-2 gap-x-10 max-w-5xl">
       @php
         $catImgs = ['1611652022419-a9419f74343d','1605100804763-247f67b3557e','1599643478518-a784e5dc4c8f','1616401784845-180882ba9ba8','1611591437281-460bfbe1220a','1573408301185-9146fe634ad0','1620656798579-1984d9e87df7','1611652022419-a9419f74343d'];
@@ -44,7 +44,7 @@
           <span style="opacity:.5;">→</span>
         </a>
       @empty
-        <p class="text-sm" style="opacity:.6;">No categories yet.</p>
+        <p class="text-sm" style="opacity:.6;">{{ __('messages.Atlas_NoCategoriesYet') }}</p>
       @endforelse
     </div>
   </section>
@@ -52,8 +52,8 @@
   <!-- ============ LOOKBOOK GALLERY — three-image editorial strip ============ -->
   <section class="px-6 md:px-12 py-14" style="border-top:1px solid #DDD5C4;">
     <div class="flex items-end justify-between mb-6 max-w-6xl">
-      <p style="font-family:'Sora',sans-serif; font-weight:700; font-size:1.6rem;">The Lookbook</p>
-      <p class="a-label">Studio {{ now()->format('Y') }}</p>
+      <p style="font-family:'Sora',sans-serif; font-weight:700; font-size:1.6rem;">{{ __('messages.Atlas_TheLookbook') }}</p>
+      <p class="a-label">{{ __('messages.Atlas_Studio') }} {{ now()->format('Y') }}</p>
     </div>
     <div class="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-6xl">
       <div style="border-radius:4px; overflow:hidden; aspect-ratio:4/5;">
@@ -80,15 +80,15 @@
   <!-- ============ FEATURED PIECES — real product cards ============ -->
   <section class="px-6 md:px-12 py-10" style="border-top:1px solid #DDD5C4;">
     <div class="flex items-end justify-between mb-6 max-w-6xl">
-      <p style="font-family:'Sora',sans-serif; font-weight:700; font-size:1.6rem;">Featured Pieces</p>
-      <a href="{{ route('store.shop') }}" class="a-label" style="text-decoration:underline;">View All</a>
+      <p style="font-family:'Sora',sans-serif; font-weight:700; font-size:1.6rem;">{{ __('messages.Atlas_FeaturedPieces') }}</p>
+      <a href="{{ route('store.shop') }}" class="a-label" style="text-decoration:underline;">{{ __('messages.ViewAll') }}</a>
     </div>
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 max-w-6xl">
       @php $currency = $s->currency_code ?? '$'; $items = ($products ?? collect())->take(8); @endphp
       @forelse($items as $p)
         @include('store.partials.product-card', ['p' => $p, 'currency' => $currency])
       @empty
-        <p class="col-span-full text-sm" style="opacity:.6;">No products available yet.</p>
+        <p class="col-span-full text-sm" style="opacity:.6;">{{ __('messages.Atlas_NoProductsYet') }}</p>
       @endforelse
     </div>
   </section>
@@ -101,7 +101,7 @@
       </div>
       <div>
         <p style="font-family:'Sora',sans-serif; font-style:italic; font-size:1.3rem; line-height:1.4;">"{{ $s->footer_text ?? 'Sourced responsibly, finished by hand — every piece feels like it was made specifically for me.' }}"</p>
-        <p class="a-label mt-3">— A Studio Client</p>
+        <p class="a-label mt-3">— {{ __('messages.Atlas_AStudioClient') }}</p>
       </div>
     </div>
   </section>
@@ -113,10 +113,10 @@
         <img src="https://images.unsplash.com/photo-1611591437281-460bfbe1220a?auto=format&fit=crop&w=900&q=80" alt="" style="width:100%; height:100%; object-fit:cover;">
       </div>
       <div class="order-1 md:order-2">
-        <p class="a-label mb-4">The Process</p>
-        <p style="font-family:'Sora',sans-serif; font-weight:700; font-size:clamp(1.6rem,3.5vw,2.4rem); line-height:1.15;">Sourced Responsibly. Finished By Hand.</p>
-        <p class="text-sm mt-4 max-w-sm" style="opacity:.7;">Every piece passes through the same small team, start to finish.</p>
-        <a href="{{ route('store.contact') }}" class="a-btn a-btn-outline mt-6 w-fit">Learn More</a>
+        <p class="a-label mb-4">{{ __('messages.Atlas_TheProcess') }}</p>
+        <p style="font-family:'Sora',sans-serif; font-weight:700; font-size:clamp(1.6rem,3.5vw,2.4rem); line-height:1.15;">{{ __('messages.Atlas_SourcedResponsiblyHeadline') }}</p>
+        <p class="text-sm mt-4 max-w-sm" style="opacity:.7;">{{ __('messages.Atlas_ProcessDescription') }}</p>
+        <a href="{{ route('store.contact') }}" class="a-btn a-btn-outline mt-6 w-fit">{{ __('messages.Atlas_LearnMore') }}</a>
       </div>
     </div>
   </section>

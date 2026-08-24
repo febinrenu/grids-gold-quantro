@@ -13,15 +13,15 @@
           [RELEASE_LOT // LOT_N°009]
         </div>
         <h1 class="font-draft-mono text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight leading-none text-draft-ink">
-          {{ $s->hero_title ?? 'Precision Metal & Hand-Cut Diamonds' }}
+          {{ $s->hero_title ?? __('messages.Draft_HeroTitleDefault') }}
         </h1>
         <p class="text-sm md:text-base leading-relaxed text-draft-grey max-w-lg font-light">
-          {{ $s->hero_subtitle ?? 'Every piece is mapped in our drafting room, verified under microscopic tolerances, and set in certified gold. No approximations, only absolute precision.' }}
+          {{ $s->hero_subtitle ?? __('messages.Draft_HeroSubtitleDefault') }}
         </p>
-        
+
         <div class="pt-4 flex flex-wrap gap-3">
-          <a href="{{ route('store.shop') }}" class="draft-btn draft-btn-solid">EXPLORE_INDEX</a>
-          <a href="{{ route('store.contact') }}" class="draft-btn">BOOK_ salon_FITTING</a>
+          <a href="{{ route('store.shop') }}" class="draft-btn draft-btn-solid">{{ __('messages.Draft_ExploreIndex') }}</a>
+          <a href="{{ route('store.contact') }}" class="draft-btn">{{ __('messages.Draft_BookFitting') }}</a>
         </div>
       </div>
       
@@ -40,19 +40,19 @@
   <section class="max-w-7xl mx-auto px-4 md:px-8 py-16 border-b border-draft-border">
     <div class="grid md:grid-cols-3 gap-8">
       <div class="p-6 bg-draft-white border border-draft-border space-y-3">
-        <div class="font-draft-mono text-draft-blue text-xs font-bold">[01_MATERIAL]</div>
-        <h3 class="font-draft-mono text-sm font-bold">Gold Alloy Tolerances</h3>
-        <p class="text-xs text-draft-grey leading-relaxed">We work strictly in 18-karat (75.0% purity) and 22-karat (91.6% purity) gold. Every batch is assayed and certified conflict-free, ensuring alloy density is balanced to the decimal milligram.</p>
+        <div class="font-draft-mono text-draft-blue text-xs font-bold">{{ __('messages.Draft_Material01') }}</div>
+        <h3 class="font-draft-mono text-sm font-bold">{{ __('messages.Draft_GoldAlloyTolerances') }}</h3>
+        <p class="text-xs text-draft-grey leading-relaxed">{{ __('messages.Draft_GoldAlloyDesc') }}</p>
       </div>
       <div class="p-6 bg-draft-white border border-draft-border space-y-3">
-        <div class="font-draft-mono text-draft-blue text-xs font-bold">[02_STONES]</div>
-        <h3 class="font-draft-mono text-sm font-bold">Micro-Pave Mapping</h3>
-        <p class="text-xs text-draft-grey leading-relaxed">Each diamond setting is calculated using digital mapping software to prevent stone-on-stone friction. Stone weights are recorded individually and verified by independent GIA certificates.</p>
+        <div class="font-draft-mono text-draft-blue text-xs font-bold">{{ __('messages.Draft_Stones02') }}</div>
+        <h3 class="font-draft-mono text-sm font-bold">{{ __('messages.Draft_MicroPaveMapping') }}</h3>
+        <p class="text-xs text-draft-grey leading-relaxed">{{ __('messages.Draft_MicroPaveDesc') }}</p>
       </div>
       <div class="p-6 bg-draft-white border border-draft-border space-y-3">
-        <div class="font-draft-mono text-draft-blue text-xs font-bold">[03_FINISH]</div>
-        <h3 class="font-draft-mono text-sm font-bold">Technical Finishes</h3>
-        <p class="text-xs text-draft-grey leading-relaxed">From highly polished mirror reflections to sand-blasted matte finishes, our metal treatments are completed under 10x magnification to guarantee perfect surface uniformity.</p>
+        <div class="font-draft-mono text-draft-blue text-xs font-bold">{{ __('messages.Draft_Finish03') }}</div>
+        <h3 class="font-draft-mono text-sm font-bold">{{ __('messages.Draft_TechnicalFinishes') }}</h3>
+        <p class="text-xs text-draft-grey leading-relaxed">{{ __('messages.Draft_TechnicalFinishesDesc') }}</p>
       </div>
     </div>
   </section>
@@ -61,10 +61,10 @@
   <section class="max-w-7xl mx-auto px-4 md:px-8 py-16">
     <div class="flex flex-col sm:flex-row items-baseline justify-between gap-4 mb-10 border-b border-draft-ink pb-4">
       <div>
-        <p class="font-draft-mono text-xs text-draft-blue font-bold">//RECORD_STREAM</p>
-        <h2 class="font-draft-mono text-xl font-bold uppercase text-draft-ink">Atelier Specification Sheets</h2>
+        <p class="font-draft-mono text-xs text-draft-blue font-bold">{{ __('messages.Draft_RecordStream') }}</p>
+        <h2 class="font-draft-mono text-xl font-bold uppercase text-draft-ink">{{ __('messages.Draft_AtelierSpecSheets') }}</h2>
       </div>
-      <a href="{{ route('store.shop') }}" class="font-draft-mono text-xs text-draft-blue hover:underline">VIEW_ALL_SPEC_SHEETS &rarr;</a>
+      <a href="{{ route('store.shop') }}" class="font-draft-mono text-xs text-draft-blue hover:underline">{{ __('messages.Draft_ViewAllSpecSheets') }} &rarr;</a>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -79,8 +79,8 @@
           $descShort = Str::limit(strip_tags($p->note ?? ''), 400);
           $price = (float) ($p->display_price ?? ($p->price ?? 0));
           $isJewelry = (bool) ($p->is_jewelry_item ?? false);
-          $metalTypeName = $isJewelry && $p->metalType ? $p->metalType->name : 'N/A';
-          $karatName = $isJewelry && $p->karat ? $p->karat->name : 'N/A';
+          $metalTypeName = $isJewelry && $p->metalType ? $p->metalType->name : __('messages.Draft_NA');
+          $karatName = $isJewelry && $p->karat ? $p->karat->name : __('messages.Draft_NA');
           
           // Technical metrics from existing product details
           $grossWeight = $isJewelry ? (float) ($p->jewelry_gross_weight ?? 0.0) : 0.0;
@@ -119,11 +119,11 @@
           <div class="draft-spec-header">
             <span class="font-draft-mono text-[10px] text-draft-grey">//ID: {{ str_pad($p->id, 5, '0', STR_PAD_LEFT) }}</span>
             @if($isPreorderActive)
-              <span class="draft-badge">PRE-ORDER</span>
+              <span class="draft-badge">{{ __('messages.Draft_PreOrderBadge') }}</span>
             @elseif(!$isAvailable)
-              <span class="draft-badge bg-red-700">OUT OF STOCK</span>
+              <span class="draft-badge bg-red-700">{{ __('messages.Draft_OutOfStockBadge') }}</span>
             @else
-              <span class="draft-badge bg-emerald-600">IN STOCK</span>
+              <span class="draft-badge bg-emerald-600">{{ __('messages.Draft_InStockBadge') }}</span>
             @endif
           </div>
 
@@ -183,21 +183,21 @@
               <table class="draft-spec-table font-draft-mono">
                 <tbody>
                   <tr>
-                    <td>METAL_TYPE:</td>
+                    <td>{{ __('messages.Draft_MetalType') }}</td>
                     <td class="text-right text-draft-ink">{{ $metalTypeName }}</td>
                   </tr>
                   <tr>
-                    <td>KARAT_INDEX:</td>
+                    <td>{{ __('messages.Draft_KaratIndex') }}</td>
                     <td class="text-right text-draft-ink">{{ $karatName }}</td>
                   </tr>
                   @if($isJewelry)
                     <tr>
-                      <td>GROSS_WEIGHT:</td>
-                      <td class="text-right text-draft-ink">{{ $grossWeight > 0 ? $grossWeight . ' g' : 'N/A' }}</td>
+                      <td>{{ __('messages.Draft_GrossWeight') }}</td>
+                      <td class="text-right text-draft-ink">{{ $grossWeight > 0 ? $grossWeight . ' g' : __('messages.Draft_NA') }}</td>
                     </tr>
                     <tr>
-                      <td>METAL_WEIGHT:</td>
-                      <td class="text-right text-draft-ink">{{ $metalWeight > 0 ? $metalWeight . ' g' : 'N/A' }}</td>
+                      <td>{{ __('messages.Draft_MetalWeight') }}</td>
+                      <td class="text-right text-draft-ink">{{ $metalWeight > 0 ? $metalWeight . ' g' : __('messages.Draft_NA') }}</td>
                     </tr>
                   @endif
                 </tbody>
@@ -206,7 +206,7 @@
 
             <div class="pt-3 border-t border-draft-border mt-3 flex items-center justify-between gap-4">
               <div>
-                <p class="font-draft-mono text-[9px] text-draft-grey">VALUE_EST</p>
+                <p class="font-draft-mono text-[9px] text-draft-grey">{{ __('messages.Draft_ValueEst') }}</p>
                 <p class="font-draft-mono text-sm font-bold text-draft-blue">
                   {{ $currency }}{{ number_format($price, 2, '.', ',') }}
                 </p>
@@ -228,14 +228,14 @@
                       data-variants='@json($variantPayload)'
                       data-stock="{{ $productStock }}"
                       data-is-jewelry="{{ $isJewelry ? '1' : '0' }}"
-                      data-added-label="ADDED">
-                [ADD_TO_CART]
+                      data-added-label="{{ __('messages.Draft_AddedLabel') }}">
+                {{ __('messages.Draft_AddToCartBtn') }}
               </button>
             </div>
           </div>
         </div>
       @empty
-        <div class="col-span-full text-center text-sm font-draft-mono opacity-50">//NO_ACTIVE_LOTS_LOADED</div>
+        <div class="col-span-full text-center text-sm font-draft-mono opacity-50">{{ __('messages.Draft_NoActiveLots') }}</div>
       @endforelse
     </div>
   </section>
@@ -252,13 +252,13 @@
         </div>
       </div>
       <div class="space-y-5">
-        <div class="font-draft-mono text-draft-blue text-xs font-bold">//CRAFTSMANSHIP_RECORD</div>
-        <h2 class="font-draft-mono text-2xl font-bold text-draft-ink">ATELIER CRAFT METHODOLOGY</h2>
+        <div class="font-draft-mono text-draft-blue text-xs font-bold">{{ __('messages.Draft_CraftsmanshipRecord') }}</div>
+        <h2 class="font-draft-mono text-2xl font-bold text-draft-ink">{{ __('messages.Draft_AtelierCraftMethodology') }}</h2>
         <p class="text-xs text-draft-grey leading-relaxed">
-          Every gemstone lot arriving at our workshop is assigned a unique tracking identifier. In our polishing room, lapidaries adjust facets manually under digital loupes, ensuring each stone reflects light along calculated mathematical vectors.
+          {{ __('messages.Draft_CraftParagraph1') }}
         </p>
         <p class="text-xs text-draft-grey leading-relaxed">
-          We maintain absolute transparency regarding alloy composition, metal weight logs, and setting techniques. No hidden variables.
+          {{ __('messages.Draft_CraftParagraph2') }}
         </p>
       </div>
     </div>

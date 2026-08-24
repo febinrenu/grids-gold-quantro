@@ -58,6 +58,30 @@
   $modalRegEnabled = $s->registration_enabled ?? true;
   $modalInviteRequired = $s->require_invite_code ?? false;
   $hidePrices = !$client && ($s->hide_prices_for_guests ?? false);
+
+  // Language switcher — sourced from the same central language list the
+  // dashboard/landing switchers use, so the storefront always offers exactly
+  // the locales that actually have translated content (resources/lang/*).
+  $currentLocale = app()->getLocale();
+  $availableLocales = array_map('basename', glob(resource_path('lang/*')));
+  $switcherLanguages = \App\Models\Central\CentralLanguage::active()
+      ->filter(fn ($lang) => in_array($lang->locale, $availableLocales, true))
+      ->values();
+  $langFlagSvgs = [
+      'en' => '<svg viewBox="0 0 60 30"><clipPath id="s"><path d="M0,0 v30 h60 v-30 z"/></clipPath><clipPath id="t"><path d="M30,15 h30 v15 z v15 h-30 z h-30 v-15 z v-15 h30 z"/></clipPath><g clip-path="url(#s)"><path d="M0,0 v30 h60 v-30 z" fill="#012169"/><path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6"/><path d="M0,0 L60,30 M60,0 L0,30" clip-path="url(#t)" stroke="#C8102E" stroke-width="4"/><path d="M30,0 v30 M0,15 h60" stroke="#fff" stroke-width="10"/><path d="M30,0 v30 M0,15 h60" stroke="#C8102E" stroke-width="6"/></g></svg>',
+      'fr' => '<svg viewBox="0 0 3 2"><rect width="3" height="2" fill="#ED2939"/><rect width="2" height="2" fill="#fff"/><rect width="1" height="2" fill="#002395"/></svg>',
+      'ar' => '<svg viewBox="0 0 12 8"><rect width="12" height="8" fill="#006C35"/><rect y="0" width="12" height="2.67" fill="#006C35"/><rect y="2.67" width="12" height="2.67" fill="#fff"/><rect y="5.33" width="12" height="2.67" fill="#000"/></svg>',
+      'es' => '<svg viewBox="0 0 3 2"><rect width="3" height="2" fill="#c60b1e"/><rect y=".5" width="3" height="1" fill="#ffc400"/></svg>',
+      'hi' => '<svg viewBox="0 0 900 600"><rect width="900" height="200" fill="#FF9933"/><rect y="200" width="900" height="200" fill="#fff"/><rect y="400" width="900" height="200" fill="#138808"/><circle cx="450" cy="300" r="60" fill="#000080"/><circle cx="450" cy="300" r="54" fill="#fff"/><circle cx="450" cy="300" r="18" fill="#000080"/></svg>',
+      'bn' => '<svg viewBox="0 0 5 3"><rect width="5" height="3" fill="#006a4e"/><circle cx="2.25" cy="1.5" r="0.9" fill="#f42a41"/></svg>',
+      'tr' => '<svg viewBox="0 0 12 8"><rect width="12" height="8" fill="#E30A17"/><circle cx="4.4" cy="4" r="2" fill="#fff"/><circle cx="4.9" cy="4" r="1.6" fill="#E30A17"/><polygon points="5.8,4 6.6,3.2 5.9,3.8 6.8,3.8 6,3.2" fill="#fff" transform="rotate(18 6.2 4)"/></svg>',
+      'de' => '<svg viewBox="0 0 5 3"><rect width="5" height="3" fill="#FFCE00"/><rect width="5" height="2" fill="#DD0000"/><rect width="5" height="1" fill="#000"/></svg>',
+      'pt' => '<svg viewBox="0 0 6 4"><rect width="6" height="4" fill="#FF0000"/><rect width="2.4" height="4" fill="#006600"/><circle cx="2.4" cy="2" r="0.8" fill="#FFCC00"/></svg>',
+  ];
+  $langLabels = [
+      'en' => 'English', 'fr' => 'Français', 'ar' => 'العربية', 'es' => 'Español',
+      'hi' => 'हिन्दी', 'bn' => 'বাংলা', 'tr' => 'Türkçe', 'de' => 'Deutsch', 'pt' => 'Português',
+  ];
 @endphp
 <!doctype html>
 <html lang="{{ str_replace('_','-', app()->getLocale() ?? 'en') }}" dir="{{ $isRtl ? 'rtl' : 'ltr' }}">
@@ -99,7 +123,7 @@
   <meta name="theme-color" content="{{ $primary }}">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="{{ $s->store_name ?? 'Store' }}">
+  <meta name="apple-mobile-web-app-title" content="{{ $s->store_name ?? __('messages.Store') }}">
   <link rel="apple-touch-icon" href="{{ pwa_icon_url(192) }}">
 
   {{-- Fonts — Cormorant (display/headings) + Montserrat (body/UI) --}}
@@ -136,14 +160,55 @@
     <div class="w-10 h-10 border-2 border-line-subtle border-t-accent-500 rounded-full animate-spin"></div>
   </div>
 
+  {{-- Language switcher — floating, theme-independent so it always shows even
+       when a theme fully overrides @section('header') with custom markup. --}}
+  <div class="gg-lang-switcher" x-data="{ open: false }" @click.outside="open = false" dir="ltr">
+    <button type="button" class="gg-lang-btn" @click="open = !open" aria-label="{{ __('messages.Language') }}" title="{{ __('messages.Language') }}">
+      <span class="gg-lang-flag">{!! $langFlagSvgs[$currentLocale] ?? '' !!}</span>
+      <span class="gg-lang-code">{{ strtoupper($currentLocale) }}</span>
+    </button>
+    <div x-show="open" x-cloak x-transition class="gg-lang-menu">
+      @foreach($switcherLanguages as $lang)
+        @php $code = $lang->locale; @endphp
+        <a href="{{ route('lang.switch', $code) }}" class="gg-lang-option {{ $currentLocale === $code ? 'is-active' : '' }}">
+          <span class="gg-lang-flag">{!! $langFlagSvgs[$code] ?? '' !!}</span>
+          <span>{{ $langLabels[$code] ?? $lang->name }}</span>
+        </a>
+      @endforeach
+    </div>
+  </div>
+  <style>
+    .gg-lang-switcher { position: fixed; z-index: 65; right: 1rem; bottom: 5.5rem; }
+    @media (min-width: 1024px) { .gg-lang-switcher { bottom: 1.25rem; } }
+    .gg-lang-btn {
+      display: flex; align-items: center; gap: .4rem; padding: .5rem .75rem;
+      background: rgba(20,20,20,.85); color: #fff; border: 1px solid rgba(255,255,255,.15);
+      border-radius: 999px; backdrop-filter: blur(6px); font-size: .75rem; font-weight: 600;
+      letter-spacing: .04em; cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,.25);
+    }
+    .gg-lang-flag { width: 1.1rem; height: 1.1rem; border-radius: 50%; overflow: hidden; display: inline-flex; flex-shrink: 0; }
+    .gg-lang-flag svg { width: 100%; height: 100%; object-fit: cover; }
+    .gg-lang-menu {
+      position: absolute; right: 0; bottom: calc(100% + .5rem); min-width: 10rem; max-height: 16rem; overflow-y: auto;
+      background: #1a1a1a; border: 1px solid rgba(255,255,255,.12); border-radius: .6rem; padding: .35rem;
+      box-shadow: 0 12px 32px rgba(0,0,0,.4);
+    }
+    .gg-lang-option {
+      display: flex; align-items: center; gap: .55rem; padding: .5rem .6rem; border-radius: .4rem;
+      color: #eee; font-size: .8rem; text-decoration: none; white-space: nowrap;
+    }
+    .gg-lang-option:hover { background: rgba(255,255,255,.08); }
+    .gg-lang-option.is-active { background: rgba(255,255,255,.12); font-weight: 600; }
+  </style>
+
   {{-- Header (overridable per theme via @section('header') ... @endsection) --}}
   @section('header')
   {{-- Topbar --}}
   <div class="bg-bg-elevated border-b border-line-subtle text-xs text-fg-secondary">
-    <div class="container flex items-center justify-between h-9">
+    <div class="container flex items-center justify-between h-9 tracking-wide">
       <div class="truncate">{{ $s->topbar_text_left ?? __('messages.TopbarLeft') }}</div>
       <div class="hidden md:flex items-center gap-2">
-        <span class="chip chip-info">{{ __('messages.New') }}</span>
+        <span class="chip chip-info uppercase tracking-wider text-[10px]">{{ __('messages.New') }}</span>
         <span>{{ $s->topbar_text_right ?? __('messages.TopbarRight') }}</span>
       </div>
     </div>
@@ -165,27 +230,27 @@
         {{-- Logo --}}
         <a href="{{ route('store.index') }}" class="flex items-center gap-2 shrink-0">
           @if(!empty($s->logo_path))
-            <img src="{{ $assetPath($s->logo_path) }}" alt="{{ $s->store_name ?? 'Store' }}"
+            <img src="{{ $assetPath($s->logo_path) }}" alt="{{ $s->store_name ?? __('messages.Store') }}"
                  class="h-9 max-w-[160px] object-contain">
           @else
-            <span class="font-bold text-lg tracking-tight">{{ $s->store_name ?? __('messages.Store') }}</span>
+            <span class="text-xl tracking-tight" style="font-family: var(--font-display); font-weight: 600;">{{ $s->store_name ?? __('messages.Store') }}</span>
           @endif
         </a>
 
         {{-- Desktop nav --}}
         <nav class="hidden lg:flex items-center ms-2">
           <a href="{{ route('store.index') }}"
-             class="px-3 h-10 inline-flex items-center text-sm font-medium text-fg-secondary hover:text-fg-primary rounded-md transition-colors">
+             class="relative px-3 h-10 inline-flex items-center text-sm font-medium transition-colors {{ request()->routeIs('store.index') ? 'text-fg-primary after:absolute after:left-3 after:right-3 after:bottom-1.5 after:h-px after:bg-accent-500' : 'text-fg-secondary hover:text-fg-primary' }}">
             {{ __('messages.Home') }}
           </a>
 
           <a href="{{ route('store.shop') }}"
-             class="px-3 h-10 inline-flex items-center text-sm font-medium text-fg-secondary hover:text-fg-primary rounded-md transition-colors">
+             class="relative px-3 h-10 inline-flex items-center text-sm font-medium transition-colors {{ request()->routeIs('store.shop') ? 'text-fg-primary after:absolute after:left-3 after:right-3 after:bottom-1.5 after:h-px after:bg-accent-500' : 'text-fg-secondary hover:text-fg-primary' }}">
             {{ __('messages.Shop') }}
           </a>
 
           <a href="{{ route('store.contact') }}"
-             class="px-3 h-10 inline-flex items-center text-sm font-medium text-fg-secondary hover:text-fg-primary rounded-md transition-colors">
+             class="relative px-3 h-10 inline-flex items-center text-sm font-medium transition-colors {{ request()->routeIs('store.contact') ? 'text-fg-primary after:absolute after:left-3 after:right-3 after:bottom-1.5 after:h-px after:bg-accent-500' : 'text-fg-secondary hover:text-fg-primary' }}">
             {{ __('messages.Support') }}
           </a>
         </nav>
@@ -241,21 +306,6 @@
             <x-store.icon name="moon" class="w-5 h-5 inline dark:hidden" />
             <x-store.icon name="sun"  class="w-5 h-5 hidden dark:inline" />
           </button>
-
-          {{-- Language --}}
-          <div class="relative hidden md:block" x-data="dropdown()" @click.outside="close">
-            <button type="button" class="btn btn-ghost h-10 px-3 text-sm font-medium" @click="toggle">
-              <x-store.icon name="globe" class="w-4 h-4 me-1" />{{ strtoupper(app()->getLocale()) }}
-              <x-store.icon name="chevron-down" class="w-3 h-3 ms-1" />
-            </button>
-            <div x-show="open" x-cloak x-transition
-                 class="absolute end-0 mt-1 w-36 bg-bg-elevated border border-line-subtle rounded-md shadow-lg py-1 z-50">
-              <a class="block px-3 py-2 text-sm text-fg-primary hover:bg-bg-muted" href="{{ route('lang.switch', 'en') }}">English</a>
-              <a class="block px-3 py-2 text-sm text-fg-primary hover:bg-bg-muted" href="{{ route('lang.switch', 'fr') }}">Français</a>
-              <a class="block px-3 py-2 text-sm text-fg-primary hover:bg-bg-muted" href="{{ route('lang.switch', 'ar') }}">العربية</a>
-              <a class="block px-3 py-2 text-sm text-fg-primary hover:bg-bg-muted" href="{{ route('lang.switch', 'es') }}">Español</a>
-            </div>
-          </div>
 
           {{-- Account --}}
           @if($client)
@@ -738,7 +788,7 @@
                   <input :type="show ? 'text' : 'password'" name="password" class="auth-input auth-input-pw"
                          required autocomplete="current-password" placeholder="••••••••">
                   <button type="button" class="auth-eye" @click="show = !show"
-                          :aria-label="show ? 'Hide password' : 'Show password'" tabindex="-1">
+                          :aria-label="show ? '{{ __('messages.Layout_HidePassword') }}' : '{{ __('messages.Layout_ShowPassword') }}'" tabindex="-1">
                     <svg x-show="!show" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
                          fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                          stroke-linejoin="round" class="w-4 h-4">
@@ -830,7 +880,7 @@
                       <input :type="show ? 'text' : 'password'" name="password"
                              class="auth-input auth-input-pw" required autocomplete="new-password">
                       <button type="button" class="auth-eye" @click="show = !show" tabindex="-1"
-                              :aria-label="show ? 'Hide password' : 'Show password'">
+                              :aria-label="show ? '{{ __('messages.Layout_HidePassword') }}' : '{{ __('messages.Layout_ShowPassword') }}'">
                         <svg x-show="!show" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
                              fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                              stroke-linejoin="round" class="w-4 h-4">

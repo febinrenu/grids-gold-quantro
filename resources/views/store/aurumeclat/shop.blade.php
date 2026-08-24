@@ -10,11 +10,11 @@
 
 <section class="relative border-b border-white/5 overflow-hidden">
   <img src="https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=1600&q=80"
-       alt="Faceted gemstone pendant on layered gold chains" class="absolute inset-0 w-full h-full object-cover">
+       alt="{{ __('messages.Aurumeclat_AltGemstonePendant') }}" class="absolute inset-0 w-full h-full object-cover">
   <div class="absolute inset-0 bg-gradient-to-r from-brand-black/95 via-brand-black/70 to-brand-black/40"></div>
   <div class="relative z-10 max-w-7xl mx-auto px-4 py-10">
-    <p class="eyebrow text-[10px] text-brand-gold font-semibold mb-2">THE COLLECTION</p>
-    <h1 class="font-logo text-3xl md:text-4xl text-white">Shop Fine Jewelry</h1>
+    <p class="eyebrow text-[10px] text-brand-gold font-semibold mb-2">{{ __('messages.Aurumeclat_TheCollection') }}</p>
+    <h1 class="font-logo text-3xl md:text-4xl text-white">{{ __('messages.Aurumeclat_ShopFineJewelryHeading') }}</h1>
     <div class="text-sm text-white/50 mt-2">
       {{ trans_choice('messages.products', $total, ['count' => $total]) }}
       @if($hasFilters) · <span class="text-brand-gold">{{ __('messages.FiltersApplied') }}</span>@endif
@@ -36,8 +36,8 @@
           <option value="price_desc" @selected($sort === 'price_desc')>{{ __('messages.PriceDown') }}</option>
         </select>
       </div>
-      <button class="bg-brand-gold hover:bg-brand-goldDark transition text-black font-semibold px-5 py-2 text-xs nav-spaced" type="submit">UPDATE</button>
-      <button class="border border-white/30 text-white px-5 py-2 text-xs nav-spaced lg:hidden" type="button" @click="window.StoreUI.open('filtersDrawer')">FILTERS</button>
+      <button class="bg-brand-gold hover:bg-brand-goldDark transition text-black font-semibold px-5 py-2 text-xs nav-spaced" type="submit">{{ __('messages.Aurumeclat_UpdateCaps') }}</button>
+      <button class="border border-white/30 text-white px-5 py-2 text-xs nav-spaced lg:hidden" type="button" @click="window.StoreUI.open('filtersDrawer')">{{ __('messages.Aurumeclat_FiltersCaps') }}</button>
     </form>
   </div>
 </section>

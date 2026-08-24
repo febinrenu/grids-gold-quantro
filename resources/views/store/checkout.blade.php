@@ -267,6 +267,7 @@
   var STRIPE_KEY   = @json($stripeKey ?? '');
   var T_PREORDER   = @json(__('messages.PreOrder'));
   var T_REMOVE     = @json(__('messages.Remove'));
+  var T_STRIPE_UNAVAILABLE = @json(__('messages.Store_StripeUnavailable'));
 
   function fmt(v){ return CURRENCY + Number(v||0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
   function esc(s){ return String(s || '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
