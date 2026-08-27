@@ -28,7 +28,7 @@ class SettingsApiController extends Controller
         $currencies = Currency::whereNull('deleted_at')->get(['id', 'name', 'symbol']);
         $default_currency_id = $setting?->Currency?->id ?? null;
 
-        if (! $s) {
+        if (!$s) {
             $s = StoreSetting::create([
                 'enabled' => 1,
                 'store_name' => 'StoreX',
@@ -59,7 +59,7 @@ class SettingsApiController extends Controller
                 'footer_text' => 'A beautiful demo storefront paired with your POS & Inventory system.',
 
                 'social_links' => json_encode([
-                    ['platform' => 'facebook',  'url' => 'https://facebook.com'],
+                    ['platform' => 'facebook', 'url' => 'https://facebook.com'],
                     ['platform' => 'instagram', 'url' => 'https://instagram.com'],
                 ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
 
@@ -71,9 +71,9 @@ class SettingsApiController extends Controller
 
         // ---- One-time migration: old home_collections -> new homepage_lineup
         // Accept old shape: [{collection_id, title, limit, visible, sort_order}]
-        if (empty($s->homepage_lineup) && ! empty($s->home_collections)) {
+        if (empty($s->homepage_lineup) && !empty($s->home_collections)) {
             $migrated = $this->migrateHomeCollectionsToHomepageLineup($s->home_collections);
-            if (! empty($migrated)) {
+            if (!empty($migrated)) {
                 $s->homepage_lineup = $migrated;
                 $s->save();
             }
@@ -146,7 +146,7 @@ class SettingsApiController extends Controller
             'show_stock' => 'nullable|in:0,1',
 
             'store_name' => 'nullable|string|max:190',
-            'theme' => 'nullable|string|in:default,aurumeclat,elegance,naturae,nexgold,monolith,kiosk,atlas,ledger,deco,draft,poeme',
+            'theme' => 'nullable|string|in:default,aurumeclat,elegance,naturae,nexgold,monolith,kiosk,atlas,ledger,deco,draft,poeme,lumiere,obsidian,radiance,vintage,minimal,nova,velvet,prism',
             'primary_color' => 'nullable|string|max:20',
             'secondary_color' => 'nullable|string|max:20',
             'font_family' => 'nullable|string|max:100',
@@ -199,7 +199,7 @@ class SettingsApiController extends Controller
         }
 
         // --- Migrate legacy collections if needed ---
-        if (! empty($data['home_collections']) && empty($data['homepage_lineup'])) {
+        if (!empty($data['home_collections']) && empty($data['homepage_lineup'])) {
             $data['homepage_lineup'] = $this->migrateHomeCollectionsToHomepageLineup($data['home_collections']);
         }
         unset($data['home_collections']); // don't persist legacy field
@@ -209,7 +209,7 @@ class SettingsApiController extends Controller
 
         // --- Ensure storage directory exists ---
         $targetDir = public_path('images/store');
-        if (! File::exists($targetDir)) {
+        if (!File::exists($targetDir)) {
             File::makeDirectory($targetDir, 0755, true);
         }
 
@@ -224,7 +224,7 @@ class SettingsApiController extends Controller
             }
 
             $ext = strtolower($request->file('logo')->guessExtension() ?: 'png');
-            $filename = (string) Str::uuid().'.'.$ext;
+            $filename = (string) Str::uuid() . '.' . $ext;
 
             Image::make($request->file('logo')->getRealPath())
                 ->resize(200, 200, function ($c) {
@@ -232,9 +232,9 @@ class SettingsApiController extends Controller
                     $c->upsize();
                 })
                 ->encode($ext, 85)
-                ->save($targetDir.'/'.$filename);
+                ->save($targetDir . '/' . $filename);
 
-            $data['logo_path'] = 'images/store/'.$filename;
+            $data['logo_path'] = 'images/store/' . $filename;
         }
 
         // --- FAVICON ---
@@ -248,17 +248,17 @@ class SettingsApiController extends Controller
             $ext = strtolower($file->getClientOriginalExtension() ?: $file->guessExtension() ?: '');
 
             if ($ext === 'ico' || in_array($mime, ['image/x-icon', 'image/vnd.microsoft.icon'], true)) {
-                $filename = (string) Str::uuid().'.ico';
+                $filename = (string) Str::uuid() . '.ico';
                 $file->move($targetDir, $filename);
             } else {
-                $filename = (string) Str::uuid().'.png';
+                $filename = (string) Str::uuid() . '.png';
                 Image::make($file->getRealPath())
                     ->fit(64, 64)
                     ->encode('png')
-                    ->save($targetDir.'/'.$filename);
+                    ->save($targetDir . '/' . $filename);
             }
 
-            $data['favicon_path'] = 'images/store/'.$filename;
+            $data['favicon_path'] = 'images/store/' . $filename;
         }
 
         // --- HERO IMAGE (1600x800 max) ---
@@ -268,7 +268,7 @@ class SettingsApiController extends Controller
             }
 
             $ext = strtolower($request->file('hero_image')->guessExtension() ?: 'jpg');
-            $filename = (string) Str::uuid().'.'.$ext;
+            $filename = (string) Str::uuid() . '.' . $ext;
 
             Image::make($request->file('hero_image')->getRealPath())
                 ->resize(1600, 800, function ($c) {
@@ -276,16 +276,16 @@ class SettingsApiController extends Controller
                     $c->upsize();
                 })
                 ->encode($ext, 82)
-                ->save($targetDir.'/'.$filename);
+                ->save($targetDir . '/' . $filename);
 
-            $data['hero_image_path'] = 'images/store/'.$filename;
+            $data['hero_image_path'] = 'images/store/' . $filename;
         }
 
         // ============================
         // CURRENCY HANDLING
         // ============================
 
-        if (! empty($data['default_currency_id'])) {
+        if (!empty($data['default_currency_id'])) {
             $currency = Currency::find($data['default_currency_id']);
             if ($currency) {
                 $data['currency_code'] = $currency->symbol;
@@ -314,7 +314,7 @@ class SettingsApiController extends Controller
     {
         $this->authorizeForUser($request->user('api'), 'view', Setting::class);
         $s = Setting::first();
-        if (! $s) {
+        if (!$s) {
             return response()->json([
                 'google_calendar_connected' => false,
                 'google_calendar_connect_url' => route('google_calendar.connect'),
@@ -326,11 +326,11 @@ class SettingsApiController extends Controller
             ]);
         }
         return response()->json([
-            'google_calendar_connected' => ! empty($s->google_calendar_refresh_token),
+            'google_calendar_connected' => !empty($s->google_calendar_refresh_token),
             'google_calendar_connect_url' => route('google_calendar.connect'),
             'google_calendar_disconnect_url' => route('google_calendar.disconnect'),
             'google_calendar_client_id' => $s->google_calendar_client_id,
-            'google_calendar_client_secret_set' => ! empty($s->google_calendar_client_secret),
+            'google_calendar_client_secret_set' => !empty($s->google_calendar_client_secret),
             'google_calendar_redirect_uri' => $s->google_calendar_redirect_uri,
             'google_calendar_calendar_id' => $s->google_calendar_calendar_id,
         ]);
@@ -349,7 +349,7 @@ class SettingsApiController extends Controller
             'google_calendar_calendar_id' => 'nullable|string|max:255',
         ]);
         $s = Setting::first();
-        if (! $s) {
+        if (!$s) {
             return response()->json(['error' => 'Settings record not found.'], 404);
         }
         // Do not overwrite client_secret with empty value (user may leave it blank to keep existing)
@@ -368,7 +368,7 @@ class SettingsApiController extends Controller
      */
     private function normalizeHomepageLineup($val): array
     {
-        if (! $val || ! is_array($val)) {
+        if (!$val || !is_array($val)) {
             return [];
         }
 
@@ -380,7 +380,7 @@ class SettingsApiController extends Controller
         $hasCategories = false;
 
         foreach ($val as $row) {
-            if (! is_array($row) || empty($row['type'])) {
+            if (!is_array($row) || empty($row['type'])) {
                 continue;
             }
             $type = strtolower((string) $row['type']);
@@ -477,13 +477,13 @@ class SettingsApiController extends Controller
      */
     private function migrateHomeCollectionsToHomepageLineup($val): array
     {
-        if (! $val || ! is_array($val)) {
+        if (!$val || !is_array($val)) {
             return [];
         }
 
         // Filter only visible rows and sort by sort_order
         $rows = array_values(array_filter($val, function ($r) {
-            if (! is_array($r)) {
+            if (!is_array($r)) {
                 return false;
             }
             if (empty($r['collection_id'])) {
@@ -503,7 +503,7 @@ class SettingsApiController extends Controller
             return $sa <=> $sb;
         });
 
-        $ids = array_unique(array_map(fn ($r) => (int) $r['collection_id'], $rows));
+        $ids = array_unique(array_map(fn($r) => (int) $r['collection_id'], $rows));
         if (empty($ids)) {
             return [];
         }

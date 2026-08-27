@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunk=self.webpackChunk||[]).push([[5324],{83776(e,n,u){u.r(n),u.d(n,{default:()=>s});const l={name:"SerialNumbersIndex"};const s=(0,u(14486).A)(l,function(){return(0,this._self._c)("router-view")},[],!1,null,null,null).exports}}]);

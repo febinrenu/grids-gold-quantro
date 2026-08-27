@@ -18,7 +18,7 @@ class StoreFrontController extends Controller
      * that @extend layouts.store (so they get the real cart/quick-view/checkout machinery
      * for free) but override the header/content/footer sections with their own branding.
      */
-    public const CUSTOM_THEMES = ['aurumeclat', 'elegance', 'naturae', 'nexgold', 'monolith', 'kiosk', 'atlas', 'ledger', 'deco', 'draft', 'poeme'];
+    public const CUSTOM_THEMES = ['aurumeclat', 'elegance', 'naturae', 'nexgold', 'monolith', 'kiosk', 'atlas', 'ledger', 'deco', 'draft', 'poeme', 'lumiere', 'obsidian', 'radiance', 'vintage', 'minimal', 'nova', 'velvet', 'prism'];
 
     /**
      * Shared "active jewelry catalog" query used by every custom theme's home page.
@@ -60,12 +60,12 @@ class StoreFrontController extends Controller
                         });
                     }
                 })
-                ->with(['images' => fn ($q) => $q->orderBy('is_main', 'desc')->orderBy('sort_order')])
+                ->with(['images' => fn($q) => $q->orderBy('is_main', 'desc')->orderBy('sort_order')])
                 ->orderBy('created_at', 'desc')
                 ->first();
 
             $filename = $cover?->primaryProductImageFilename();
-            $cat->cover_image_url = $filename ? global_asset(upload_path('products').'/'.$filename) : null;
+            $cat->cover_image_url = $filename ? global_asset(upload_path('products') . '/' . $filename) : null;
         }
     }
 
@@ -132,14 +132,14 @@ class StoreFrontController extends Controller
             }
             if ($legacy) {
                 $rows = collect($legacy)
-                    ->filter(fn ($r) => is_array($r) && ! empty($r['collection_id']) && (
-                        ! array_key_exists('visible', $r)
+                    ->filter(fn($r) => is_array($r) && !empty($r['collection_id']) && (
+                        !array_key_exists('visible', $r)
                         || filter_var($r['visible'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) !== false
                     ))
-                    ->sortBy(fn ($r) => (int) ($r['sort_order'] ?? 9999))
+                    ->sortBy(fn($r) => (int) ($r['sort_order'] ?? 9999))
                     ->values();
 
-                $ids = $rows->pluck('collection_id')->map(fn ($v) => (int) $v)->unique()->all();
+                $ids = $rows->pluck('collection_id')->map(fn($v) => (int) $v)->unique()->all();
                 $idToSlug = $ids ? Collection::whereIn('id', $ids)->pluck('slug', 'id')->toArray() : [];
 
                 $lineup = [];
@@ -192,7 +192,7 @@ class StoreFrontController extends Controller
         $defaultTaxRate = (float) ($s->default_tax_rate ?? 0);
 
         foreach ($lineup as $i => $item) {
-            if (! is_array($item) || empty($item['type'])) {
+            if (!is_array($item) || empty($item['type'])) {
                 continue;
             }
             $type = strtolower((string) $item['type']);
@@ -231,7 +231,7 @@ class StoreFrontController extends Controller
 
                 $collection = Collection::where('slug', $slug)->first()
                     ?: (is_numeric($slug) ? Collection::find((int) $slug) : null);
-                if (! $collection) {
+                if (!$collection) {
                     continue;
                 }
 
@@ -293,7 +293,7 @@ class StoreFrontController extends Controller
                                 }
                             }
                             // tax
-                            if (! $isInclusive && $taxRate > 0) {
+                            if (!$isInclusive && $taxRate > 0) {
                                 $price = $price * (1 + $taxRate / 100);
                             }
                             $v->display_price = round($price, 2);
@@ -304,7 +304,7 @@ class StoreFrontController extends Controller
                 $this->attachStockToProducts($products, $s->default_warehouse_id);
 
                 if ($s->hide_out_of_stock ?? false) {
-                    $products = $products->filter(fn ($p) => $this->productHasStock($p));
+                    $products = $products->filter(fn($p) => $this->productHasStock($p));
                 }
 
                 $blocks[] = [
@@ -330,7 +330,7 @@ class StoreFrontController extends Controller
             ->get();
 
         foreach ($banners as $b) {
-            $b->image_url = global_asset($b->image ?: upload_path('banners').'/no-image.png');
+            $b->image_url = global_asset($b->image ?: upload_path('banners') . '/no-image.png');
         }
 
         $categories = Category::with('subcategories')
@@ -363,7 +363,7 @@ class StoreFrontController extends Controller
      * UI shows final display price (discount + tax) computed per item after fetch.
      */
 
-     public function shop(Request $request)
+    public function shop(Request $request)
     {
         $s = StoreSetting::firstOrFail();
 
@@ -557,7 +557,7 @@ class StoreFrontController extends Controller
      */
     private function attachStockToProducts($products, ?int $warehouseId): void
     {
-        if (! $warehouseId || ! $products) {
+        if (!$warehouseId || !$products) {
             foreach ($products as $p) {
                 $p->stock = 0;
                 if ($p->relationLoaded('variants') && $p->variants) {
@@ -597,7 +597,7 @@ class StoreFrontController extends Controller
         } else {
             $q->whereNull('product_variant_id');
         }
-        $rows = $q->when(Schema::hasColumn('product_warehouse', 'deleted_at'), fn ($qb) => $qb->whereNull('deleted_at'))
+        $rows = $q->when(Schema::hasColumn('product_warehouse', 'deleted_at'), fn($qb) => $qb->whereNull('deleted_at'))
             ->select('product_id', 'product_variant_id', 'qte')
             ->get();
 
@@ -644,7 +644,7 @@ class StoreFrontController extends Controller
         }
 
         if ($p->relationLoaded('variants') && $p->variants && $p->variants->isNotEmpty()) {
-            return $p->variants->contains(fn ($v) => (float) ($v->stock ?? 0) > 0);
+            return $p->variants->contains(fn($v) => (float) ($v->stock ?? 0) > 0);
         }
 
         return (float) ($p->stock ?? 0) > 0;
@@ -701,16 +701,16 @@ class StoreFrontController extends Controller
             ->get();
 
         foreach ($products as $p) {
-            $p->loadMissing(['images' => fn ($q) => $q->orderBy('sort_order')->orderBy('id')]);
+            $p->loadMissing(['images' => fn($q) => $q->orderBy('sort_order')->orderBy('id')]);
             $fn = $p->primaryProductImageFilename();
-            $p->image_url = global_asset(upload_path('products').'/'.($fn ?: 'no-image.png'));
+            $p->image_url = global_asset(upload_path('products') . '/' . ($fn ?: 'no-image.png'));
             if ($p->is_jewelry_item) {
                 $preview = app(\App\Services\Jewelry\JewelryPricingService::class)->preview($p->id, $warehouseId);
                 $p->display_price = (float) ($preview['selling_price'] ?? 0.0);
             } else {
                 $p->display_price = $p->computeFinalPrice()['final'];
             }
-            $p->url = route('store.shop', ['q' => $p->name]); 
+            $p->url = route('store.shop', ['q' => $p->name]);
         }
 
         return response()->json($products);

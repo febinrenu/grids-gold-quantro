@@ -13,11 +13,11 @@
        alt="Diamond tennis bracelet on a black reflective surface" class="absolute inset-0 w-full h-full object-cover">
   <div class="absolute inset-0 bg-nx-navy/80"></div>
   <div class="relative z-10 max-w-7xl mx-auto px-4 py-10">
-    <p class="eyebrow mb-2 text-nx-gold">{{ __('messages.Nexgold_TheCatalog') }}</p>
-    <h1 class="text-2xl md:text-3xl font-extrabold text-white">{{ __('messages.Nexgold_ShopAllJewelry') }}</h1>
+    <p class="eyebrow mb-2 text-nx-gold">{{ 'Nexgold_TheCatalog' }}</p>
+    <h1 class="text-2xl md:text-3xl font-extrabold text-white">{{ 'Nexgold_ShopAllJewelry' }}</h1>
     <div class="text-sm text-white/70 mt-2">
       {{ trans_choice('messages.products', $total, ['count' => $total]) }}
-      @if($hasFilters) · <span class="text-nx-gold font-semibold">{{ __('messages.FiltersApplied') }}</span>@endif
+      @if($hasFilters) · <span class="text-nx-gold font-semibold">{{ 'FiltersApplied' }}</span>@endif
     </div>
 
     <form method="get" action="{{ route('store.shop') }}" class="flex items-end gap-2 flex-wrap mt-4">
@@ -29,15 +29,15 @@
         @endif
       @endforeach
       <div>
-        <label class="text-xs text-nx-ink/60 block mb-1">{{ __('messages.Sort') }}</label>
+        <label class="text-xs text-nx-ink/60 block mb-1">{{ 'Sort' }}</label>
         <select name="sort" class="select h-9 text-sm py-1">
-          <option value="latest" @selected(($sort ?? 'latest') === 'latest')>{{ __('messages.Latest') }}</option>
-          <option value="price_asc" @selected($sort === 'price_asc')>{{ __('messages.PriceUp') }}</option>
-          <option value="price_desc" @selected($sort === 'price_desc')>{{ __('messages.PriceDown') }}</option>
+          <option value="latest" @selected(($sort ?? 'latest') === 'latest')>{{ 'Latest' }}</option>
+          <option value="price_asc" @selected($sort === 'price_asc')>{{ 'PriceUp' }}</option>
+          <option value="price_desc" @selected($sort === 'price_desc')>{{ 'PriceDown' }}</option>
         </select>
       </div>
-      <button class="bg-nx-goldDark hover:bg-nx-blue transition text-white font-bold px-5 py-2 rounded-full text-sm" type="submit">{{ __('messages.Update') }}</button>
-      <button class="border border-nx-border px-5 py-2 rounded-full text-sm font-bold lg:hidden" type="button" @click="window.StoreUI.open('filtersDrawer')">{{ __('messages.Filters') }}</button>
+      <button class="bg-nx-goldDark hover:bg-nx-blue transition text-white font-bold px-5 py-2 rounded-full text-sm" type="submit">{{ 'Update' }}</button>
+      <button class="border border-nx-border px-5 py-2 rounded-full text-sm font-bold lg:hidden" type="button" @click="window.StoreUI.open('filtersDrawer')">{{ 'Filters' }}</button>
     </form>
   </div>
 </section>
@@ -76,10 +76,10 @@
          x-transition:enter-start="translate-x-full" x-transition:enter-end="translate-x-0"
          x-transition:leave="transition-transform duration-200"
          x-transition:leave-start="translate-x-0" x-transition:leave-end="translate-x-full"
-         role="dialog" aria-modal="true" aria-label="{{ __('messages.Filters') }}">
+         role="dialog" aria-modal="true" aria-label="{{ 'Filters' }}">
     <div class="drawer-header">
-      <h5 class="font-semibold m-0">{{ __('messages.Filters') }}</h5>
-      <button type="button" class="btn btn-ghost btn-icon btn-sm" @click="close()" aria-label="{{ __('messages.Close') }}">
+      <h5 class="font-semibold m-0">{{ 'Filters' }}</h5>
+      <button type="button" class="btn btn-ghost btn-icon btn-sm" @click="close()" aria-label="{{ 'Close' }}">
         <x-store.icon name="x" class="w-5 h-5" />
       </button>
     </div>
@@ -97,3 +97,4 @@
 @include('store.partials.shop-modals-scripts', ['currency' => $currency])
 </div>
 @endsection
+

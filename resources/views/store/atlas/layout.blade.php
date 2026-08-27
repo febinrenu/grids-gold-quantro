@@ -61,15 +61,15 @@
 @section('header')
 <div class="theme-atlas">
   <div class="a-mobilebar">
-    <button id="at-menuBtn" aria-label="{{ __('messages.Atlas_OpenMenu') }}" class="a-label" style="color:#EDE8E0; border:1px solid rgba(237,232,224,.3); padding:.35rem .6rem;">{{ __('messages.Atlas_MenuLabel') }}</button>
+    <button id="at-menuBtn" aria-label="{{ 'Atlas_OpenMenu' }}" class="a-label" style="color:#EDE8E0; border:1px solid rgba(237,232,224,.3); padding:.35rem .6rem;">{{ 'Atlas_MenuLabel' }}</button>
     <a href="{{ route('store.index') }}" class="a-word">{{ $s->store_name ?? 'Atlas' }}</a>
-    <a href="{{ route('store.cart') }}" aria-label="{{ __('messages.Cart') }}" class="relative" style="color:#EDE8E0;">
+    <a href="{{ route('store.cart') }}" aria-label="{{ 'Cart' }}" class="relative" style="color:#EDE8E0;">
       <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 8V6a6 6 0 0112 0v2M4 8h16l-1.2 12.1a2 2 0 01-2 1.9H7.2a2 2 0 01-2-1.9L4 8z"/></svg>
       <span class="cart-count absolute -top-1.5 -right-1.5 text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-bold" style="background:#B5651D; color:#fff;">0</span>
     </a>
   </div>
   <div id="at-mobileNav" class="hidden md:hidden flex-col" style="background:#302D28;">
-    <a href="{{ route('store.shop') }}" class="a-nav-link px-5">{{ __('messages.Atlas_ShopAll') }}</a>
+    <a href="{{ route('store.shop') }}" class="a-nav-link px-5">{{ 'Atlas_ShopAll' }}</a>
     @foreach(($categories ?? collect())->take(8) as $cat)
       <a href="{{ route('store.shop', ['category' => $cat->id]) }}" class="a-nav-link px-5">{{ $cat->name }}</a>
     @endforeach
@@ -78,14 +78,14 @@
   <aside class="a-sidebar">
     <a href="{{ route('store.index') }}" class="a-word mb-10" style="color:#EDE8E0; font-size:1.3rem;">{{ $s->store_name ?? 'Atlas' }}</a>
     <nav class="flex-1">
-      <a href="{{ route('store.shop') }}" class="a-nav-link">{{ __('messages.Atlas_ShopAll') }}</a>
+      <a href="{{ route('store.shop') }}" class="a-nav-link">{{ 'Atlas_ShopAll' }}</a>
       @foreach(($categories ?? collect())->take(8) as $cat)
         <a href="{{ route('store.shop', ['category' => $cat->id]) }}" class="a-nav-link">{{ $cat->name }}</a>
       @endforeach
     </nav>
     <div class="flex items-center gap-5 pt-6" style="border-top:1px solid rgba(237,232,224,.08);">
-      <a href="{{ route('account') }}" aria-label="{{ __('messages.Account') }}" style="color:#cfc9bd;"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-6 8-6s8 2 8 6"/></svg></a>
-      <a href="{{ route('store.cart') }}" aria-label="{{ __('messages.Cart') }}" class="relative" style="color:#cfc9bd;">
+      <a href="{{ route('account') }}" aria-label="{{ 'Account' }}" style="color:#cfc9bd;"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-6 8-6s8 2 8 6"/></svg></a>
+      <a href="{{ route('store.cart') }}" aria-label="{{ 'Cart' }}" class="relative" style="color:#cfc9bd;">
         <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 8V6a6 6 0 0112 0v2M4 8h16l-1.2 12.1a2 2 0 01-2 1.9H7.2a2 2 0 01-2-1.9L4 8z"/></svg>
         <span class="cart-count absolute -top-1.5 -right-1.5 text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-bold" style="background:#B5651D; color:#fff;">0</span>
       </a>
@@ -109,15 +109,15 @@
       <p class="text-sm mt-2 max-w-xs" style="opacity:.65;">{{ $s->footer_text ?? 'Considered jewelry, built to last.' }}</p>
     </div>
     <div>
-      <p class="a-label mb-3">{{ __('messages.Support') }}</p>
-      <a href="{{ route('store.contact') }}" class="text-sm block mb-1.5" style="opacity:.75;">{{ __('messages.ContactUs') }}</a>
-      <a href="{{ route('account.orders') }}" class="text-sm block mb-1.5" style="opacity:.75;">{{ __('messages.Atlas_TrackOrder') }}</a>
+      <p class="a-label mb-3">{{ 'Support' }}</p>
+      <a href="{{ route('store.contact') }}" class="text-sm block mb-1.5" style="opacity:.75;">{{ 'ContactUs' }}</a>
+      <a href="{{ route('account.orders') }}" class="text-sm block mb-1.5" style="opacity:.75;">{{ 'Atlas_TrackOrder' }}</a>
     </div>
     <div>
-      <p class="a-label mb-3">{{ __('messages.Atlas_Newsletter') }}</p>
+      <p class="a-label mb-3">{{ 'Atlas_Newsletter' }}</p>
       <form action="{{ route('newsletter.subscribe') }}" method="POST" class="flex gap-2">
         @csrf
-        <input type="email" name="email" required placeholder="{{ __('messages.Email') }}" class="flex-1 min-w-0 px-3 py-2 text-xs outline-none" style="background:rgba(237,232,224,.06); border:1px solid rgba(237,232,224,.15); color:#EDE8E0; border-radius:2px;" />
+        <input type="email" name="email" required placeholder="{{ 'Email' }}" class="flex-1 min-w-0 px-3 py-2 text-xs outline-none" style="background:rgba(237,232,224,.06); border:1px solid rgba(237,232,224,.15); color:#EDE8E0; border-radius:2px;" />
         <button type="submit" class="a-btn" style="background:#B5651D;">→</button>
       </form>
     </div>
@@ -125,3 +125,5 @@
   <p class="text-xs mt-6" style="opacity:.4;">© {{ date('Y') }} {{ $s->store_name ?? 'Atlas' }}</p>
 </footer>
 @endsection
+
+

@@ -10,11 +10,11 @@
 
 <section class="max-w-7xl mx-auto px-4 md:px-8 pt-14 pb-8">
   <div class="border-b border-draft-ink pb-6">
-    <p class="font-draft-mono text-xs text-draft-blue font-bold">{{ __('messages.Draft_SpecIndexTag') }}</p>
-    <h1 class="font-draft-mono text-2xl md:text-3xl font-bold uppercase text-draft-ink">{{ __('messages.Draft_AtelierSpecIndex') }}</h1>
+    <p class="font-draft-mono text-xs text-draft-blue font-bold">{{ 'Draft_SpecIndexTag' }}</p>
+    <h1 class="font-draft-mono text-2xl md:text-3xl font-bold uppercase text-draft-ink">{{ 'Draft_AtelierSpecIndex' }}</h1>
     <div class="text-xs font-draft-mono text-draft-grey mt-2">
-      {{ __('messages.Draft_MatchingLotsFound') }} [{{ $total }}]
-      @if($hasFilters) · <span class="text-draft-blue font-semibold">{{ __('messages.Draft_FiltersEngaged') }}</span>@endif
+      {{ 'Draft_MatchingLotsFound' }} [{{ $total }}]
+      @if($hasFilters) · <span class="text-draft-blue font-semibold">{{ 'Draft_FiltersEngaged' }}</span>@endif
     </div>
   </div>
 
@@ -27,12 +27,12 @@
       @endif
     @endforeach
     <select name="sort" class="h-9 px-3 bg-draft-white border border-draft-border text-draft-ink font-draft-mono text-xs outline-none">
-      <option value="latest" @selected(($sort ?? 'latest') === 'latest')>{{ __('messages.Draft_SortLatest') }}</option>
-      <option value="price_asc" @selected($sort === 'price_asc')>{{ __('messages.Draft_SortPriceAsc') }}</option>
-      <option value="price_desc" @selected($sort === 'price_desc')>{{ __('messages.Draft_SortPriceDesc') }}</option>
+      <option value="latest" @selected(($sort ?? 'latest') === 'latest')>{{ 'Draft_SortLatest' }}</option>
+      <option value="price_asc" @selected($sort === 'price_asc')>{{ 'Draft_SortPriceAsc' }}</option>
+      <option value="price_desc" @selected($sort === 'price_desc')>{{ 'Draft_SortPriceDesc' }}</option>
     </select>
-    <button class="draft-btn py-1.5 px-5 text-[10px]" type="submit">{{ __('messages.Draft_ReQuery') }}</button>
-    <button class="draft-btn py-1.5 px-5 text-[10px] lg:hidden" type="button" @click="window.StoreUI.open('filtersDrawer')">{{ __('messages.Draft_OpenFilters') }}</button>
+    <button class="draft-btn py-1.5 px-5 text-[10px]" type="submit">{{ 'Draft_ReQuery' }}</button>
+    <button class="draft-btn py-1.5 px-5 text-[10px] lg:hidden" type="button" @click="window.StoreUI.open('filtersDrawer')">{{ 'Draft_OpenFilters' }}</button>
   </form>
 </section>
 
@@ -40,7 +40,7 @@
   <div class="grid lg:grid-cols-[240px_1fr] gap-10">
     <aside class="hidden lg:block">
       <div class="p-4 bg-draft-white border border-draft-border font-draft-mono text-xs">
-        <div class="mb-4 text-xs font-bold text-draft-ink">{{ __('messages.Draft_FilterControls') }}</div>
+        <div class="mb-4 text-xs font-bold text-draft-ink">{{ 'Draft_FilterControls' }}</div>
         @include('store.partials.filters-card', [
           'q' => $q, 'cat' => $cat, 'collection' => $collection,
           'min' => $min, 'max' => $max, 'sort' => $sort,
@@ -73,7 +73,7 @@
               COLL_{{ strtoupper(Str::slug($coName, '_')) }} <span class="text-draft-blue">&times;</span>
             </a>
           @endif
-          <a href="{{ route('store.shop') }}" class="border border-red-500 text-red-600 px-3 py-1 bg-red-50/50">{{ __('messages.Draft_ResetAll') }}</a>
+          <a href="{{ route('store.shop') }}" class="border border-red-500 text-red-600 px-3 py-1 bg-red-50/50">{{ 'Draft_ResetAll' }}</a>
         </div>
       @endif
 
@@ -89,8 +89,8 @@
               $descShort = \Illuminate\Support\Str::limit(strip_tags($p->note ?? ''), 400);
               $price = (float) ($p->display_price ?? ($p->price ?? 0));
               $isJewelry = (bool) ($p->is_jewelry_item ?? false);
-              $metalTypeName = $isJewelry && $p->metalType ? $p->metalType->name : __('messages.Draft_NA');
-              $karatName = $isJewelry && $p->karat ? $p->karat->name : __('messages.Draft_NA');
+              $metalTypeName = $isJewelry && $p->metalType ? $p->metalType->name : 'Draft_NA';
+              $karatName = $isJewelry && $p->karat ? $p->karat->name : 'Draft_NA';
               
               $grossWeight = $isJewelry ? (float) ($p->jewelry_gross_weight ?? 0.0) : 0.0;
               $netWeight = $isJewelry ? (float) ($p->jewelry_net_weight ?? 0.0) : 0.0;
@@ -128,11 +128,11 @@
               <div class="draft-spec-header">
                 <span class="font-draft-mono text-[10px] text-draft-grey">//ID: {{ str_pad($p->id, 5, '0', STR_PAD_LEFT) }}</span>
                 @if($isPreorderActive)
-                  <span class="draft-badge">{{ __('messages.Draft_PreOrderBadge') }}</span>
+                  <span class="draft-badge">{{ 'Draft_PreOrderBadge' }}</span>
                 @elseif(!$isAvailable)
-                  <span class="draft-badge bg-red-700">{{ __('messages.Draft_OutOfStockBadge') }}</span>
+                  <span class="draft-badge bg-red-700">{{ 'Draft_OutOfStockBadge' }}</span>
                 @else
-                  <span class="draft-badge bg-emerald-600">{{ __('messages.Draft_InStockBadge') }}</span>
+                  <span class="draft-badge bg-emerald-600">{{ 'Draft_InStockBadge' }}</span>
                 @endif
               </div>
 
@@ -192,21 +192,21 @@
                   <table class="draft-spec-table font-draft-mono">
                     <tbody>
                       <tr>
-                        <td>{{ __('messages.Draft_MetalType') }}</td>
+                        <td>{{ 'Draft_MetalType' }}</td>
                         <td class="text-right text-draft-ink">{{ $metalTypeName }}</td>
                       </tr>
                       <tr>
-                        <td>{{ __('messages.Draft_KaratIndex') }}</td>
+                        <td>{{ 'Draft_KaratIndex' }}</td>
                         <td class="text-right text-draft-ink">{{ $karatName }}</td>
                       </tr>
                       @if($isJewelry)
                         <tr>
-                          <td>{{ __('messages.Draft_GrossWeight') }}</td>
-                          <td class="text-right text-draft-ink">{{ $grossWeight > 0 ? $grossWeight . ' g' : __('messages.Draft_NA') }}</td>
+                          <td>{{ 'Draft_GrossWeight' }}</td>
+                          <td class="text-right text-draft-ink">{{ $grossWeight > 0 ? $grossWeight . ' g' : 'Draft_NA' }}</td>
                         </tr>
                         <tr>
-                          <td>{{ __('messages.Draft_MetalWeight') }}</td>
-                          <td class="text-right text-draft-ink">{{ $metalWeight > 0 ? $metalWeight . ' g' : __('messages.Draft_NA') }}</td>
+                          <td>{{ 'Draft_MetalWeight' }}</td>
+                          <td class="text-right text-draft-ink">{{ $metalWeight > 0 ? $metalWeight . ' g' : 'Draft_NA' }}</td>
                         </tr>
                       @endif
                     </tbody>
@@ -215,7 +215,7 @@
 
                 <div class="pt-3 border-t border-draft-border mt-3 flex items-center justify-between gap-4">
                   <div>
-                    <p class="font-draft-mono text-[9px] text-draft-grey">{{ __('messages.Draft_ValueEst') }}</p>
+                    <p class="font-draft-mono text-[9px] text-draft-grey">{{ 'Draft_ValueEst' }}</p>
                     <p class="font-draft-mono text-sm font-bold text-draft-blue">
                       {{ $currency }}{{ number_format($price, 2, '.', ',') }}
                     </p>
@@ -237,8 +237,8 @@
                           data-variants='@json($variantPayload)'
                           data-stock="{{ $productStock }}"
                           data-is-jewelry="{{ $isJewelry ? '1' : '0' }}"
-                          data-added-label="{{ __('messages.Draft_AddedLabel') }}">
-                    {{ __('messages.Draft_AddToCartBtn') }}
+                          data-added-label="{{ 'Draft_AddedLabel' }}">
+                    {{ 'Draft_AddToCartBtn' }}
                   </button>
                 </div>
               </div>
@@ -250,12 +250,12 @@
         @php $products->appends(request()->except('page')); @endphp
         @if ($products->hasPages())
           <div class="mt-12 flex flex-col items-center gap-4">
-            <nav aria-label="{{ __('messages.Draft_ProductPagination') }}">
+            <nav aria-label="{{ 'Draft_ProductPagination' }}">
               <ul class="flex items-center gap-1 font-draft-mono text-xs">
                 @if ($products->onFirstPage())
-                  <li><span class="px-3 py-1.5 border border-draft-border text-draft-grey">{{ __('messages.Draft_Prev') }}</span></li>
+                  <li><span class="px-3 py-1.5 border border-draft-border text-draft-grey">{{ 'Draft_Prev' }}</span></li>
                 @else
-                  <li><a class="px-3 py-1.5 border border-draft-border hover:bg-draft-ink hover:text-white transition" href="{{ $products->previousPageUrl() }}">{{ __('messages.Draft_Prev') }}</a></li>
+                  <li><a class="px-3 py-1.5 border border-draft-border hover:bg-draft-ink hover:text-white transition" href="{{ $products->previousPageUrl() }}">{{ 'Draft_Prev' }}</a></li>
                 @endif
                 
                 @foreach(range(1, $products->lastPage()) as $i)
@@ -267,9 +267,9 @@
                 @endforeach
 
                 @if ($products->hasMorePages())
-                  <li><a class="px-3 py-1.5 border border-draft-border hover:bg-draft-ink hover:text-white transition" href="{{ $products->nextPageUrl() }}">{{ __('messages.Draft_Next') }}</a></li>
+                  <li><a class="px-3 py-1.5 border border-draft-border hover:bg-draft-ink hover:text-white transition" href="{{ $products->nextPageUrl() }}">{{ 'Draft_Next' }}</a></li>
                 @else
-                  <li><span class="px-3 py-1.5 border border-draft-border text-draft-grey">{{ __('messages.Draft_Next') }}</span></li>
+                  <li><span class="px-3 py-1.5 border border-draft-border text-draft-grey">{{ 'Draft_Next' }}</span></li>
                 @endif
               </ul>
             </nav>
@@ -277,9 +277,9 @@
         @endif
       @else
         <div class="text-center py-16 border border-draft-border bg-draft-white">
-          <p class="font-draft-mono text-sm text-draft-blue mb-3">{{ __('messages.Draft_NoLotsMatched') }}</p>
-          <p class="text-xs text-draft-grey mb-4 font-draft-mono">{{ __('messages.Draft_NoLotsDesc') }}</p>
-          <a href="{{ route('store.shop') }}" class="draft-btn text-xs py-1.5 px-6">{{ __('messages.Draft_ResetQuery') }}</a>
+          <p class="font-draft-mono text-sm text-draft-blue mb-3">{{ 'Draft_NoLotsMatched' }}</p>
+          <p class="text-xs text-draft-grey mb-4 font-draft-mono">{{ 'Draft_NoLotsDesc' }}</p>
+          <a href="{{ route('store.shop') }}" class="draft-btn text-xs py-1.5 px-6">{{ 'Draft_ResetQuery' }}</a>
         </div>
       @endif
     </main>
@@ -293,10 +293,10 @@
          x-transition:enter-start="translate-x-full" x-transition:enter-end="translate-x-0"
          x-transition:leave="transition-transform duration-200"
          x-transition:leave-start="translate-x-0" x-transition:leave-end="translate-x-full"
-         role="dialog" aria-modal="true" aria-label="{{ __('messages.Filters') }}">
+         role="dialog" aria-modal="true" aria-label="{{ 'Filters' }}">
     <div class="drawer-header border-b border-draft-border py-4 px-6 flex justify-between items-center font-draft-mono">
-      <h5 class="text-sm m-0 font-bold">{{ __('messages.Draft_FiltersDrawer') }}</h5>
-      <button type="button" class="text-draft-ink hover:text-draft-blue transition font-bold" @click="close()" aria-label="{{ __('messages.Close') }}">
+      <h5 class="text-sm m-0 font-bold">{{ 'Draft_FiltersDrawer' }}</h5>
+      <button type="button" class="text-draft-ink hover:text-draft-blue transition font-bold" @click="close()" aria-label="{{ 'Close' }}">
         &times;
       </button>
     </div>
@@ -314,3 +314,4 @@
 @include('store.partials.shop-modals-scripts', ['currency' => $currency])
 </div>
 @endsection
+

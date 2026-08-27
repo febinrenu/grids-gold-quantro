@@ -16,7 +16,7 @@ import collapse from '@alpinejs/collapse';
  * Applied before Alpine starts so there's no flash of the wrong theme.
  * -------------------------------------------------------------------------- */
 (function initTheme() {
-  const KEY  = 'store.theme';
+  const KEY = 'store.theme';
   const root = document.documentElement;
   const stored = localStorage.getItem(KEY);
   const mode = stored || 'dark';
@@ -29,7 +29,7 @@ window.StoreTheme = {
   },
   set(mode) {
     document.documentElement.classList.toggle('dark', mode === 'dark');
-    try { localStorage.setItem('store.theme', mode); } catch (_) {}
+    try { localStorage.setItem('store.theme', mode); } catch (_) { }
     window.dispatchEvent(new CustomEvent('store:theme-changed', { detail: mode }));
   },
   toggle() {
@@ -86,7 +86,7 @@ window.fmtMoney = fmtMoney;
     try {
       const c = JSON.parse(localStorage.getItem(KEY) || '{}');
       if (Array.isArray(c.items)) return calc(c);
-    } catch (_) {}
+    } catch (_) { }
     return calc({ items: [], currency: currencySymbol() });
   }
   function save(c) {
@@ -249,6 +249,11 @@ if (!window.__CART_WIREUP__) {
 
     const qty = parseInt(btn.dataset.qty || '1', 10) || 1;
     window.CartLS.add(item, qty);
+
+    // Automatically open the side mini-cart drawer to give feedback
+    if (window.StoreUI && window.StoreUI.open) {
+      window.StoreUI.open('miniCart');
+    }
 
     const original = btn.innerHTML;
     const addedLabel = btn.dataset.addedLabel || window.__MSG_ADDED__ || 'Added';
@@ -508,7 +513,7 @@ Alpine.start();
       || location.hostname === '127.0.0.1';
     if (!isSecure) return;
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => {});
+      navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => { });
     });
-  } catch (_) {}
+  } catch (_) { }
 })();

@@ -75,29 +75,29 @@
 @section('header')
 <div class="theme-monolith" style="background:var(--mono-paper);">
   <div class="m-topstrip">
-    <span>{{ $s->topbar_text_left ?? __('messages.Monolith_TopbarLeft') }}</span>
-    <span class="hidden md:inline">{{ $s->topbar_text_right ?? __('messages.Monolith_TopbarRight') }}</span>
+    <span>{{ $s->topbar_text_left ?? 'Monolith_TopbarLeft' }}</span>
+    <span class="hidden md:inline">{{ $s->topbar_text_right ?? 'Monolith_TopbarRight' }}</span>
   </div>
   <div class="m-header">
-    <button id="mo-menuBtn" class="md:hidden m-header-menu m-label" aria-label="{{ __('messages.Monolith_OpenMenu') }}" style="border:1px solid var(--mono-ink); padding:.35rem .55rem; color:var(--mono-ink);">{{ __('messages.Monolith_Menu') }}</button>
+    <button id="mo-menuBtn" class="md:hidden m-header-menu m-label" aria-label="{{ 'Monolith_OpenMenu' }}" style="border:1px solid var(--mono-ink); padding:.35rem .55rem; color:var(--mono-ink);">{{ 'Monolith_Menu' }}</button>
     <a href="{{ route('store.index') }}" class="m-word">{{ $s->store_name ?? 'Monolith' }}</a>
-    <p class="m-tagline">{{ __('messages.Monolith_Tagline') }}</p>
+    <p class="m-tagline">{{ 'Monolith_Tagline' }}</p>
     <div class="m-header-icons">
-      <a href="{{ route('account') }}" aria-label="{{ __('messages.Account') }}" class="hover:opacity-60 transition"><svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-6 8-6s8 2 8 6"/></svg></a>
-      <a href="{{ route('store.cart') }}" aria-label="{{ __('messages.Cart') }}" class="relative hover:opacity-60 transition">
+      <a href="{{ route('account') }}" aria-label="{{ 'Account' }}" class="hover:opacity-60 transition"><svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-6 8-6s8 2 8 6"/></svg></a>
+      <a href="{{ route('store.cart') }}" aria-label="{{ 'Cart' }}" class="relative hover:opacity-60 transition">
         <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 8V6a6 6 0 0112 0v2M4 8h16l-1.2 12.1a2 2 0 01-2 1.9H7.2a2 2 0 01-2-1.9L4 8z"/></svg>
         <span class="cart-count absolute -top-1.5 -right-1.5 text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-bold" style="background:var(--mono-rust); color:#fff;">0</span>
       </a>
     </div>
     <nav class="hidden md:flex m-nav m-label" style="color:var(--mono-ink);">
-      <a href="{{ route('store.shop') }}" class="hover:opacity-60 transition">{{ __('messages.Monolith_NavIndex') }}</a>
+      <a href="{{ route('store.shop') }}" class="hover:opacity-60 transition">{{ 'Monolith_NavIndex' }}</a>
       @foreach(($categories ?? collect())->take(5) as $cat)
         <a href="{{ route('store.shop', ['category' => $cat->id]) }}" class="hover:opacity-60 transition">{{ $cat->name }}</a>
       @endforeach
     </nav>
   </div>
   <div id="mo-mobileNav" class="md:hidden hidden flex-col m-label" style="border-bottom:1px solid rgba(35,48,31,.1); color:var(--mono-ink);">
-    <a href="{{ route('store.shop') }}" class="px-6 py-3" style="border-top:1px solid rgba(35,48,31,.08);">{{ __('messages.Monolith_NavIndex') }}</a>
+    <a href="{{ route('store.shop') }}" class="px-6 py-3" style="border-top:1px solid rgba(35,48,31,.08);">{{ 'Monolith_NavIndex' }}</a>
     @foreach(($categories ?? collect())->take(8) as $cat)
       <a href="{{ route('store.shop', ['category' => $cat->id]) }}" class="px-6 py-3" style="border-top:1px solid rgba(35,48,31,.08);">{{ $cat->name }}</a>
     @endforeach
@@ -117,22 +117,22 @@
     <p class="m-serif" style="font-size:clamp(2.2rem,5vw,4rem); color:var(--mono-paper); line-height:1;">{{ $s->store_name ?? 'Monolith' }}</p>
     <div class="grid grid-cols-2 md:grid-cols-4 gap-8 mt-12 pt-8" style="border-top:1px solid rgba(246,241,231,.12);">
       <div>
-        <p class="m-label mb-3" style="color:#D7B08E;">{{ __('messages.Monolith_Visit') }}</p>
+        <p class="m-label mb-3" style="color:#D7B08E;">{{ 'Monolith_Visit' }}</p>
         <p class="text-sm" style="opacity:.75;">{{ $s->contact_address ?? '123 Studio Row' }}</p>
       </div>
       <div>
-        <p class="m-label mb-3" style="color:#D7B08E;">{{ __('messages.Monolith_Contact') }}</p>
+        <p class="m-label mb-3" style="color:#D7B08E;">{{ 'Monolith_Contact' }}</p>
         <p class="text-sm" style="opacity:.75;">{{ $s->contact_email ?? 'hello@monolith.test' }}</p>
       </div>
       <div>
-        <p class="m-label mb-3" style="color:#D7B08E;">{{ __('messages.Account') }}</p>
-        <a href="{{ route('store.login.show') }}" class="text-sm block hover:opacity-100 transition" style="opacity:.75;">{{ __('messages.Monolith_SignIn') }}</a>
+        <p class="m-label mb-3" style="color:#D7B08E;">{{ 'Account' }}</p>
+        <a href="{{ route('store.login.show') }}" class="text-sm block hover:opacity-100 transition" style="opacity:.75;">{{ 'Monolith_SignIn' }}</a>
       </div>
       <div>
-        <p class="m-label mb-3" style="color:#D7B08E;">{{ __('messages.Monolith_NotifyMe') }}</p>
+        <p class="m-label mb-3" style="color:#D7B08E;">{{ 'Monolith_NotifyMe' }}</p>
         <form action="{{ route('newsletter.subscribe') }}" method="POST" class="flex gap-2">
           @csrf
-          <input type="email" name="email" required placeholder="{{ __('messages.Email') }}" class="flex-1 min-w-0 px-3 py-2 text-xs outline-none" style="background:rgba(246,241,231,.06); border:1px solid rgba(246,241,231,.2); color:var(--mono-paper); border-radius:3px;" />
+          <input type="email" name="email" required placeholder="{{ 'Email' }}" class="flex-1 min-w-0 px-3 py-2 text-xs outline-none" style="background:rgba(246,241,231,.06); border:1px solid rgba(246,241,231,.2); color:var(--mono-paper); border-radius:3px;" />
           <button type="submit" class="m-btn m-btn-solid">→</button>
         </form>
       </div>
@@ -141,3 +141,5 @@
   </div>
 </footer>
 @endsection
+
+

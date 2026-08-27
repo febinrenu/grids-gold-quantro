@@ -48,6 +48,14 @@
                     <b-form-select-option value="deco">Deco — Art Deco / Gatsby Glamour (symmetrical grid)</b-form-select-option>
                     <b-form-select-option value="draft">Draft — Precision Atelier (technical specs sheet)</b-form-select-option>
                     <b-form-select-option value="poeme">Poeme — Ethereal Bridal (romantic storybook)</b-form-select-option>
+                    <b-form-select-option value="lumiere">Lumiere (Light &amp; Elegant)</b-form-select-option>
+                    <b-form-select-option value="obsidian">Obsidian (Dark Luxury)</b-form-select-option>
+                    <b-form-select-option value="radiance">Radiance (Futuristic Neon)</b-form-select-option>
+                    <b-form-select-option value="vintage">Vintage (Heritage Sepia)</b-form-select-option>
+                    <b-form-select-option value="minimal">Minimal (Brutalist B&amp;W)</b-form-select-option>
+                    <b-form-select-option value="nova">Nova (Cyberpunk Dark)</b-form-select-option>
+                    <b-form-select-option value="velvet">Velvet (Organic Luxury)</b-form-select-option>
+                    <b-form-select-option value="prism">Prism (Playful Holographic)</b-form-select-option>
                     <b-form-select-option value="default">{{ $t('Default_Store_Theme') }}</b-form-select-option>
                   </b-form-select>
                   <small class="text-muted d-block mt-1">
