@@ -563,7 +563,13 @@
     });
   }
 
-  render();
+  // storefront.min.js (which defines window.CartLS) loads with `defer`, so it
+  // only runs after the whole document is parsed — but this inline script
+  // runs immediately as the parser reaches it, well before that. Calling
+  // render() right here would always see CartLS undefined/empty. Waiting for
+  // DOMContentLoaded guarantees CartLS is ready first (deferred scripts
+  // always run before that event fires).
+  document.addEventListener('DOMContentLoaded', render);
 })();
 </script>
 @endsection

@@ -48,6 +48,14 @@
                     <b-form-select-option value="deco">Deco — Art Deco / Gatsby Glamour (symmetrical grid)</b-form-select-option>
                     <b-form-select-option value="draft">Draft — Precision Atelier (technical specs sheet)</b-form-select-option>
                     <b-form-select-option value="poeme">Poeme — Ethereal Bridal (romantic storybook)</b-form-select-option>
+                    <b-form-select-option value="cobalt">Cobalt House — Graphic Modernism (framed split screen)</b-form-select-option>
+                    <b-form-select-option value="lumen">Lumen — Playful Colour (soft mosaic gallery)</b-form-select-option>
+                    <b-form-select-option value="nocturne">Nocturne — After-Dark Luxury (cool nocturnal edit)</b-form-select-option>
+                    <b-form-select-option value="solstice">Solstice — Bright Season (bold poster composition)</b-form-select-option>
+                    <b-form-select-option value="verdant">Verdant — Natural Forms (stacked organic feature)</b-form-select-option>
+                    <b-form-select-option value="vermeil">Vermeil — Keepsake Cabinet (romantic catalog layout)</b-form-select-option>
+                    <b-form-select-option value="meridian">Meridian — Architectural Fine Jewelry (editorial index)</b-form-select-option>
+                    <b-form-select-option value="orbit">Orbit — Lunar Sculptural (rounded orbital composition)</b-form-select-option>
                     <b-form-select-option value="default">{{ $t('Default_Store_Theme') }}</b-form-select-option>
                   </b-form-select>
                   <small class="text-muted d-block mt-1">

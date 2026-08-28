@@ -18,7 +18,14 @@ class StoreFrontController extends Controller
      * that @extend layouts.store (so they get the real cart/quick-view/checkout machinery
      * for free) but override the header/content/footer sections with their own branding.
      */
-    public const CUSTOM_THEMES = ['aurumeclat', 'elegance', 'naturae', 'nexgold', 'monolith', 'kiosk', 'atlas', 'ledger', 'deco', 'draft', 'poeme'];
+    public const CUSTOM_THEMES = [
+        'aurumeclat', 'elegance', 'naturae', 'nexgold', 'monolith', 'kiosk',
+        'atlas', 'ledger', 'deco', 'draft', 'poeme',
+        // The eight new storefront directions. Each has a dedicated view
+        // namespace while sharing the existing catalogue, cart and checkout APIs.
+        'cobalt', 'lumen', 'nocturne', 'solstice', 'verdant', 'vermeil',
+        'meridian', 'orbit',
+    ];
 
     /**
      * Shared "active jewelry catalog" query used by every custom theme's home page.

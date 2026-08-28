@@ -723,6 +723,38 @@ var render = function render() {
     }
   }, [_vm._v("Poeme — Ethereal Bridal (romantic storybook)")]), _vm._v(" "), _c("b-form-select-option", {
     attrs: {
+      value: "cobalt"
+    }
+  }, [_vm._v("Cobalt House — Graphic Modernism (framed split screen)")]), _vm._v(" "), _c("b-form-select-option", {
+    attrs: {
+      value: "lumen"
+    }
+  }, [_vm._v("Lumen — Playful Colour (soft mosaic gallery)")]), _vm._v(" "), _c("b-form-select-option", {
+    attrs: {
+      value: "nocturne"
+    }
+  }, [_vm._v("Nocturne — After-Dark Luxury (cool nocturnal edit)")]), _vm._v(" "), _c("b-form-select-option", {
+    attrs: {
+      value: "solstice"
+    }
+  }, [_vm._v("Solstice — Bright Season (bold poster composition)")]), _vm._v(" "), _c("b-form-select-option", {
+    attrs: {
+      value: "verdant"
+    }
+  }, [_vm._v("Verdant — Natural Forms (stacked organic feature)")]), _vm._v(" "), _c("b-form-select-option", {
+    attrs: {
+      value: "vermeil"
+    }
+  }, [_vm._v("Vermeil — Keepsake Cabinet (romantic catalog layout)")]), _vm._v(" "), _c("b-form-select-option", {
+    attrs: {
+      value: "meridian"
+    }
+  }, [_vm._v("Meridian — Architectural Fine Jewelry (editorial index)")]), _vm._v(" "), _c("b-form-select-option", {
+    attrs: {
+      value: "orbit"
+    }
+  }, [_vm._v("Orbit — Lunar Sculptural (rounded orbital composition)")]), _vm._v(" "), _c("b-form-select-option", {
+    attrs: {
       value: "default"
     }
   }, [_vm._v(_vm._s(_vm.$t("Default_Store_Theme")))])], 1), _vm._v(" "), _c("small", {

@@ -231,6 +231,8 @@ __webpack_require__.r(__webpack_exports__);
     return {
       SubmitProcessing: false,
       customFieldValues: {},
+      metals: [],
+      clients_list: [],
       client: {
         id: "",
         firstname: "",
@@ -246,7 +248,12 @@ __webpack_require__.r(__webpack_exports__);
         adresse: "",
         is_royalty_eligible: "",
         opening_balance: 0,
-        credit_limit: 0
+        credit_limit: 0,
+        ring_size: "",
+        anniversary_date: "",
+        preferred_metals: "",
+        preferred_metals_array: [],
+        partner_customer_id: null
       }
     };
   },
@@ -273,6 +280,11 @@ __webpack_require__.r(__webpack_exports__);
     Create_Client: function Create_Client() {
       var _this2 = this;
       this.SubmitProcessing = true;
+      if (this.client.preferred_metals_array && this.client.preferred_metals_array.length > 0) {
+        this.client.preferred_metals = this.client.preferred_metals_array.join(', ');
+      } else {
+        this.client.preferred_metals = '';
+      }
       axios.post("clients", {
         firstname: this.client.firstname,
         lastname: this.client.lastname,
@@ -287,7 +299,11 @@ __webpack_require__.r(__webpack_exports__);
         adresse: this.client.adresse,
         is_royalty_eligible: this.client.is_royalty_eligible,
         opening_balance: parseFloat(this.client.opening_balance) || 0,
-        credit_limit: parseFloat(this.client.credit_limit) || 0
+        credit_limit: parseFloat(this.client.credit_limit) || 0,
+        ring_size: this.client.ring_size,
+        anniversary_date: this.client.anniversary_date,
+        preferred_metals: this.client.preferred_metals,
+        partner_customer_id: this.client.partner_customer_id
       }).then(function (response) {
         var _response$data$client;
         var clientId = response.data.id || ((_response$data$client = response.data.client) === null || _response$data$client === void 0 ? void 0 : _response$data$client.id);
@@ -336,6 +352,7 @@ __webpack_require__.r(__webpack_exports__);
   },
   //----------------------------- Created function-------------------
   created: function created() {
+    var _this3 = this;
     // Reset form on component creation
     this.client = {
       id: "",
@@ -352,8 +369,19 @@ __webpack_require__.r(__webpack_exports__);
       adresse: "",
       is_royalty_eligible: "",
       opening_balance: 0,
-      credit_limit: 0
+      credit_limit: 0,
+      ring_size: "",
+      anniversary_date: "",
+      preferred_metals: "",
+      preferred_metals_array: [],
+      partner_customer_id: null
     };
+    axios.get("get_clients_without_paginate").then(function (response) {
+      _this3.clients_list = response.data;
+    });
+    axios.get("get_metal_types_list").then(function (response) {
+      _this3.metals = response.data;
+    });
   }
 });
 
@@ -901,6 +929,99 @@ var render = function render() {
         _vm.$set(_vm.client, "adresse", $$v);
       },
       expression: "client.adresse"
+    }
+  })], 1)], 1), _vm._v(" "), _c("b-col", {
+    attrs: {
+      md: "6",
+      sm: "12"
+    }
+  }, [_c("b-form-group", {
+    attrs: {
+      label: _vm.$t("RingSize") || "Ring Size"
+    }
+  }, [_c("b-form-input", {
+    attrs: {
+      label: "Ring Size",
+      placeholder: "e.g. 7.5"
+    },
+    model: {
+      value: _vm.client.ring_size,
+      callback: function callback($$v) {
+        _vm.$set(_vm.client, "ring_size", $$v);
+      },
+      expression: "client.ring_size"
+    }
+  })], 1)], 1), _vm._v(" "), _c("b-col", {
+    attrs: {
+      md: "6",
+      sm: "12"
+    }
+  }, [_c("b-form-group", {
+    attrs: {
+      label: _vm.$t("AnniversaryDate") || "Anniversary Date"
+    }
+  }, [_c("b-form-input", {
+    attrs: {
+      type: "date",
+      label: "Anniversary Date"
+    },
+    model: {
+      value: _vm.client.anniversary_date,
+      callback: function callback($$v) {
+        _vm.$set(_vm.client, "anniversary_date", $$v);
+      },
+      expression: "client.anniversary_date"
+    }
+  })], 1)], 1), _vm._v(" "), _c("b-col", {
+    attrs: {
+      md: "6",
+      sm: "12"
+    }
+  }, [_c("b-form-group", {
+    attrs: {
+      label: _vm.$t("PreferredMetals") || "Preferred Metals"
+    }
+  }, [_c("v-select", {
+    attrs: {
+      multiple: "",
+      reduce: function reduce(label) {
+        return label.name;
+      },
+      label: "name",
+      placeholder: "Select metals",
+      options: _vm.metals
+    },
+    model: {
+      value: _vm.client.preferred_metals_array,
+      callback: function callback($$v) {
+        _vm.$set(_vm.client, "preferred_metals_array", $$v);
+      },
+      expression: "client.preferred_metals_array"
+    }
+  })], 1)], 1), _vm._v(" "), _c("b-col", {
+    attrs: {
+      md: "6",
+      sm: "12"
+    }
+  }, [_c("b-form-group", {
+    attrs: {
+      label: _vm.$t("PartnerCustomer") || "Partner Customer"
+    }
+  }, [_c("v-select", {
+    attrs: {
+      reduce: function reduce(label) {
+        return label.id;
+      },
+      label: "name",
+      placeholder: "Select partner customer",
+      options: _vm.clients_list
+    },
+    model: {
+      value: _vm.client.partner_customer_id,
+      callback: function callback($$v) {
+        _vm.$set(_vm.client, "partner_customer_id", $$v);
+      },
+      expression: "client.partner_customer_id"
     }
   })], 1)], 1), _vm._v(" "), _c("b-col", {
     staticClass: "mt-4 mb-4",

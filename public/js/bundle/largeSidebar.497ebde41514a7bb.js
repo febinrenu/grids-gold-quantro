@@ -1105,6 +1105,38 @@ var render = function render() {
     staticClass: "nav-text"
   }, [_vm._v(_vm._s(_vm.$t("Quotations")))])], 1), _vm._v(" "), _c("div", {
     staticClass: "triangle"
+  })]), _vm._v(" "), _c("li", {
+    directives: [{
+      name: "show",
+      rawName: "v-show",
+      value: _vm.currentUserPermissions && (_vm.currentUserPermissions.includes("Quotations_view") || _vm.currentUserPermissions.includes("Quotations_add")),
+      expression: "currentUserPermissions && (currentUserPermissions.includes('Quotations_view')\n                    || currentUserPermissions.includes('Quotations_add'))"
+    }],
+    staticClass: "nav-item",
+    "class": {
+      active: _vm.selectedParentMenu == "manufacturing"
+    },
+    attrs: {
+      "data-item": "manufacturing",
+      "data-submenu": true
+    },
+    on: {
+      mouseenter: _vm.toggleSubMenu
+    }
+  }, [_c("a", {
+    staticClass: "nav-item-hold",
+    attrs: {
+      href: "#"
+    }
+  }, [_c("lucide-icon", {
+    staticClass: "nav-icon",
+    attrs: {
+      name: "hammer"
+    }
+  }), _vm._v(" "), _c("span", {
+    staticClass: "nav-text"
+  }, [_vm._v("Manufacturing")])], 1), _vm._v(" "), _c("div", {
+    staticClass: "triangle"
   })]), _vm._v(" "), _vm.currentUserPermissions && _vm.currentUserPermissions.includes("Purchase_Returns_view") ? _c("li", {
     staticClass: "nav-item",
     "class": {
@@ -3038,6 +3070,28 @@ var render = function render() {
   }), _vm._v(" "), _c("span", {
     staticClass: "item-name"
   }, [_vm._v(_vm._s(_vm.$t("ListQuotations")))])], 1)], 1) : _vm._e()]), _vm._v(" "), _c("ul", {
+    staticClass: "childNav d-none",
+    "class": {
+      "d-block": _vm.selectedParentMenu == "manufacturing"
+    },
+    attrs: {
+      "data-parent": "manufacturing"
+    }
+  }, [_vm.currentUserPermissions && _vm.currentUserPermissions.includes("Quotations_view") ? _c("li", {
+    staticClass: "nav-item"
+  }, [_c("router-link", {
+    attrs: {
+      tag: "a",
+      to: "/app/manufacturing/list"
+    }
+  }, [_c("lucide-icon", {
+    staticClass: "nav-icon",
+    attrs: {
+      name: "files"
+    }
+  }), _vm._v(" "), _c("span", {
+    staticClass: "item-name"
+  }, [_vm._v("List Orders")])], 1)], 1) : _vm._e()]), _vm._v(" "), _c("ul", {
     staticClass: "childNav d-none",
     "class": {
       "d-block": _vm.selectedParentMenu == "hrm"
@@ -6324,7 +6378,57 @@ var render = function render() {
     attrs: {
       name: "files"
     }
-  }), _vm._v(" "), _c("span", [_vm._v(_vm._s(_vm.$t("ListQuotations")))])], 1)], 1) : _vm._e()]) : _vm._e()]), _vm._v(" "), _vm.currentUserPermissions && _vm.currentUserPermissions.includes("Purchase_Returns_view") ? _c("li", {
+  }), _vm._v(" "), _c("span", [_vm._v(_vm._s(_vm.$t("ListQuotations")))])], 1)], 1) : _vm._e()]) : _vm._e()]), _vm._v(" "), _c("li", {
+    directives: [{
+      name: "show",
+      rawName: "v-show",
+      value: _vm.currentUserPermissions && (_vm.currentUserPermissions.includes("Quotations_view") || _vm.currentUserPermissions.includes("Quotations_add")),
+      expression: "currentUserPermissions && (\n              currentUserPermissions.includes('Quotations_view') ||\n              currentUserPermissions.includes('Quotations_add')\n            )"
+    }],
+    staticClass: "nav-item",
+    "class": {
+      active: _vm.isActiveRoute("manufacturing"),
+      "has-submenu": true,
+      open: _vm.openMenus.includes("manufacturing")
+    }
+  }, [_c("a", {
+    staticClass: "nav-link",
+    attrs: {
+      href: "#"
+    },
+    on: {
+      click: function click($event) {
+        $event.preventDefault();
+        return _vm.toggleSubmenu("manufacturing");
+      }
+    }
+  }, [_c("lucide-icon", {
+    staticClass: "nav-icon",
+    attrs: {
+      name: "hammer"
+    }
+  }), _vm._v(" "), !_vm.isCollapsed ? _c("span", {
+    staticClass: "nav-text"
+  }, [_vm._v("Manufacturing")]) : _vm._e(), _vm._v(" "), !_vm.isCollapsed ? _c("lucide-icon", {
+    staticClass: "submenu-arrow",
+    attrs: {
+      name: "chevron-down"
+    }
+  }) : _vm._e()], 1), _vm._v(" "), _vm.openMenus.includes("manufacturing") && !_vm.isCollapsed ? _c("ul", {
+    staticClass: "submenu"
+  }, [_vm.currentUserPermissions && _vm.currentUserPermissions.includes("Quotations_view") ? _c("li", {
+    staticClass: "submenu-item"
+  }, [_c("router-link", {
+    staticClass: "submenu-link",
+    attrs: {
+      to: "/app/manufacturing/list"
+    }
+  }, [_c("lucide-icon", {
+    staticClass: "submenu-icon",
+    attrs: {
+      name: "files"
+    }
+  }), _vm._v(" "), _c("span", [_vm._v("List Orders")])], 1)], 1) : _vm._e()]) : _vm._e()]), _vm._v(" "), _vm.currentUserPermissions && _vm.currentUserPermissions.includes("Purchase_Returns_view") ? _c("li", {
     staticClass: "nav-item",
     "class": {
       active: _vm.isActiveRoute("purchase_return")
