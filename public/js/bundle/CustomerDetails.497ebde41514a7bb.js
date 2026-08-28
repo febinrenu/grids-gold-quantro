@@ -646,7 +646,26 @@ var render = function render() {
     staticClass: "mr-3"
   }, [_c("strong", [_vm._v(_vm._s(_vm.$t("Tax_Number")) + ":")]), _vm._v(" " + _vm._s(_vm.client.tax_number || "-"))]), _vm._v(" "), _c("span", {
     staticClass: "mr-3"
-  }, [_c("strong", [_vm._v(_vm._s(_vm.$t("Credit_Limit")) + ":")]), _vm._v("\n              " + _vm._s(_vm.client.credit_limit && _vm.client.credit_limit > 0 ? _vm.formatPriceWithSymbol(_vm.currentUser.currency, _vm.client.credit_limit, 2) : _vm.$t("No_limit")) + "\n            ")])])]), _vm._v(" "), _c("b-col", {
+  }, [_c("strong", [_vm._v(_vm._s(_vm.$t("Credit_Limit")) + ":")]), _vm._v("\n              " + _vm._s(_vm.client.credit_limit && _vm.client.credit_limit > 0 ? _vm.formatPriceWithSymbol(_vm.currentUser.currency, _vm.client.credit_limit, 2) : _vm.$t("No_limit")) + "\n            ")])]), _vm._v(" "), _c("div", {
+    staticClass: "text-muted mt-2"
+  }, [_c("span", {
+    staticClass: "mr-3"
+  }, [_c("strong", [_vm._v(_vm._s(_vm.$t("RingSize") || "Ring Size") + ":")]), _vm._v(" " + _vm._s(_vm.client.ring_size || "-"))]), _vm._v(" "), _c("span", {
+    staticClass: "mr-3"
+  }, [_c("strong", [_vm._v(_vm._s(_vm.$t("AnniversaryDate") || "Anniversary Date") + ":")]), _vm._v(" " + _vm._s(_vm.client.anniversary_date || "-"))]), _vm._v(" "), _c("span", {
+    staticClass: "mr-3"
+  }, [_c("strong", [_vm._v(_vm._s(_vm.$t("PreferredMetals") || "Preferred Metals") + ":")]), _vm._v(" " + _vm._s(_vm.client.preferred_metals || "-"))]), _vm._v(" "), _c("span", {
+    staticClass: "mr-3"
+  }, [_c("strong", [_vm._v(_vm._s(_vm.$t("PartnerCustomer") || "Partner Customer") + ":")]), _vm._v(" "), _vm.client.partner ? _c("router-link", {
+    attrs: {
+      to: {
+        name: "CustomerDetails",
+        params: {
+          id: _vm.client.partner.id
+        }
+      }
+    }
+  }, [_vm._v("\n                " + _vm._s(_vm.client.partner.name) + "\n              ")]) : _c("span", [_vm._v("-")])], 1)])]), _vm._v(" "), _c("b-col", {
     staticClass: "text-right",
     attrs: {
       md: "4"
@@ -1797,7 +1816,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(function(i){return i[1]});
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, "\n.border-left-primary[data-v-4b97dffe] {\n  border-left: 4px solid #007bff !important;\n}\n.border-left-warning[data-v-4b97dffe] {\n  border-left: 4px solid #ffc107 !important;\n}\n.border-left-danger[data-v-4b97dffe] {\n  border-left: 4px solid #dc3545 !important;\n}\n.border-left-success[data-v-4b97dffe] {\n  border-left: 4px solid #28a745 !important;\n}\n.shadow-sm[data-v-4b97dffe] {\n  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;\n}\n.card[data-v-4b97dffe] {\n  transition: transform 0.2s;\n}\n.card[data-v-4b97dffe]:hover {\n  transform: translateY(-2px);\n  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;\n}\n.custom-field-item[data-v-4b97dffe] {\n  padding: 0.75rem;\n  background-color: #f8f9fa;\n  border-radius: 0.25rem;\n  border-left: 3px solid #007bff;\n}\n.custom-field-item strong[data-v-4b97dffe] {\n  font-size: 0.875rem;\n  text-transform: uppercase;\n  letter-spacing: 0.5px;\n}\n.custom-field-item span[data-v-4b97dffe] {\n  font-size: 1rem;\n  color: #212529;\n  font-weight: 500;\n}\n\n/* Full Page Loading Overlay */\n.full-page-loading[data-v-4b97dffe] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(255, 255, 255, 0.95);\n  z-index: 9999;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  backdrop-filter: blur(2px);\n}\n.loading-content[data-v-4b97dffe] {\n  text-align: center;\n}\n.loading-text[data-v-4b97dffe] {\n  color: #6b7280;\n  font-size: 16px;\n  font-weight: 500;\n}\n.full-page-loading .spinner[data-v-4b97dffe] {\n  width: 50px;\n  height: 50px;\n  border-width: 4px;\n}\n", ""]);
+___CSS_LOADER_EXPORT___.push([module.id, "\n.border-left-primary[data-v-4b97dffe] {\r\n  border-left: 4px solid #007bff !important;\n}\n.border-left-warning[data-v-4b97dffe] {\r\n  border-left: 4px solid #ffc107 !important;\n}\n.border-left-danger[data-v-4b97dffe] {\r\n  border-left: 4px solid #dc3545 !important;\n}\n.border-left-success[data-v-4b97dffe] {\r\n  border-left: 4px solid #28a745 !important;\n}\n.shadow-sm[data-v-4b97dffe] {\r\n  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;\n}\n.card[data-v-4b97dffe] {\r\n  transition: transform 0.2s;\n}\n.card[data-v-4b97dffe]:hover {\r\n  transform: translateY(-2px);\r\n  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;\n}\n.custom-field-item[data-v-4b97dffe] {\r\n  padding: 0.75rem;\r\n  background-color: #f8f9fa;\r\n  border-radius: 0.25rem;\r\n  border-left: 3px solid #007bff;\n}\n.custom-field-item strong[data-v-4b97dffe] {\r\n  font-size: 0.875rem;\r\n  text-transform: uppercase;\r\n  letter-spacing: 0.5px;\n}\n.custom-field-item span[data-v-4b97dffe] {\r\n  font-size: 1rem;\r\n  color: #212529;\r\n  font-weight: 500;\n}\r\n\r\n/* Full Page Loading Overlay */\n.full-page-loading[data-v-4b97dffe] {\r\n  position: fixed;\r\n  top: 0;\r\n  left: 0;\r\n  right: 0;\r\n  bottom: 0;\r\n  background: rgba(255, 255, 255, 0.95);\r\n  z-index: 9999;\r\n  display: flex;\r\n  align-items: center;\r\n  justify-content: center;\r\n  backdrop-filter: blur(2px);\n}\n.loading-content[data-v-4b97dffe] {\r\n  text-align: center;\n}\n.loading-text[data-v-4b97dffe] {\r\n  color: #6b7280;\r\n  font-size: 16px;\r\n  font-weight: 500;\n}\n.full-page-loading .spinner[data-v-4b97dffe] {\r\n  width: 50px;\r\n  height: 50px;\r\n  border-width: 4px;\n}\r\n", ""]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 

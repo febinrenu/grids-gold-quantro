@@ -248,6 +248,8 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
       portalEmail: "",
       portalPassword: "",
       portalErrors: [],
+      metals: [],
+      clients_list: [],
       client: {
         id: "",
         firstname: "",
@@ -262,7 +264,12 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
         zip: "",
         adresse: "",
         is_royalty_eligible: "",
-        credit_limit: 0
+        credit_limit: 0,
+        ring_size: "",
+        anniversary_date: "",
+        preferred_metals: "",
+        preferred_metals_array: [],
+        partner_customer_id: null
       }
     };
   },
@@ -289,6 +296,11 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
     Update_Client: function Update_Client() {
       var _this2 = this;
       this.SubmitProcessing = true;
+      if (this.client.preferred_metals_array && this.client.preferred_metals_array.length > 0) {
+        this.client.preferred_metals = this.client.preferred_metals_array.join(', ');
+      } else {
+        this.client.preferred_metals = '';
+      }
       axios.put("clients/" + this.client.id, {
         firstname: this.client.firstname,
         lastname: this.client.lastname,
@@ -302,7 +314,11 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
         zip: this.client.zip,
         adresse: this.client.adresse,
         is_royalty_eligible: this.client.is_royalty_eligible,
-        credit_limit: parseFloat(this.client.credit_limit) || 0
+        credit_limit: parseFloat(this.client.credit_limit) || 0,
+        ring_size: this.client.ring_size,
+        anniversary_date: this.client.anniversary_date,
+        preferred_metals: this.client.preferred_metals,
+        partner_customer_id: this.client.partner_customer_id
       }).then(function (response) {
         // Save custom field values if any
         if (Object.keys(_this2.customFieldValues).length > 0) {
@@ -335,9 +351,25 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
       nprogress__WEBPACK_IMPORTED_MODULE_0___default().start();
       nprogress__WEBPACK_IMPORTED_MODULE_0___default().set(0.1);
       var id = this.$route.params.id;
+      axios.get("get_metal_types_list").then(function (response) {
+        _this3.metals = response.data;
+      });
       axios.get("clients/" + id).then(function (response) {
         // Merge to keep default keys even if API omits them
         _this3.client = _objectSpread(_objectSpread({}, _this3.client), response.data.client || {});
+        if (_this3.client.preferred_metals) {
+          _this3.client.preferred_metals_array = _this3.client.preferred_metals.split(', ').filter(Boolean);
+        } else {
+          _this3.client.preferred_metals_array = [];
+        }
+
+        // Fetch other customers excluding current customer
+        axios.get("get_clients_without_paginate").then(function (res) {
+          _this3.clients_list = res.data.filter(function (c) {
+            return c.id !== _this3.client.id;
+          });
+        });
+
         // CustomFieldsForm component will handle loading values
         nprogress__WEBPACK_IMPORTED_MODULE_0___default().done();
         _this3.isLoading = false;
@@ -965,6 +997,99 @@ var render = function render() {
         _vm.$set(_vm.client, "adresse", $$v);
       },
       expression: "client.adresse"
+    }
+  })], 1)], 1), _vm._v(" "), _c("b-col", {
+    attrs: {
+      md: "6",
+      sm: "12"
+    }
+  }, [_c("b-form-group", {
+    attrs: {
+      label: _vm.$t("RingSize") || "Ring Size"
+    }
+  }, [_c("b-form-input", {
+    attrs: {
+      label: "Ring Size",
+      placeholder: "e.g. 7.5"
+    },
+    model: {
+      value: _vm.client.ring_size,
+      callback: function callback($$v) {
+        _vm.$set(_vm.client, "ring_size", $$v);
+      },
+      expression: "client.ring_size"
+    }
+  })], 1)], 1), _vm._v(" "), _c("b-col", {
+    attrs: {
+      md: "6",
+      sm: "12"
+    }
+  }, [_c("b-form-group", {
+    attrs: {
+      label: _vm.$t("AnniversaryDate") || "Anniversary Date"
+    }
+  }, [_c("b-form-input", {
+    attrs: {
+      type: "date",
+      label: "Anniversary Date"
+    },
+    model: {
+      value: _vm.client.anniversary_date,
+      callback: function callback($$v) {
+        _vm.$set(_vm.client, "anniversary_date", $$v);
+      },
+      expression: "client.anniversary_date"
+    }
+  })], 1)], 1), _vm._v(" "), _c("b-col", {
+    attrs: {
+      md: "6",
+      sm: "12"
+    }
+  }, [_c("b-form-group", {
+    attrs: {
+      label: _vm.$t("PreferredMetals") || "Preferred Metals"
+    }
+  }, [_c("v-select", {
+    attrs: {
+      multiple: "",
+      reduce: function reduce(label) {
+        return label.name;
+      },
+      label: "name",
+      placeholder: "Select metals",
+      options: _vm.metals
+    },
+    model: {
+      value: _vm.client.preferred_metals_array,
+      callback: function callback($$v) {
+        _vm.$set(_vm.client, "preferred_metals_array", $$v);
+      },
+      expression: "client.preferred_metals_array"
+    }
+  })], 1)], 1), _vm._v(" "), _c("b-col", {
+    attrs: {
+      md: "6",
+      sm: "12"
+    }
+  }, [_c("b-form-group", {
+    attrs: {
+      label: _vm.$t("PartnerCustomer") || "Partner Customer"
+    }
+  }, [_c("v-select", {
+    attrs: {
+      reduce: function reduce(label) {
+        return label.id;
+      },
+      label: "name",
+      placeholder: "Select partner customer",
+      options: _vm.clients_list
+    },
+    model: {
+      value: _vm.client.partner_customer_id,
+      callback: function callback($$v) {
+        _vm.$set(_vm.client, "partner_customer_id", $$v);
+      },
+      expression: "client.partner_customer_id"
     }
   })], 1)], 1), _vm._v(" "), _c("b-col", {
     staticClass: "mt-4 mb-4",
